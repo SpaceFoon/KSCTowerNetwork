@@ -1,0 +1,2 @@
+# Optional: raster basemap bake (scripts/build_kerbin_basemap.py)
+Pillow>=10.0.0

@@ -1,0 +1,25 @@
+{
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "scripts": {
+    "install": "node ./scripts/setup-dev.mjs",
+    "setup:bridge-node": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/ensure-bridge-node.ps1",
+    "predev": "node ./scripts/ensure-bridge-node-run.mjs",
+    "verify:voice": "node ./scripts/verify-voice-invariants.mjs",
+    "verify:acars": "node ./scripts/verify-acars-invariants.mjs",
+    "verify:tower": "npm run verify:voice && npm run verify:acars",
+    "test:voice": "npm run verify:voice && npm test --prefix ../KSCTowerNetwork-voice-bridge/voice-bridge && npm test --prefix web",
+    "test:acars": "npm run verify:acars && npm test --prefix backend && npm test --prefix web",
+    "test:mutation": "npm run test:mutation --prefix backend",
+    "test:plugin-listen-ui": "powershell -NoProfile -ExecutionPolicy Bypass -File \"./plugin-tests/run-listen-ui-tests.ps1\"",
+    "test:plugin-comm-radio-pure": "powershell -NoProfile -ExecutionPolicy Bypass -File \"./plugin-tests/run-comm-radio-pure-tests.ps1\"",
+    "dev:clean-ports": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$ports = 45173,48787,47372,47373; $listeners = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in $ports } | Select-Object -Unique LocalPort,OwningProcess; foreach ($row in $listeners) { try { Stop-Process -Id $row.OwningProcess -Force -ErrorAction Stop } catch {} }\"",
+    "dev": "%npm_node_execpath% %npm_execpath% run dev:clean-ports && concurrently -n backend,web,bridge -c blue,green,magenta \"%npm_node_execpath% %npm_execpath% run dev --prefix backend\" \"%npm_node_execpath% %npm_execpath% run dev --prefix web\" \"%npm_node_execpath% %npm_execpath% run dev --prefix ../KSCTowerNetwork-voice-bridge/voice-bridge\"",
+    "dev:backend": "%npm_node_execpath% %npm_execpath% run dev --prefix backend",
+    "dev:web": "%npm_node_execpath% %npm_execpath% run dev --prefix web",
+    "dev:bridge": "%npm_node_execpath% %npm_execpath% run dev --prefix ../KSCTowerNetwork-voice-bridge/voice-bridge"
+  }
+}
+
+

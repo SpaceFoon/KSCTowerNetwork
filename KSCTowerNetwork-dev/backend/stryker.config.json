@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "packageManager": "npm",
+  "testRunner": "command",
+  "commandRunner": {
+    "command": "node --import tsx --test --test-concurrency=1 src/tower/*.test.ts"
+  },
+  "coverageAnalysis": "off",
+  "checkers": [],
+  "mutate": [
+    "src/tower/approachQueue.ts",
+    "src/tower/separation.ts",
+    "src/tower/landingQuality.ts",
+    "src/tower/flightEdges.ts",
+    "src/tower/geo.ts",
+    "src/tower/phaseTimeline.ts",
+    "src/tower/runwayState.ts",
+    "src/tower/violations.ts",
+    "src/tower/radioState.ts"
+  ],
+  "thresholds": {
+    "high": 80,
+    "low": 70,
+    "break": 80
+  },
+  "timeoutMS": 120000,
+  "concurrency": 4
+}

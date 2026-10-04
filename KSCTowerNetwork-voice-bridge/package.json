@@ -1,0 +1,19 @@
+{
+  "name": "ksctower-voice-bridge",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "\"C:\\Users\\Darren\\AppData\\Local\\nvm\\v18.20.8\\node.exe\" node_modules/tsx/dist/cli.mjs src/bridge.ts"
+  },
+  "dependencies": {
+    "@livekit/rtc-node": "^0.13.25"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.17",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}

@@ -1,0 +1,96 @@
+# Repo lives at the KSP install root, but only the KSCTowerNetwork trees
+# belong in version control. Everything else (Squad, other mods, KSP itself,
+# saves, screenshots, logs, runtime caches) is ignored by default.
+
+# ----- 1) Ignore everything at the repo root -----
+/*
+
+# ----- 2) Ignore everything inside GameData except our mod folder -----
+/GameData/*
+
+# ----- 3) Allowlist: the only trees this repo tracks -----
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/LICENSE
+!/NOTICE.md
+!/AGENTS.md
+!/REPOSITORY_SETUP.md
+!/licenses/
+!/KSCTowerNetwork-dev/
+!/KSCTowerNetwork-voice-bridge/
+!/GameData/
+!/GameData/KSCTowerNetwork/
+
+# ----- 4) Build / dependency junk -----
+# Never commit npm/yarn installs (including bridge-runtime under GameData).
+**/node_modules/
+
+KSCTowerNetwork-dev/**/dist/
+KSCTowerNetwork-dev/**/.vite/
+KSCTowerNetwork-dev/**/build/
+KSCTowerNetwork-dev/**/reports/mutation/
+KSCTowerNetwork-dev/plugin-tests/obj/
+KSCTowerNetwork-voice-bridge/**/dist/
+
+# Build artefact staging at the workspace roots
+KSCTowerNetwork-dev/release/
+KSCTowerNetwork-dev/release-zips/
+
+# Scratch packaging output produced when staging the voice bridge runtime;
+# nothing under here should be committed even though it sits in the dev tree.
+KSCTowerNetwork-dev/voice-bridge-tmp/
+
+# Quarantine folders produced by build-plugin.ps1 hygiene check
+/KSCTowerNetwork-quarantined-*/
+/SCANsat-broken-*/
+/*-broken-*/
+/*-quarantined-*/
+
+# Portable Node for the in-game voice bridge (downloaded by KSCTowerNetwork-dev/scripts/ensure-bridge-node.ps1).
+# Do not commit — GitHub warns on >50MB; AV also hates binaries under Steam.
+GameData/KSCTowerNetwork/PluginData/bridge-runtime/node/node.exe
+
+# Third-party Kerbin aeronautical-charts PDF (not shipped; do not re-add to git).
+**/Kerbin_AEROCHARTS*.pdf
+
+# ----- 5) Secrets / per-user / per-deployment files (never commit) -----
+GameData/KSCTowerNetwork/PluginData/auth.cfg
+KSCTowerNetwork-dev/release-config.json
+**/.env
+**/.env.local
+**/.env.*.local
+**/.env.development
+**/.env.production
+# Keep templates tracked: .env.example, .env.production.example, etc.
+
+# ----- 6) OS / editor noise -----
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+
+# Source-only repository and runtime state
+**/obj/
+**/*.dll
+**/*.pdb
+**/*.log
+**/*.tgz
+GameData/KSCTowerNetwork/PluginData/bridge-runtime/app/
+GameData/KSCTowerNetwork/PluginData/settings.cfg
+GameData/KSCTowerNetwork/PluginData/maps/
+GameData/KSCTowerNetwork/PluginData/fonts/
+KSCTowerNetwork-dev/backend/data/invite-codes*.json
+KSCTowerNetwork-dev/backend/data/registered-users*.json
+**/release-config.json
+**/*.ttf
+**/*.TTF
+KSCTowerNetwork-dev/web/public/charts/*
+!KSCTowerNetwork-dev/web/public/charts/manifest.json
+KSCTowerNetwork-dev/web/public/maps/kerbin-jebbesen-terrain.svg
+KSCTowerNetwork-dev/web/public/maps/_earth_src/biomes_of_the_world.svg
+KSCTowerNetwork-dev/web/public/maps/_earth_src/world_koppen_classification.svg

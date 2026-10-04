@@ -1,0 +1,27 @@
+{
+  "$comment": "Copy this to release-config.json (gitignored) and fill in your hosts. The package-release.ps1 script reads it and bakes the values into the staged release: settings.cfg, the web build, and start-bridge.cmd defaults.",
+
+  "version": "0.1.0",
+
+  "backend": {
+    "$comment": "Public origin where the backend API lives, with no trailing slash.",
+    "origin": "https://api.tower.example.com",
+    "$comment_apiPath": "Path the backend mounts the v1 API at. Default is /v1.",
+    "apiPath": "/v1"
+  },
+
+  "web": {
+    "$comment": "Public origin where the SPA lives. May equal backend.origin for single-origin deployments.",
+    "origin": "https://tower.example.com"
+  },
+
+  "livekit": {
+    "$comment": "WebSocket URL of your LiveKit Cloud project. Used only as documentation here; backend reads it from its own env.",
+    "wsUrl": "wss://your-project.livekit.cloud"
+  },
+
+  "session": {
+    "$comment": "Default channel name baked into the shipped settings.cfg. Players can change it in-game.",
+    "id": "tower-public"
+  }
+}

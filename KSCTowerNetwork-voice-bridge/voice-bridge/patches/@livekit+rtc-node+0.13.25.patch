@@ -1,0 +1,99 @@
+diff --git a/node_modules/@livekit/rtc-node/dist/room.cjs b/node_modules/@livekit/rtc-node/dist/room.cjs
+index a092626..67d02e8 100644
+--- a/node_modules/@livekit/rtc-node/dist/room.cjs
++++ b/node_modules/@livekit/rtc-node/dist/room.cjs
+@@ -118,8 +118,13 @@ class Room extends import_events.default {
+         console.log("Room event:", ev);
+       }
+       if (ev.case == "participantConnected") {
+-        const participant = this.createRemoteParticipant(ev.value.info);
+-        this.remoteParticipants.set(participant.identity, participant);
++        const owned = ev.value.info;
++        const identity = owned.info.identity;
++        if (this.remoteParticipants.has(identity)) {
++          import_log.log.warn(`RoomEvent.ParticipantConnected: duplicate identity ${identity}, ignoring`);
++          return;
++        }
++        const participant = this.createRemoteParticipant(owned);
+         this.emit("participantConnected" /* ParticipantConnected */, participant);
+       } else if (ev.case == "participantDisconnected") {
+         const participant = this.remoteParticipants.get(ev.value.participantIdentity);
+@@ -314,7 +319,11 @@ class Room extends import_events.default {
+               dataPacket.value.data.data.dataPtr,
+               Number(dataPacket.value.data.data.dataLen)
+             );
+-            new import_ffi_client.FfiHandle(dataPacket.value.data.handle.id).dispose();
++            try {
++              new import_ffi_client.FfiHandle(dataPacket.value.data.handle.id).dispose();
++            } catch (e) {
++              import_log.log.warn("RoomEvent.DataPacketReceived: failed to dispose user data handle: " + String(e));
++            }
+             this.emit(
+               "dataReceived" /* DataReceived */,
+               buffer,
+diff --git a/node_modules/@livekit/rtc-node/dist/room.js b/node_modules/@livekit/rtc-node/dist/room.js
+index d2f74e4..c5fedfd 100644
+--- a/node_modules/@livekit/rtc-node/dist/room.js
++++ b/node_modules/@livekit/rtc-node/dist/room.js
+@@ -87,8 +87,13 @@ class Room extends EventEmitter {
+         console.log("Room event:", ev);
+       }
+       if (ev.case == "participantConnected") {
+-        const participant = this.createRemoteParticipant(ev.value.info);
+-        this.remoteParticipants.set(participant.identity, participant);
++        const owned = ev.value.info;
++        const identity = owned.info.identity;
++        if (this.remoteParticipants.has(identity)) {
++          log.warn(`RoomEvent.ParticipantConnected: duplicate identity ${identity}, ignoring`);
++          return;
++        }
++        const participant = this.createRemoteParticipant(owned);
+         this.emit("participantConnected" /* ParticipantConnected */, participant);
+       } else if (ev.case == "participantDisconnected") {
+         const participant = this.remoteParticipants.get(ev.value.participantIdentity);
+@@ -283,7 +288,11 @@ class Room extends EventEmitter {
+               dataPacket.value.data.data.dataPtr,
+               Number(dataPacket.value.data.data.dataLen)
+             );
+-            new FfiHandle(dataPacket.value.data.handle.id).dispose();
++            try {
++              new FfiHandle(dataPacket.value.data.handle.id).dispose();
++            } catch (e) {
++              log.warn("RoomEvent.DataPacketReceived: failed to dispose user data handle: " + String(e));
++            }
+             this.emit(
+               "dataReceived" /* DataReceived */,
+               buffer,
+diff --git a/node_modules/@livekit/rtc-node/src/room.ts b/node_modules/@livekit/rtc-node/src/room.ts
+index 6ef6bf6..af70a8b 100644
+--- a/node_modules/@livekit/rtc-node/src/room.ts
++++ b/node_modules/@livekit/rtc-node/src/room.ts
+@@ -374,8 +374,13 @@ export class Room extends (EventEmitter as new () => TypedEmitter<RoomCallbacks>
+       console.log('Room event:', ev);
+     }
+     if (ev.case == 'participantConnected') {
+-      const participant = this.createRemoteParticipant(ev.value.info!);
+-      this.remoteParticipants.set(participant.identity!, participant);
++      const owned = ev.value.info!;
++      const identity = owned.info!.identity!;
++      if (this.remoteParticipants.has(identity)) {
++        log.warn(`RoomEvent.ParticipantConnected: duplicate identity ${identity}, ignoring`);
++        return;
++      }
++      const participant = this.createRemoteParticipant(owned);
+       this.emit(RoomEvent.ParticipantConnected, participant);
+     } else if (ev.case == 'participantDisconnected') {
+       const participant = this.remoteParticipants.get(ev.value.participantIdentity!);
+@@ -572,7 +577,11 @@ export class Room extends (EventEmitter as new () => TypedEmitter<RoomCallbacks>
+             dataPacket.value.data!.data!.dataPtr!,
+             Number(dataPacket.value.data!.data!.dataLen),
+           );
+-          new FfiHandle(dataPacket.value.data!.handle!.id!).dispose();
++          try {
++            new FfiHandle(dataPacket.value.data!.handle!.id!).dispose();
++          } catch (e) {
++            log.warn("RoomEvent.DataPacketReceived: failed to dispose user data handle: " + String(e));
++          }
+           this.emit(
+             RoomEvent.DataReceived,
+             buffer,

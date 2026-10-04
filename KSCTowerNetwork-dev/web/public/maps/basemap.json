@@ -1,0 +1,75 @@
+{
+  "projection": "equirectangular",
+  "viewBoxWidth": 596,
+  "viewBoxHeight": 298,
+  "kind": "svg",
+  "uri": "maps/kerbin-base-schematic.svg",
+  "assetVersion": 7,
+  "attribution": "KSCTowerNetwork Kerbin schematic basemap (in-repo). Live texture bake from KSP may replace this when connected.",
+  "chartBlurb": "Simple equirectangular plate with ocean fill and graticule pattern. Alt / biome / slope use the same viewBox until live bake or future atlas assets land.",
+  "hypsometryKey": "generic",
+  "byBody": {
+    "Kerbin": {
+      "projection": "equirectangular",
+      "viewBoxWidth": 596,
+      "viewBoxHeight": 298,
+      "kind": "svg",
+      "uri": "maps/kerbin-base-schematic.svg",
+      "assetVersion": 7,
+      "attribution": "KSCTowerNetwork Kerbin schematic basemap (in-repo).",
+      "chartBlurb": "Stock Kerbin tower map default. Alt / biome / slope layers use owned schematic recolours until live bake or ScanSat atlas replaces them.",
+      "hypsometryKey": "generic",
+      "layers": {
+        "alt": {
+          "uri": "maps/kerbin-base-schematic.svg",
+          "assetVersion": 7,
+          "attribution": "KSCTowerNetwork Kerbin schematic (alt slot placeholder). Replaced by live PQS scaled-body bake when the plugin publishes one.",
+          "hypsometryKey": "generic"
+        },
+        "biome": {
+          "uri": "maps/kerbin-base-schematic.svg",
+          "assetVersion": 7,
+          "attribution": "KSCTowerNetwork Kerbin schematic (biome slot placeholder). Replaced by live biome bake when the plugin publishes one.",
+          "hypsometryKey": "generic"
+        },
+        "slope": {
+          "uri": "maps/kerbin-base-schematic.svg",
+          "assetVersion": 7,
+          "attribution": "KSCTowerNetwork Kerbin schematic (slope slot placeholder). Replaced by live or atlas slope when available.",
+          "hypsometryKey": "generic"
+        }
+      }
+    },
+    "Earth": {
+      "projection": "equirectangular",
+      "viewBoxWidth": 596,
+      "viewBoxHeight": 298,
+      "kind": "svg",
+      "uri": "maps/earth-topo5-equirect.svg",
+      "assetVersion": 2,
+      "attribution": "Wikimedia World_topo_5layers.svg, Dbachmann (CC BY-SA 4.0 / GFDL); ETOPO1-derived. Remapped to -180/+180 \u00d7 -90/+90 by build_earth_svg.py.",
+      "chartBlurb": "Vector Earth plate for RSS. Sharp at any zoom. 5 bands: -130\u20130 / 0\u2013250 / 250\u20131000 / 1000\u20132500 / 2500 m+. Biome/Slope are elevation-derived proxies until the PQS bake lands.",
+      "hypsometryKey": "generic",
+      "layers": {
+        "alt": {
+          "uri": "maps/earth-topo5-equirect.svg",
+          "assetVersion": 2,
+          "attribution": "Earth Alt plate \u2014 adapted from Wikimedia Commons File:World_topo_5layers.svg (CC BY-SA 4.0). 5-band hypsometric tints.",
+          "hypsometryKey": "generic"
+        },
+        "biome": {
+          "uri": "maps/earth-topo5-biome-equirect.svg",
+          "assetVersion": 1,
+          "attribution": "Earth Biome plate \u2014 elevation-derived visual proxy from the same World_topo_5layers source. Vegetation tints (forest / grassland / arid / alpine) keyed to elevation bands; not a published K\u00f6ppen or WWF biome dataset. Replaced by the live PQS biome bake when the in-game plugin publishes one.",
+          "hypsometryKey": "generic"
+        },
+        "slope": {
+          "uri": "maps/earth-topo5-slope-equirect.svg",
+          "assetVersion": 1,
+          "attribution": "Earth Slope plate \u2014 elevation-derived visual proxy from the same World_topo_5layers source. Higher elevation bands shaded as steeper (red/orange) and lower bands as flat (blue/green); not a true slope or ruggedness dataset. Replaced by the live PQS slope bake when the in-game plugin publishes one.",
+          "hypsometryKey": "generic"
+        }
+      }
+    }
+  }
+}

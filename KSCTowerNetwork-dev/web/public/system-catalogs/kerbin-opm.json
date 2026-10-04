@@ -1,0 +1,342 @@
+{
+  "schemaVersion": 1,
+  "worldId": "kerbin-opm",
+  "displayName": "Stock Kerbol + Outer Planets Mod",
+  "starName": "Kerbol",
+  "bodies": [
+    {
+      "name": "Kerbol",
+      "displayName": "Kerbol (the Sun)",
+      "parent": null,
+      "isStar": true,
+      "radiusM": 261600000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 600000,
+      "rotationPeriodSec": 432000,
+      "gravityParameterM3S2": 1.1723328e18,
+      "sphereOfInfluenceM": null,
+      "semiMajorAxisM": 0
+    },
+    {
+      "name": "Moho",
+      "displayName": "Moho",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 250000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 1210000,
+      "semiMajorAxisM": 5263138304
+    },
+    {
+      "name": "Eve",
+      "displayName": "Eve",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 700000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 90000,
+      "rotationPeriodSec": 80500,
+      "semiMajorAxisM": 9832684544
+    },
+    {
+      "name": "Gilly",
+      "displayName": "Gilly",
+      "parent": "Eve",
+      "isStar": false,
+      "radiusM": 13000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 28255,
+      "semiMajorAxisM": 31500000
+    },
+    {
+      "name": "Kerbin",
+      "displayName": "Kerbin",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 600000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 70000,
+      "rotationPeriodSec": 21549.425,
+      "gravityParameterM3S2": 3.5316e12,
+      "semiMajorAxisM": 13599840256
+    },
+    {
+      "name": "Mun",
+      "displayName": "Mun",
+      "parent": "Kerbin",
+      "isStar": false,
+      "radiusM": 200000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 138984.38,
+      "semiMajorAxisM": 12000000
+    },
+    {
+      "name": "Minmus",
+      "displayName": "Minmus",
+      "parent": "Kerbin",
+      "isStar": false,
+      "radiusM": 60000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 40400,
+      "semiMajorAxisM": 47000000
+    },
+    {
+      "name": "Duna",
+      "displayName": "Duna",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 320000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 50000,
+      "rotationPeriodSec": 65517.859,
+      "semiMajorAxisM": 20726155264
+    },
+    {
+      "name": "Ike",
+      "displayName": "Ike",
+      "parent": "Duna",
+      "isStar": false,
+      "radiusM": 130000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 65517.862,
+      "semiMajorAxisM": 3200000
+    },
+    {
+      "name": "Dres",
+      "displayName": "Dres",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 138000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 34800,
+      "semiMajorAxisM": 40839348203
+    },
+    {
+      "name": "Jool",
+      "displayName": "Jool",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 6000000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 200000,
+      "rotationPeriodSec": 36000,
+      "semiMajorAxisM": 68773560320
+    },
+    {
+      "name": "Laythe",
+      "displayName": "Laythe",
+      "parent": "Jool",
+      "isStar": false,
+      "radiusM": 500000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 50000,
+      "rotationPeriodSec": 52980.879,
+      "semiMajorAxisM": 27184000
+    },
+    {
+      "name": "Vall",
+      "displayName": "Vall",
+      "parent": "Jool",
+      "isStar": false,
+      "radiusM": 300000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 105962.09,
+      "semiMajorAxisM": 43152000
+    },
+    {
+      "name": "Tylo",
+      "displayName": "Tylo",
+      "parent": "Jool",
+      "isStar": false,
+      "radiusM": 600000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 211926.36,
+      "semiMajorAxisM": 68500000
+    },
+    {
+      "name": "Bop",
+      "displayName": "Bop",
+      "parent": "Jool",
+      "isStar": false,
+      "radiusM": 65000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 544507.4,
+      "semiMajorAxisM": 128500000
+    },
+    {
+      "name": "Pol",
+      "displayName": "Pol",
+      "parent": "Jool",
+      "isStar": false,
+      "radiusM": 44000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 901902.62,
+      "semiMajorAxisM": 179890000
+    },
+    {
+      "name": "Sarnus",
+      "displayName": "Sarnus (OPM)",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 5300000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 580000,
+      "rotationPeriodSec": 28200,
+      "semiMajorAxisM": 125798522368
+    },
+    {
+      "name": "Hale",
+      "displayName": "Hale (OPM)",
+      "parent": "Sarnus",
+      "isStar": false,
+      "radiusM": 6000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 21789,
+      "semiMajorAxisM": 10488231
+    },
+    {
+      "name": "Ovok",
+      "displayName": "Ovok (OPM)",
+      "parent": "Sarnus",
+      "isStar": false,
+      "radiusM": 26000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 29611,
+      "semiMajorAxisM": 12169413
+    },
+    {
+      "name": "Eeloo",
+      "displayName": "Eeloo (OPM moon of Sarnus)",
+      "parent": "Sarnus",
+      "isStar": false,
+      "radiusM": 210000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 19460,
+      "semiMajorAxisM": 19105978
+    },
+    {
+      "name": "Slate",
+      "displayName": "Slate (OPM)",
+      "parent": "Sarnus",
+      "isStar": false,
+      "radiusM": 540000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 192602,
+      "semiMajorAxisM": 42592946
+    },
+    {
+      "name": "Tekto",
+      "displayName": "Tekto (OPM)",
+      "parent": "Sarnus",
+      "isStar": false,
+      "radiusM": 280000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 95000,
+      "rotationPeriodSec": 666040,
+      "semiMajorAxisM": 97355304
+    },
+    {
+      "name": "Urlum",
+      "displayName": "Urlum (OPM)",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 2177000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 325000,
+      "rotationPeriodSec": 41000,
+      "semiMajorAxisM": 254317012787
+    },
+    {
+      "name": "Polta",
+      "displayName": "Polta (OPM)",
+      "parent": "Urlum",
+      "isStar": false,
+      "radiusM": 220000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 73005,
+      "semiMajorAxisM": 11727895
+    },
+    {
+      "name": "Priax",
+      "displayName": "Priax (OPM)",
+      "parent": "Urlum",
+      "isStar": false,
+      "radiusM": 74000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 74000,
+      "semiMajorAxisM": 11727895
+    },
+    {
+      "name": "Wal",
+      "displayName": "Wal (OPM)",
+      "parent": "Urlum",
+      "isStar": false,
+      "radiusM": 370000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 1612836,
+      "semiMajorAxisM": 86247728
+    },
+    {
+      "name": "Tal",
+      "displayName": "Tal (OPM)",
+      "parent": "Wal",
+      "isStar": false,
+      "radiusM": 22000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 48000,
+      "semiMajorAxisM": 3109163
+    },
+    {
+      "name": "Neidon",
+      "displayName": "Neidon (OPM)",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 2145000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 260000,
+      "rotationPeriodSec": 40250,
+      "semiMajorAxisM": 409355191706
+    },
+    {
+      "name": "Thatmo",
+      "displayName": "Thatmo (OPM)",
+      "parent": "Neidon",
+      "isStar": false,
+      "radiusM": 286000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 35000,
+      "rotationPeriodSec": 306390,
+      "semiMajorAxisM": 32300895
+    },
+    {
+      "name": "Nissee",
+      "displayName": "Nissee (OPM)",
+      "parent": "Neidon",
+      "isStar": false,
+      "radiusM": 30000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 27924,
+      "semiMajorAxisM": 487743514
+    },
+    {
+      "name": "Plock",
+      "displayName": "Plock (OPM)",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 189000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 106309,
+      "semiMajorAxisM": 535833706086
+    },
+    {
+      "name": "Karen",
+      "displayName": "Karen (OPM)",
+      "parent": "Plock",
+      "isStar": false,
+      "radiusM": 85700,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 388566,
+      "semiMajorAxisM": 2457700
+    }
+  ]
+}

@@ -1,0 +1,278 @@
+{
+  "schemaVersion": 1,
+  "worldId": "kerbin-jnsq",
+  "displayName": "JNSQ (Jool's New System Quest)",
+  "starName": "Kerbol",
+  "bodies": [
+    {
+      "name": "Kerbol",
+      "displayName": "Kerbol (the Sun)",
+      "parent": null,
+      "isStar": true,
+      "radiusM": 700000000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 800000,
+      "rotationPeriodSec": 432000,
+      "gravityParameterM3S2": 1.4e21,
+      "sphereOfInfluenceM": null,
+      "semiMajorAxisM": 0
+    },
+    {
+      "name": "Moho",
+      "displayName": "Moho",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 550000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 1210000,
+      "semiMajorAxisM": 52000000000
+    },
+    {
+      "name": "Eve",
+      "displayName": "Eve",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 1610000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 110000,
+      "rotationPeriodSec": 80500,
+      "semiMajorAxisM": 95000000000
+    },
+    {
+      "name": "Gilly",
+      "displayName": "Gilly",
+      "parent": "Eve",
+      "isStar": false,
+      "radiusM": 35000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 28255,
+      "semiMajorAxisM": 145000000
+    },
+    {
+      "name": "Kerbin",
+      "displayName": "Kerbin",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 1620000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 100000,
+      "rotationPeriodSec": 21600,
+      "gravityParameterM3S2": 9.5e12,
+      "semiMajorAxisM": 136000000000
+    },
+    {
+      "name": "Mun",
+      "displayName": "Mun",
+      "parent": "Kerbin",
+      "isStar": false,
+      "radiusM": 540000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 138984,
+      "semiMajorAxisM": 33000000
+    },
+    {
+      "name": "Minmus",
+      "displayName": "Minmus",
+      "parent": "Kerbin",
+      "isStar": false,
+      "radiusM": 162000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 40400,
+      "semiMajorAxisM": 90000000
+    },
+    {
+      "name": "Duna",
+      "displayName": "Duna",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 740000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 60000,
+      "rotationPeriodSec": 65517,
+      "semiMajorAxisM": 207000000000
+    },
+    {
+      "name": "Ike",
+      "displayName": "Ike",
+      "parent": "Duna",
+      "isStar": false,
+      "radiusM": 351000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 65517,
+      "semiMajorAxisM": 9500000
+    },
+    {
+      "name": "Edas",
+      "displayName": "Edas (JNSQ)",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 200000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 50000,
+      "semiMajorAxisM": 280000000000
+    },
+    {
+      "name": "Dres",
+      "displayName": "Dres",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 372000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 34800,
+      "semiMajorAxisM": 408000000000
+    },
+    {
+      "name": "Jool",
+      "displayName": "Jool",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 13750000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 250000,
+      "rotationPeriodSec": 36000,
+      "semiMajorAxisM": 687000000000
+    },
+    {
+      "name": "Laythe",
+      "displayName": "Laythe",
+      "parent": "Jool",
+      "isStar": false,
+      "radiusM": 1352000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 60000,
+      "rotationPeriodSec": 52980,
+      "semiMajorAxisM": 73000000
+    },
+    {
+      "name": "Vall",
+      "displayName": "Vall",
+      "parent": "Jool",
+      "isStar": false,
+      "radiusM": 810000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 105962,
+      "semiMajorAxisM": 116000000
+    },
+    {
+      "name": "Tylo",
+      "displayName": "Tylo",
+      "parent": "Jool",
+      "isStar": false,
+      "radiusM": 1620000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 211926,
+      "semiMajorAxisM": 184000000
+    },
+    {
+      "name": "Bop",
+      "displayName": "Bop",
+      "parent": "Jool",
+      "isStar": false,
+      "radiusM": 175000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 544507,
+      "semiMajorAxisM": 343000000
+    },
+    {
+      "name": "Pol",
+      "displayName": "Pol",
+      "parent": "Jool",
+      "isStar": false,
+      "radiusM": 118000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 901902,
+      "semiMajorAxisM": 484000000
+    },
+    {
+      "name": "Lindor",
+      "displayName": "Lindor (JNSQ)",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 9500000,
+      "hasAtmosphere": true,
+      "atmosphereDepthM": 200000,
+      "rotationPeriodSec": 50000,
+      "semiMajorAxisM": 1310000000000
+    },
+    {
+      "name": "Krel",
+      "displayName": "Krel (JNSQ)",
+      "parent": "Lindor",
+      "isStar": false,
+      "radiusM": 470000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 200000,
+      "semiMajorAxisM": 95000000
+    },
+    {
+      "name": "Aden",
+      "displayName": "Aden (JNSQ)",
+      "parent": "Lindor",
+      "isStar": false,
+      "radiusM": 220000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 240000,
+      "semiMajorAxisM": 175000000
+    },
+    {
+      "name": "Riga",
+      "displayName": "Riga (JNSQ)",
+      "parent": "Lindor",
+      "isStar": false,
+      "radiusM": 460000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 320000,
+      "semiMajorAxisM": 300000000
+    },
+    {
+      "name": "Talos",
+      "displayName": "Talos (JNSQ)",
+      "parent": "Lindor",
+      "isStar": false,
+      "radiusM": 380000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 400000,
+      "semiMajorAxisM": 480000000
+    },
+    {
+      "name": "Eeloo",
+      "displayName": "Eeloo",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 567000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 19460,
+      "semiMajorAxisM": 1900000000000
+    },
+    {
+      "name": "Hamek",
+      "displayName": "Hamek (JNSQ)",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 215000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 800000,
+      "semiMajorAxisM": 2500000000000
+    },
+    {
+      "name": "Nara",
+      "displayName": "Nara (JNSQ)",
+      "parent": "Kerbol",
+      "isStar": false,
+      "radiusM": 290000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 750000,
+      "semiMajorAxisM": 3300000000000
+    },
+    {
+      "name": "Amos",
+      "displayName": "Amos (JNSQ)",
+      "parent": "Nara",
+      "isStar": false,
+      "radiusM": 110000,
+      "hasAtmosphere": false,
+      "rotationPeriodSec": 200000,
+      "semiMajorAxisM": 4500000
+    }
+  ]
+}

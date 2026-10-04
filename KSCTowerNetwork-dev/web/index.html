@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Defence-in-depth CSP. The XSS sink in TowerDesk's basemap render is now
+      sanitized server-side (worldMaps.ts: sanitizeSvgBytes) but this header
+      blocks a class of follow-on bugs (third-party script tags, eval, inline
+      handlers, framed phishing).
+
+      'unsafe-inline' for style-src is required by several deps (LiveKit
+      client, some chart libs) that inject style attributes; we deliberately
+      do NOT allow it for script-src in production. Vite's dev HMR client and
+      React build output both load as modules, which 'self' covers.
+
+      Dev note: vite.config.ts's securityHeadersPlugin rewrites this meta tag
+      at serve-time to add 'unsafe-inline' to script-src, because
+      @vitejs/plugin-react injects the React Refresh preamble inline. The
+      production build keeps this strict policy unchanged.
+
+      frame-ancestors is intentionally omitted here: browsers ignore that
+      directive when delivered via <meta>. It is enforced via the HTTP
+      Content-Security-Policy header set by the dev plugin and by the prod
+      reverse proxy (nginx/Cloudflare), and X-Frame-Options: DENY is the
+      legacy fallback.
+
+      connect-src is wide because the SPA talks to: same-origin /v1, the
+      LiveKit cloud over wss://*.livekit.cloud, and Vite HMR over ws://. If
+      you self-host LiveKit, tighten this to your specific wss:// host.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self';
+        script-src 'self';
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: blob:;
+        font-src 'self' data:;
+        connect-src 'self' ws: wss: https:;
+        media-src 'self' blob:;
+        worker-src 'self' blob:;
+        base-uri 'self';
+        form-action 'self';
+        object-src 'none';
+        upgrade-insecure-requests
+      "
+    />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta name="referrer" content="no-referrer" />
+    <!--
+      Favicon: SVG-only, no PNG/ICO fallback. Chromium / Firefox / Safari
+      all support image/svg+xml icons since 2020+. `sizes="any"` tells the
+      browser the SVG is resolution-independent so it stops asking for an
+      ICO. apple-touch-icon points at the same file for iOS home-screen.
+
+      If you don't see this update in the browser tab, the cache is stuck:
+      hit /favicon.svg directly to force a refetch, or clear the favicon
+      cache (Chrome: chrome://favicon/ ; Firefox: profile/favicons.sqlite).
+    -->
+    <!--
+      ?v= cache-buster: bump this whenever favicon.svg / brand-mark.svg
+      change. Browsers cache favicons aggressively (Chrome will hold a
+      stale icon for hours even after Ctrl+Shift+R), and an HTML edit
+      that only touches the file contents won't trigger a refetch
+      because the URL hasn't changed. Bumping ?v= forces a new GET.
+    -->
+    <link rel="icon" type="image/svg+xml" sizes="any" href="/favicon.svg?v=5" />
+    <link rel="apple-touch-icon" href="/favicon.svg?v=5" />
+    <meta name="theme-color" content="#2a1c0d" />
+    <title>KSC Tower Network</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,7561 @@
+:root {
+  color-scheme: dark;
+  --bg: #0a0e13;
+  --panel: #141c26;
+  --panel-elev: #182231;
+  --border: #2a3340;
+  --text: #e8eef5;
+  --muted: #93a3b8;
+  --accent: #ffb84d;
+  --accent-soft: rgb(255 184 77 / 0.14);
+  --accent-strong: #ffd07a;
+  --danger: #ff6b6b;
+  --ok: #5fe39a;
+  --ok-soft: rgb(95 227 154 / 0.12);
+  font-family: "Segoe UI", system-ui, sans-serif;
+  line-height: 1.45;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* Backend unreachable (fetch failed before HTTP) */
+.api-offline-global {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.55rem 1rem;
+  background: rgb(255 107 107 / 0.12);
+  border-bottom: 1px solid rgb(255 107 107 / 0.35);
+  color: #fecaca;
+  font-size: 0.88rem;
+}
+
+.api-offline-global-text {
+  flex: 1;
+  min-width: min(100%, 14rem);
+}
+
+.api-offline-global-dismiss {
+  flex-shrink: 0;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.82rem;
+}
+
+.api-offline-inline {
+  margin-top: 0.65rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid rgb(255 107 107 / 0.4);
+  background: rgb(255 107 107 / 0.08);
+  color: #fecaca;
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+a {
+  color: var(--accent);
+}
+
+code,
+pre {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+}
+
+button {
+  cursor: pointer;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.95rem;
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input,
+textarea {
+  background: #0b0f14;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 0.65rem;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  padding: 0;
+  background: transparent;
+  border: none;
+  accent-color: var(--accent);
+}
+
+input[type="range"] {
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  accent-color: var(--accent);
+}
+
+/* Token paste box — must stay visually obvious on dark theme */
+textarea.auth-token-field {
+  display: block;
+  min-height: 6rem;
+  margin-top: 0.35rem;
+  margin-bottom: 0.5rem;
+  border: 2px solid var(--accent);
+  background: #050810;
+  box-shadow: inset 0 0 0 1px rgba(255, 184, 77, 0.28);
+  resize: vertical;
+  line-height: 1.4;
+}
+
+textarea.auth-token-field::placeholder {
+  color: #5a6b82;
+  opacity: 1;
+}
+
+textarea.auth-token-field:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+label.auth-token-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 0.25rem;
+}
+
+.layout {
+  margin: 0 auto;
+  padding: .75rem;
+}
+
+/* ---- App shell top bar ---------------------------------------------------- */
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: linear-gradient(180deg, #131c27 0%, #00060f 100%);
+  border-bottom: 1px solid #2a3340;
+  box-shadow: 0 1px 0 rgb(255 184 77 / 0.12), 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.app-topbar-inner {
+  max-width: 100%;
+  margin: 0 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.55rem 1.25rem;
+  flex-wrap: wrap;
+}
+
+.app-topbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.app-topbar-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #2a1c0d 0%, #3d2a14 100%);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(255, 184, 77, 0.55);
+  text-shadow: 0 0 6px rgb(255 184 77 / 0.45);
+  overflow: hidden;
+}
+
+.app-topbar-brand-mark-img {
+  width: 90%;
+  height: 90%;
+  display: block;
+  filter: drop-shadow(0 0 4px rgb(255 184 77 / 0.45));
+  user-select: none;
+  pointer-events: none;
+}
+
+.app-topbar-brand-text {
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+.app-topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.app-topbar-link {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: color 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.app-topbar-link:hover {
+  color: var(--text);
+  background: rgba(255, 184, 77, 0.08);
+}
+
+.app-topbar-link.active {
+  color: var(--accent);
+  background: rgba(255, 184, 77, 0.14);
+  border-color: rgba(255, 184, 77, 0.45);
+}
+
+/* Unread badge attached to a topbar nav link (currently used by DMs). Sits
+ * inline next to the label so the link still wraps cleanly on narrow widths,
+ * and uses an alert-red fill so it reads as a notification rather than a
+ * decorative pill. */
+.app-topbar-link-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.1rem;
+  padding: 0 0.35rem;
+  margin-left: 0.4rem;
+  border-radius: 999px;
+  background: #c43c3c;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: baseline;
+}
+
+.app-topbar-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-shrink: 0;
+}
+
+.app-topbar-session {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #060a12;
+  font-size: 0.82rem;
+  color: var(--text);
+  max-width: 22rem;
+  overflow: hidden;
+  line-height: 1;
+}
+
+.app-topbar-session-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.5rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  background: rgb(255 184 77 / 0.1);
+  border-right: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.app-topbar-session-name {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.32rem 0.55rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.app-topbar-session-freq {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.55rem;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 1px solid var(--border);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.app-topbar-session-empty .app-topbar-session-label {
+  color: var(--muted);
+  background: transparent;
+}
+
+.app-topbar-session-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.32rem 0.55rem;
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.app-topbar-session-link:hover {
+  color: var(--accent);
+}
+
+.app-topbar-userid {
+  font-size: 0.85rem;
+  color: var(--muted);
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-topbar-signout {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.85rem;
+}
+
+/* Voice controls live on the primary topbar row (not a second strip). */
+.app-topbar-voice {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(6, 10, 18, 0.55);
+}
+
+.app-topbar-voice-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.app-topbar-voice-status {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.app-topbar-voice-status.on {
+  color: var(--ok);
+}
+
+.app-topbar-voice-link {
+  font-size: 0.74rem;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.app-topbar-voice-link:hover {
+  text-decoration: underline;
+}
+
+.app-topbar-voice-ptt {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 184, 77, 0.45);
+  background: rgba(255, 184, 77, 0.12);
+  color: var(--accent);
+  cursor: pointer;
+  user-select: none;
+}
+
+.app-topbar-voice-ptt.hot {
+  background: rgba(95, 227, 154, 0.25);
+  border-color: rgba(95, 227, 154, 0.65);
+  color: #b8ffd8;
+}
+
+.app-shell-hidden-voice-host {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Shell countdown: same look as `.atc-countdown-clock.running` (see ATC block); this
+   class only handles placement + a slightly smaller type scale under the topbar. */
+.global-countdown-box {
+  margin: 0.55rem auto 0;
+  width: fit-content;
+  min-width: 6.5rem;
+  font-size: 1.15rem;
+  padding: 0.35rem 0.65rem;
+}
+
+.app-topbar-role {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: #060a12;
+  color: var(--muted);
+}
+
+.app-topbar-role.role-owner {
+  border-color: rgba(255, 184, 77, 0.7);
+  color: var(--accent-strong, var(--accent));
+  background: rgb(255 184 77 / 0.08);
+}
+.app-topbar-role.role-supermod,
+.app-topbar-role.role-mod {
+  border-color: rgba(255, 107, 107, 0.55);
+  color: #ffd0d0;
+  background: rgb(255 107 107 / 0.06);
+}
+.app-topbar-role.role-controller {
+  border-color: rgba(95, 227, 154, 0.55);
+  color: var(--ok);
+}
+.app-topbar-role.role-pilot {
+  border-color: rgba(255, 184, 77, 0.45);
+  color: var(--accent);
+}
+.app-topbar-role.role-guest {
+  border-style: dashed;
+}
+
+@media (max-width: 820px) {
+  .app-topbar-inner {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .app-topbar-nav {
+    order: 3;
+    flex-basis: 100%;
+    overflow-x: auto;
+  }
+  .app-topbar-userid {
+    max-width: 8rem;
+  }
+}
+
+/* ---- Page header (used inside shell, per-route) -------------------------- */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+.page-header p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.page-header-id {
+  font-size: 0.85em;
+  color: var(--accent);
+  background: #060a12;
+  padding: 0.05rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  margin-left: 0.35rem;
+  vertical-align: 0.1em;
+}
+
+/* Right-side action cluster on a .page-header (e.g. lobby header buttons).
+ * Sits opposite the title because .page-header already uses
+ * justify-content: space-between. Buttons styled to read as primary actions
+ * without competing with the topbar nav. */
+.page-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.page-header-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #060a12;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.page-header-action:hover,
+.page-header-action:focus-visible {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #000;
+  outline: none;
+}
+
+/* ---- Tower-specific page header (title | ops strip | actions) ---------- */
+.tower-page-header {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.tower-header-title {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.tower-header-note {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+.tower-header-ops {
+  display: flex;
+  flex: 2 1 28rem;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.tower-header-ops-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.4rem 0.7rem;
+  background: #060a12;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  min-width: 6rem;
+}
+
+.tower-header-ops-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.tower-header-ops-value {
+  font-size: 0.92rem;
+  color: var(--text, #d8e2ff);
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.tower-header-ops-value.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.tower-header-ops-value.tower-op.is-me {
+  color: #7dffb0;
+}
+
+.tower-header-ops-value.tower-op.is-other {
+  color: var(--accent);
+}
+
+.tower-header-ops-value.tower-op.is-empty {
+  color: #ffb86b;
+  font-style: italic;
+}
+
+.tower-header-actions {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.tower-header-actions button {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Full /tower workspace (embedded desk): sidebar is hidden; controller tools sit under the wall. */
+.tower-embedded-controller-strip {
+  margin-top: 0.75rem;
+  max-width: 52rem;
+}
+
+.tower-clearances-stack .card-head {
+  margin-bottom: 0.35rem;
+}
+
+.tower-staging-move-panel {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.tower-staging-preset-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.tower-staging-preset-btn {
+  text-align: left;
+  font-size: 0.82rem;
+  padding: 0.45rem 0.55rem;
+  line-height: 1.25;
+}
+
+/* ---- Session + voice control panel (used in Chat) ----------------------- */
+.session-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.session-panel-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.session-panel-label {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.session-panel-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.session-panel-input-row > input {
+  flex: 1;
+  min-width: 0;
+}
+
+.session-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.session-panel-primary {
+  border-color: rgba(255, 184, 77, 0.55);
+  color: var(--accent);
+  background: rgba(255, 184, 77, 0.12);
+  font-weight: 600;
+}
+
+.session-panel-primary:hover {
+  background: rgba(255, 184, 77, 0.2);
+  border-color: var(--accent);
+}
+
+.session-voice-pill {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  background: #060a12;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.session-voice-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--muted);
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.session-voice-label {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+
+.session-voice-detail {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.session-voice-pill.tone-ok {
+  border-color: rgba(107, 207, 127, 0.4);
+}
+.session-voice-pill.tone-ok .session-voice-dot {
+  background: var(--ok);
+  box-shadow: 0 0 6px rgba(107, 207, 127, 0.6);
+}
+.session-voice-pill.tone-ok .session-voice-label {
+  color: var(--ok);
+}
+
+.session-voice-pill.tone-warn {
+  border-color: rgba(230, 195, 92, 0.45);
+}
+.session-voice-pill.tone-warn .session-voice-dot {
+  background: #e6c35c;
+  box-shadow: 0 0 6px rgba(230, 195, 92, 0.55);
+}
+.session-voice-pill.tone-warn .session-voice-label {
+  color: #e6c35c;
+}
+
+.session-voice-pill.tone-danger {
+  border-color: rgba(255, 107, 107, 0.45);
+}
+.session-voice-pill.tone-danger .session-voice-dot {
+  background: var(--danger);
+  box-shadow: 0 0 6px rgba(255, 107, 107, 0.55);
+}
+.session-voice-pill.tone-danger .session-voice-label {
+  color: var(--danger);
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.nav a {
+  text-decoration: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid transparent;
+}
+
+.nav a.active {
+  border-color: var(--accent);
+  background: var(--panel);
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.15rem;
+  margin-bottom: 1rem;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.02);
+}
+
+.card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+/* Kerbin map shell: bordered frame around the 2:1 map (legend + rim ticks are outside the zoom layer). */
+.kerbin-map-shell {
+  width: 100%;
+  margin-top: 0.55rem;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #0b1220;
+}
+
+.kerbin-map-frame {
+  display: block;
+  width: 100%;
+  min-height: 0;
+}
+
+.kerbin-map-overlay-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  align-items: center;
+}
+
+.kerbin-map-overlay-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.kerbin-map-click-readout {
+  max-width: min(22rem, 100%);
+  line-height: 1.35;
+}
+
+.kerbin-map-click-clear {
+  margin-left: 0.45rem;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.72rem;
+  vertical-align: baseline;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+}
+
+.kerbin-map-click-clear:hover {
+  border-color: var(--accent);
+}
+
+/* Plate rim: lon/lat numbers sit on the viewport, not inside pan/zoom. */
+.kerbin-map-viewport-degrees {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #f8fafc;
+  text-shadow: 0 0 4px #000, 0 1px 2px #000;
+  letter-spacing: -0.03em;
+}
+
+.kerbin-map-vdeg-lon {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1.2rem;
+  line-height: 1.2rem;
+}
+
+.kerbin-map-vdeg-lon--top {
+  top: 3px;
+}
+
+.kerbin-map-vdeg-lon--bottom {
+  bottom: 3px;
+}
+
+.kerbin-map-vdeg-lat {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2rem;
+}
+
+.kerbin-map-vdeg-lat--left {
+  left: 3px;
+}
+
+.kerbin-map-vdeg-lat--right {
+  right: 3px;
+}
+
+.kerbin-map-vdeg-tick--lon {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.kerbin-map-vdeg-tick--lat {
+  position: absolute;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+.kerbin-map-vdeg-lat--left .kerbin-map-vdeg-tick--lat {
+  left: 0;
+  text-align: left;
+}
+
+.kerbin-map-vdeg-lat--right .kerbin-map-vdeg-tick--lat {
+  right: 0;
+  text-align: right;
+}
+
+/* Vector vessel glyph used inside the compact in-map legend (and historically the chart key). */
+.kerbin-map-chart-key-vessel-svg {
+  display: block;
+}
+
+/* Kerbin map tile: 2∶1. Desk caps height to viewport; wall adds `.kerbin-map-shell--wall-fill`. */
+.kerbin-map-aspect-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  margin-top: 0;
+  border-radius: 0;
+  overflow: hidden;
+  background: #0b1220;
+  isolation: isolate;
+  user-select: none;
+}
+.kerbin-map-shell:not(.kerbin-map-shell--wall-fill) .kerbin-map-aspect-wrap {
+  max-height: min(82vh, 960px);
+}
+.kerbin-map-shell--wall-fill {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.kerbin-map-shell--wall-fill .kerbin-map-frame {
+  flex: 1 1 auto;
+  min-height: 0;
+  container-type: size;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+.kerbin-map-shell--wall-fill .kerbin-map-aspect-wrap {
+  width: auto;
+  height: 100cqh;
+  max-width: none;
+  aspect-ratio: 2 / 1;
+  flex-shrink: 0;
+}
+
+.kerbin-tower-aircraft-label__text {
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  font-size: 1.35px;
+  fill: #f8fafc;
+  stroke: rgb(15 23 42 / 0.82);
+  stroke-width: 0.22px;
+  paint-order: stroke fill;
+}
+
+.kerbin-tower-aircraft-label--self .kerbin-tower-aircraft-label__text {
+  fill: #fde68a;
+}
+
+/* Ground radar PPI monitor (wall slot). */
+.tower-radar-scope {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  background: linear-gradient(165deg, rgb(28 26 22), rgb(12 11 10));
+  border-radius: 6px;
+  border: 2px solid rgb(180 83 9 / 0.55);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 4px 18px rgb(0 0 0 / 0.55);
+}
+
+.tower-radar-scope__banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+  padding: 0.45rem 0.65rem;
+  background: linear-gradient(180deg, rgb(194 65 12), rgb(154 52 18));
+  border-bottom: 2px solid rgb(0 0 0 / 0.45);
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+}
+
+.tower-radar-scope__banner-title {
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  color: #fffbeb;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+}
+
+.tower-radar-scope__banner-range {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #fef3c7;
+  padding: 0.12rem 0.45rem;
+  border: 1px solid rgb(0 0 0 / 0.35);
+  border-radius: 2px;
+  background: rgb(0 0 0 / 0.2);
+}
+
+.tower-radar-scope__subbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.85rem;
+  padding: 0.28rem 0.6rem;
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(253 230 138 / 0.85);
+  background: rgb(0 0 0 / 0.35);
+  border-bottom: 1px solid rgb(0 0 0 / 0.5);
+}
+
+.tower-radar-scope__subbar-origin {
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: #fef08a;
+}
+
+.tower-radar-scope__subbar-coords {
+  color: #a7f3d0;
+  font-weight: 600;
+}
+
+.tower-radar-scope__subbar-spacer {
+  flex: 1 1 auto;
+  min-width: 0.35rem;
+}
+
+.tower-radar-scope__ppi-hub {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.tower-radar-scope__ppi-hub-label {
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: rgb(253 230 138 / 0.75);
+}
+
+.tower-radar-scope__ppi-hub-select {
+  max-width: 11rem;
+  padding: 0.12rem 0.28rem;
+  font: inherit;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: #fef9c3;
+  background: rgb(0 0 0 / 0.45);
+  border: 1px solid rgb(0 0 0 / 0.45);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.tower-radar-scope__ppi-hub-select:focus-visible {
+  outline: 2px solid rgb(250 204 21 / 0.65);
+  outline-offset: 1px;
+}
+
+.tower-radar-scope__subbar-body {
+  flex-shrink: 0;
+  color: #e2e8f8;
+  font-weight: 700;
+}
+
+.tower-radar-scope__crt {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  justify-content: flex-start;
+  /* padding: 0.65rem 0.85rem 0.85rem; */
+}
+
+.tower-radar-scope__zoomport {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.tower-radar-scope__svg-well {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Square uses the smaller of this cell's width vs height so the PPI fills the brown CRT area. */
+  container-type: size;
+  container-name: tower-radar-svg-well;
+}
+
+.tower-radar-scope__zoombar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem 0.45rem;
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+}
+
+.tower-radar-scope__zoombar--overlay {
+  position: absolute;
+  z-index: 3;
+  top: 0.45rem;
+  right: 0.55rem;
+  padding: 0.12rem 0.32rem;
+  border-radius: 5px;
+  background: rgb(0 0 0 / 0.52);
+  border: 1px solid rgb(251 191 36 / 0.22);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.45);
+  pointer-events: auto;
+}
+
+.tower-radar-scope__zoombtn {
+  min-width: 1.85rem;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #fef3c7;
+  background: rgb(0 0 0 / 0.35);
+  border: 1px solid rgb(0 0 0 / 0.45);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.tower-radar-scope__zoombtn:hover:not(:disabled) {
+  background: rgb(251 191 36 / 0.2);
+  border-color: rgb(251 191 36 / 0.45);
+}
+
+.tower-radar-scope__zoombtn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.tower-radar-scope__zoombtn--text {
+  min-width: unset;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+}
+
+.tower-radar-scope__zoompct {
+  min-width: 3.1rem;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: rgb(167 243 208);
+}
+
+.tower-radar-scope__crt-scanlines {
+  pointer-events: none;
+  position: absolute;
+  inset: 0.65rem;
+  border-radius: 4px;
+  z-index: 2;
+  opacity: 0.14;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgb(0 0 0 / 0.65) 2px,
+    rgb(0 0 0 / 0.65) 3px
+  );
+  mix-blend-mode: multiply;
+}
+
+.tower-radar-scope__svg {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: min(100cqw, 100cqh);
+  height: min(100cqw, 100cqh);
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+.tower-radar-scope__svg--pannable {
+  cursor: grab;
+  touch-action: none;
+}
+
+.tower-radar-scope__svg--pannable:active {
+  cursor: grabbing;
+}
+
+.tower-radar-scope__bezel-outer {
+  fill: none;
+  stroke: rgb(55 52 48);
+  /* user units — scales with PPI `viewBox` zoom (no `vector-effect: non-scaling-stroke`). */
+  stroke-width: 5;
+}
+
+.tower-radar-scope__bezel-inner {
+  fill: none;
+  stroke: rgb(20 19 17);
+  stroke-width: 2;
+}
+
+.tower-radar-scope__ring {
+  stroke: rgb(0 255 102 / 0.38);
+  stroke-width: 1.15;
+}
+
+.tower-radar-scope__axis-major {
+  stroke: rgb(0 255 102 / 0.22);
+  stroke-width: 1.1;
+}
+
+.tower-radar-scope__tick-major {
+  stroke: rgb(0 255 170 / 0.55);
+  stroke-width: 1.35;
+}
+
+.tower-radar-scope__tick-minor {
+  stroke: rgb(0 255 102 / 0.22);
+  stroke-width: 0.9;
+}
+
+.tower-radar-scope__ring-label {
+  fill: rgb(0 255 102 / 0.42);
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  pointer-events: none;
+}
+
+.tower-radar-scope__ring-label--max {
+  fill: rgb(250 204 21 / 0.75);
+  font-weight: 700;
+}
+
+.tower-radar-scope__sweep-tail {
+  fill: rgb(0 255 102);
+  stroke: none;
+}
+
+.tower-radar-scope__sweep-spar {
+  stroke: rgb(210 255 225);
+  stroke-width: 3.2;
+  stroke-linecap: butt;
+}
+
+.tower-radar-scope__chassis-ring {
+  fill: rgb(26 24 22);
+}
+
+.tower-radar-scope__cardinal {
+  fill: rgb(253 224 71);
+  font-weight: 900;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  paint-order: stroke fill;
+  stroke: rgb(0 0 0 / 0.65);
+  stroke-width: 2.5;
+}
+
+.tower-radar-scope__trail-dot {
+  fill: rgb(0 255 102 / 0.55);
+  stroke: none;
+  pointer-events: none;
+}
+
+.tower-radar-scope__trail-dot--oor {
+  fill: rgb(251 191 36 / 0.42);
+  stroke: none;
+  pointer-events: none;
+}
+
+.tower-radar-scope__blip {
+  fill: #00ff66;
+  stroke: rgb(0 20 8);
+  stroke-width: 1.05;
+}
+
+.tower-radar-scope__blip--oor {
+  fill: rgb(251 191 36 / 0.35);
+  stroke: #fbbf24;
+  stroke-width: 1.15;
+}
+
+.tower-radar-scope__blip--sweep-hit {
+  fill: rgb(210 255 220);
+  stroke: rgb(0 55 28);
+  stroke-width: 1.15;
+}
+
+.tower-radar-scope__blip--oor-sweep-hit {
+  fill: rgb(251 191 36 / 0.82);
+  stroke: rgb(254 243 199);
+  stroke-width: 1.2;
+}
+
+.tower-radar-scope__blip-label {
+  fill: rgb(236 254 235 / 0.95);
+  font-weight: 700;
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  paint-order: stroke fill;
+  stroke: rgb(0 0 0 / 0.75);
+  stroke-width: 1.6;
+  pointer-events: none;
+}
+
+.tower-radar-scope__tower {
+  fill: #fbbf24;
+  stroke: rgb(0 0 0 / 0.85);
+  stroke-width: 1.4;
+}
+
+.tower-radar-scope__empty {
+  margin: 0;
+  padding: 0.35rem 0.65rem 0.55rem;
+  font-size: 0.72rem;
+  color: rgb(253 230 138 / 0.75);
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  text-align: center;
+  background: rgb(0 0 0 / 0.25);
+}
+
+/* Dragon Radar wall monitor: chrome + Kerbin map (balls-only overlay via KerbinTowerMap props). */
+.tower-dragon-wall {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 0.45rem 0.5rem 0.5rem;
+  box-sizing: border-box;
+  border: 1px solid rgb(34 197 94 / 0.2);
+  border-radius: 10px;
+  background: radial-gradient(1200px 420px at 20% 0%, rgb(16 185 129 / 0.1), rgb(0 0 0 / 0.32));
+}
+
+.tower-dragon-wall__head {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.tower-dragon-wall__title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: rgb(236 253 245 / 0.95);
+}
+
+.tower-dragon-wall__sub {
+  margin-top: 0.15rem;
+  font-size: 0.68rem;
+  line-height: 1.25;
+  color: rgb(209 250 229 / 0.72);
+  max-width: 58ch;
+}
+
+.tower-dragon-wall__sub strong {
+  color: rgb(253 230 138 / 0.95);
+  font-weight: 800;
+}
+
+.tower-dragon-wall__actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+.tower-dragon-wall__btn {
+  appearance: none;
+  border: 1px solid rgb(16 185 129 / 0.35);
+  background: rgb(0 0 0 / 0.35);
+  color: rgb(236 253 245 / 0.92);
+  border-radius: 8px;
+  padding: 0.28rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.tower-dragon-wall__btn:hover:not(:disabled) {
+  border-color: rgb(52 211 153 / 0.65);
+  background: rgb(6 78 59 / 0.35);
+}
+
+.tower-dragon-wall__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tower-dragon-wall__btn--primary {
+  border-color: rgb(52 211 153 / 0.55);
+  background: rgb(6 78 59 / 0.45);
+}
+
+.tower-dragon-wall__err {
+  margin: 0.4rem 0 0;
+  padding: 0.35rem 0.45rem;
+  border-radius: 8px;
+  border: 1px solid rgb(248 113 113 / 0.35);
+  background: rgb(127 29 29 / 0.22);
+  color: rgb(254 226 226 / 0.92);
+  font-size: 0.72rem;
+  line-height: 1.25;
+  flex-shrink: 0;
+}
+
+.tower-dragon-wall__muted {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: rgb(209 250 229 / 0.65);
+  flex-shrink: 0;
+}
+
+.tower-dragon-wall__meta {
+  margin-top: 0.35rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+  font-size: 0.72rem;
+  color: rgb(209 250 229 / 0.85);
+  flex-shrink: 0;
+}
+
+.tower-dragon-wall__rules {
+  margin-top: 0.28rem;
+  font-size: 0.68rem;
+  color: rgb(209 250 229 / 0.65);
+  flex-shrink: 0;
+}
+
+.tower-dragon-wall__rules-explained {
+  margin-top: 0.35rem;
+  flex-shrink: 0;
+}
+
+.tower-dragon-wall__rules-explained-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgb(209 250 229 / 0.88);
+  letter-spacing: 0.02em;
+}
+
+.tower-dragon-wall__rules-list {
+  margin: 0.3rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.66rem;
+  line-height: 1.42;
+  color: rgb(209 250 229 / 0.72);
+}
+
+.tower-dragon-wall__rules-list li {
+  margin-bottom: 0.35rem;
+}
+
+.tower-dragon-wall__rules-list li:last-child {
+  margin-bottom: 0;
+}
+
+.tower-dragon-wall__rules-list strong {
+  color: rgb(226 232 240 / 0.92);
+  font-weight: 600;
+}
+
+.tower-dragon-wall__hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.66rem;
+  line-height: 1.3;
+  color: rgb(253 230 138 / 0.78);
+  flex-shrink: 0;
+}
+
+.tower-dragon-wall__hint--ok {
+  color: rgb(167 243 208 / 0.92);
+}
+
+.tower-dragon-wall__panel {
+  margin-top: 0.45rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgb(16 185 129 / 0.2);
+  background: rgb(0 0 0 / 0.22);
+  flex-shrink: 0;
+}
+
+.tower-dragon-wall__panel-title {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: rgb(236 253 245 / 0.88);
+  margin-bottom: 0.35rem;
+}
+
+.tower-dragon-wall__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.55rem;
+  align-items: flex-end;
+}
+
+.tower-dragon-wall__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  font-size: 0.62rem;
+  color: rgb(209 250 229 / 0.72);
+  min-width: 6.5rem;
+}
+
+.tower-dragon-wall__field--grow {
+  flex: 1 1 140px;
+  min-width: 120px;
+}
+
+.tower-dragon-wall__select,
+.tower-dragon-wall__input {
+  font-size: 0.72rem;
+  padding: 0.22rem 0.35rem;
+  border-radius: 6px;
+  border: 1px solid rgb(52 211 153 / 0.35);
+  background: rgb(0 0 0 / 0.45);
+  color: rgb(248 250 252 / 0.95);
+}
+
+.tower-dragon-wall__chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.tower-dragon-wall__chip {
+  appearance: none;
+  border: 1px solid rgb(251 191 36 / 0.45);
+  background: rgb(120 53 15 / 0.35);
+  color: rgb(254 243 199 / 0.95);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tower-dragon-wall__chip:hover:not(:disabled) {
+  border-color: rgb(253 224 71 / 0.75);
+}
+
+.tower-dragon-wall__chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tower-dragon-wall__btn--danger {
+  border-color: rgb(248 113 113 / 0.55);
+  background: rgb(127 29 29 / 0.45);
+  color: rgb(254 226 226 / 0.95);
+}
+
+.tower-dragon-wall__btn--danger:hover:not(:disabled) {
+  border-color: rgb(252 165 165 / 0.75);
+}
+
+.tower-dragon-wall__mono {
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+}
+
+.tower-dragon-wall__hint--reward {
+  border-left: 3px solid rgba(74, 222, 128, 0.85);
+  padding-left: 0.65rem;
+}
+
+.tower-dragon-wall__table-wrap {
+  overflow-x: auto;
+  margin-top: 0.35rem;
+}
+
+.tower-dragon-wall__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.tower-dragon-wall__table th,
+.tower-dragon-wall__table td {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 0.28rem 0.45rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.tower-dragon-wall__table th {
+  color: rgba(226, 232, 240, 0.85);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tower-dragon-wall__table-foot {
+  margin-top: 0.5rem;
+}
+
+.tower-dragon-wall__pre {
+  margin: 0.35rem 0 0;
+  padding: 0.4rem 0.45rem;
+  border-radius: 8px;
+  border: 1px solid rgb(16 185 129 / 0.18);
+  background: rgb(0 0 0 / 0.35);
+  color: rgb(236 253 245 / 0.92);
+  font-size: 0.66rem;
+  line-height: 1.22;
+  overflow: auto;
+  max-height: 6.5rem;
+  white-space: pre;
+  flex-shrink: 0;
+}
+
+.tower-dragon-wall__map {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: 0.45rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.kerbin-map-zoomport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* Single translate+scale on this layer (terrain + vector overlay). Top-left origin so zoom math matches wheel anchor (pointer in zoomport px). */
+.kerbin-map-zoom-stack {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: 0 0;
+}
+
+.kerbin-map-zoom-stack .kerbin-map-overlay-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 2;
+}
+
+.kerbin-map-zoom-stack .kerbin-map-raster {
+  z-index: 0;
+}
+
+/* Terrain SVG is fetched and inlined for sharp vector zoom (avoid <object> bitmap layers). */
+.kerbin-map-aspect-wrap .kerbin-map-raster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  display: block;
+  pointer-events: none;
+  border: none;
+}
+
+.kerbin-map-aspect-wrap .kerbin-map-terrain-inline > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 0;
+}
+
+.kerbin-map-terrain-placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--muted);
+  pointer-events: none;
+  background: rgb(11 18 32 / 0.55);
+}
+
+/* Marker info (short-click hit test on navaid / KSC / vessel) */
+.kerbin-map-marker-modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 0.5);
+}
+
+.kerbin-map-marker-modal {
+  width: 100%;
+  max-width: 22rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.45);
+}
+
+.kerbin-map-marker-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem 0.35rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.kerbin-map-marker-modal-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  padding-right: 0.25rem;
+}
+
+.kerbin-map-marker-modal-close {
+  flex-shrink: 0;
+  line-height: 1;
+  padding: 0.15rem 0.5rem;
+  font-size: 1.35rem;
+  border-radius: 6px;
+}
+
+.kerbin-map-marker-modal-body {
+  padding: 0.65rem 1rem 1rem;
+  font-size: 0.9rem;
+}
+
+.kerbin-map-marker-modal-dl {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.kerbin-map-marker-modal-dl > div {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  gap: 0.35rem 0.75rem;
+  align-items: baseline;
+}
+
+.kerbin-map-marker-modal-dl dt {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.kerbin-map-marker-modal-dl dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.kerbin-map-marker-modal-note {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+/* MarkerInfoPanel additions per WORLD_AND_TIME_MODEL.md: a "Body context" row pulled from the
+ * static system catalog and a same-vs-different-world badge. The badge stays subtle for the
+ * common same-world case so it doesn't shout at controllers who never play with cross-world
+ * subjects, and only ramps up styling when the subject is actually elsewhere. */
+.kerbin-map-marker-body-stats {
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.world-badge {
+  display: inline-block;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  vertical-align: middle;
+}
+
+.world-badge-same-world {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.world-badge-different-world {
+  background: rgba(244, 114, 182, 0.18);
+  color: #f9a8d4;
+  border-color: rgba(244, 114, 182, 0.45);
+}
+
+.world-badge-no-viewer-world {
+  background: rgba(148, 163, 184, 0.18);
+  color: #cbd5e1;
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+.world-badge-name {
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.world-badge-id {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.world-badge-note {
+  margin-top: 0.25rem;
+  font-size: 0.74rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.msg {
+  margin-top: 0.75rem;
+  padding: 0.65rem;
+  border-radius: 6px;
+  background: #0b0f14;
+  border: 1px solid var(--border);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.85rem;
+}
+
+.msg.error {
+  border-color: var(--danger);
+}
+
+.msg.ok {
+  border-color: var(--ok);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+@keyframes chat-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.chat-send-spinner {
+  display: inline-block;
+  width: 0.95em;
+  height: 0.95em;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: chat-spin 0.65s linear infinite;
+  vertical-align: -0.15em;
+  margin-right: 0.4rem;
+}
+
+.chat-msg-pending {
+  opacity: 0.92;
+  border-left: 3px solid var(--accent);
+  padding-left: 0.5rem;
+  margin-left: -0.15rem;
+}
+
+/* Voice client strip */
+.voice-client-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1rem;
+  margin: 0 0 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: linear-gradient(165deg, #121c2a 0%, #0d1520 100%);
+}
+
+.voice-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+}
+
+.voice-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--border);
+  background: #0b0f14;
+}
+
+.voice-status-pill .voice-status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.voice-status-pill.connected {
+  border-color: rgba(107, 207, 127, 0.45);
+  color: var(--ok);
+}
+
+.voice-status-pill.connected .voice-status-dot {
+  background: var(--ok);
+  box-shadow: 0 0 8px rgba(107, 207, 127, 0.6);
+}
+
+.voice-status-pill.connecting {
+  border-color: rgba(255, 184, 77, 0.55);
+  color: var(--accent);
+}
+
+.voice-status-pill.connecting .voice-status-dot {
+  background: var(--accent);
+  animation: chat-spin 1s linear infinite;
+  border-radius: 2px;
+  width: 0.45rem;
+  height: 0.45rem;
+}
+
+.voice-status-pill.disconnected {
+  color: var(--muted);
+}
+
+.voice-room-line {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.voice-room-line code {
+  color: var(--text);
+}
+
+.voice-meter-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.voice-meter-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  width: 4.5rem;
+  flex-shrink: 0;
+}
+
+.voice-meter-track {
+  flex: 1;
+  min-width: 80px;
+  height: 10px;
+  border-radius: 999px;
+  background: #050810;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.voice-meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2a6aaf, var(--accent), #7dd3ff);
+  transition: width 45ms linear;
+  width: 0%;
+  min-width: 0;
+}
+
+.voice-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.voice-mic-btn {
+  min-width: 8.5rem;
+  min-height: 3rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 2px solid var(--border);
+  background: #0b0f14;
+}
+
+.voice-mic-btn.on {
+  border-color: rgba(107, 207, 127, 0.65);
+  color: var(--ok);
+  background: rgba(107, 207, 127, 0.08);
+}
+
+.voice-mic-btn.off {
+  border-color: rgba(255, 107, 107, 0.55);
+  color: #ff9a9a;
+  background: rgba(255, 107, 107, 0.06);
+}
+
+.voice-mic-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.voice-mic-hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+  max-width: 18rem;
+  flex: 1 1 12rem;
+}
+
+.voice-join-btn {
+  font-weight: 600;
+}
+
+/* Single join/leave control: same accent in join / leave / joining (no global disabled graywash). */
+button.voice-join-btn.voice-join-toggle {
+  border-color: rgba(255, 184, 77, 0.55);
+  color: var(--accent);
+  background: rgba(255, 184, 77, 0.12);
+  opacity: 1;
+}
+
+button.voice-join-btn.voice-join-toggle:hover:not(:disabled) {
+  background: rgba(255, 184, 77, 0.2);
+  border-color: var(--accent);
+}
+
+button.voice-join-btn.voice-join-toggle:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+  color: rgba(255, 184, 77, 0.65);
+  border-color: rgba(255, 184, 77, 0.38);
+  background: rgba(255, 184, 77, 0.08);
+}
+
+/* Push-to-talk indicator pill (Settings + top bar when voice is live).
+   Renders as a <button> for press-and-hold; keyboard uses T (see VoiceDesk). */
+.voice-ptt-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #060a12;
+  font-size: 0.82rem;
+  color: var(--muted);
+  flex-shrink: 0;
+  font: inherit;
+  font-size: 0.82rem;
+  line-height: 1.1;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  transition: color 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
+}
+
+.voice-ptt-pill:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.voice-ptt-pill:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.voice-ptt-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.4rem;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  background: #0b121d;
+}
+
+.voice-ptt-pill.armed {
+  border-color: rgba(255, 184, 77, 0.5);
+  color: var(--accent);
+}
+
+.voice-ptt-pill.held {
+  border-color: rgba(107, 207, 127, 0.7);
+  color: var(--ok);
+  background: rgba(107, 207, 127, 0.1);
+  box-shadow: 0 0 0 2px rgba(107, 207, 127, 0.15);
+}
+
+.voice-ptt-pill.held .voice-ptt-key {
+  border-color: rgba(107, 207, 127, 0.6);
+  color: var(--ok);
+}
+
+/* Transmitting indicator next to the "Voice room" h2 */
+.voice-tx-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #060a12;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.voice-tx-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.voice-tx-pill.live {
+  color: var(--danger);
+  border-color: rgba(255, 107, 107, 0.6);
+  background: rgba(255, 107, 107, 0.08);
+}
+
+.voice-tx-pill.live .voice-tx-dot {
+  background: var(--danger);
+  animation: voice-tx-blink 1.1s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(255, 107, 107, 0.7);
+}
+
+@keyframes voice-tx-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* Inline option toggles inside the voice strip */
+.voice-options-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.4rem;
+  margin-top: 0.6rem;
+}
+
+.voice-option-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.88rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.voice-option-line input[type="checkbox"] {
+  width: auto;
+}
+
+.app-shell {
+  /* The previous 1400px cap left ~25% of a 1900px+ display empty. Bumped to 1800px so wide
+     monitors actually use their pixels — the tower desk in particular benefits because its
+     dominant element is the map, which scales with available width. Narrow forms inside other
+     pages still center within their own card max-widths, so this doesn't make text too wide. */
+  
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.app-header p {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.split-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 1000px) {
+  .split-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chat-log {
+  min-height: 14rem;
+  max-height: 50vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #0b0f14;
+  padding: 0.65rem;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Wall cell: one scroll surface (log only); outer embed is overflow hidden so the wheel
+   doesn't fight nested scroll regions. */
+.tower-wall-embed-desk--acars {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tower-wall-embed-desk--acars .card {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tower-wall-embed-desk--acars .chat-log--embed {
+  flex: 1 1 auto;
+  min-height: 8rem;
+  max-height: none;
+}
+
+.chat-line {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.45rem;
+}
+
+.chat-line:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.chat-meta {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.chat-empty {
+  color: var(--muted);
+  margin: 0;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.card-head h2 {
+  margin: 0;
+}
+
+.room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.room-item {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem;
+  background: #0f1724;
+}
+
+.room-main {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.room-pill {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.05rem 0.45rem;
+  color: var(--muted);
+}
+
+.room-meta {
+  margin: 0.35rem 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.room-panel {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.room-telemetry-block {
+  margin-top: 1rem;
+}
+
+/* ---- Landing page ------------------------------------------------------- */
+.landing {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse at top, rgb(255 184 77 / 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, rgb(95 227 154 / 0.05) 0%, transparent 50%),
+    var(--bg);
+}
+
+.landing-hero {
+  padding: 4rem 1.25rem 3rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.landing-hero-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.landing-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.landing-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 800;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  border: 1px solid rgb(255 184 77 / 0.35);
+}
+
+.landing-brand-name {
+  color: var(--text);
+}
+
+.landing-hero-title {
+  margin: 0;
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.landing-hero-tagline {
+  margin: 0;
+  max-width: 56ch;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+.landing-hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.landing-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.05s ease;
+}
+
+.landing-cta:hover {
+  border-color: var(--accent);
+}
+
+.landing-cta:active {
+  transform: translateY(1px);
+}
+
+.landing-cta:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.landing-cta-primary {
+  background: var(--accent);
+  color: #1a1408;
+  border-color: var(--accent);
+}
+
+.landing-cta-primary:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.landing-cta-secondary {
+  background: var(--panel-elev);
+}
+
+.landing-cta-ghost {
+  background: transparent;
+  border-style: dashed;
+}
+
+.landing-cta-block {
+  display: flex;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.landing-section-title {
+  margin: 0 0 1.25rem;
+  font-size: 1.4rem;
+  letter-spacing: -0.005em;
+}
+
+.landing-features,
+.landing-getstarted,
+.landing-download {
+  padding: 3rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.landing-features > h2,
+.landing-getstarted > h2,
+.landing-download > h2 {
+  max-width: 1080px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.landing-feature-grid {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 1080px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.landing-feature {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.1rem 1.15rem;
+}
+
+.landing-feature h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+  color: var(--accent-strong);
+}
+
+.landing-feature p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.landing-getstarted-grid,
+.landing-download-grid {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.landing-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.4rem 1.4rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.landing-card-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
+.landing-muted {
+  margin: 0 0 0.85rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.landing-muted-inline {
+  color: var(--muted);
+  font-weight: normal;
+  font-size: 0.78rem;
+}
+
+.landing-signup-blurb {
+  margin-top: 0;
+}
+
+.landing-signin-aside {
+  margin: 0.85rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.landing-signin-aside a {
+  color: var(--accent);
+}
+
+.landing-steps {
+  margin: 0 0 0.9rem;
+  padding-left: 1.25rem;
+  color: var(--text);
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+
+.landing-steps li + li {
+  margin-top: 0.6rem;
+}
+
+.landing-install {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+  color: var(--text);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.landing-install li + li {
+  margin-top: 0.4rem;
+}
+
+.landing-code {
+  background: #050810;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  color: var(--accent-strong);
+}
+
+.landing-footer {
+  margin-top: auto;
+  padding: 1.5rem 1.25rem;
+  background: #06090e;
+}
+
+.landing-footer-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.landing-footer-brand {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.landing-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  align-items: center;
+  font-size: 0.88rem;
+}
+
+.landing-footer-links a,
+.landing-footer-link-btn {
+  color: var(--muted);
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.landing-footer-links a:hover,
+.landing-footer-link-btn:hover {
+  color: var(--accent);
+}
+
+@media (max-width: 540px) {
+  .landing-hero {
+    padding: 2.5rem 1rem 2rem;
+  }
+  .landing-features,
+  .landing-getstarted,
+  .landing-download {
+    padding: 2rem 1rem;
+  }
+}
+
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.auth-card {
+  width: min(28rem, 100%);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  padding: 1.2rem;
+}
+
+.auth-card h1 {
+  margin: 0;
+}
+
+.auth-subtitle {
+  color: var(--muted);
+  margin: 0.35rem 0 0.85rem;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 1rem 0 0.85rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--border);
+}
+
+.auth-guest-btn {
+  border-style: dashed;
+  background: transparent;
+}
+
+.auth-guest-note {
+  margin: 0.55rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+/* ---- Tower desk: two-column layout (info column + dominant map) ---------
+   Aside used to be `minmax(280px, 360px)`, eating ~25% of a 1440px viewport even though most
+   of its content (telemetry table, hull-cam thumbnail, off-world traffic list) is comfortable
+   well below 300px. Tightened to `minmax(240px, 300px)` so the map column gets the rest. */
+.tower-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.tower-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.tower-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+@media (max-width: 980px) {
+  .tower-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Active pilots list */
+.tower-pilots-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.tower-pilot-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #0b1220;
+}
+
+.tower-pilot-row.active {
+  border-color: var(--accent);
+  background: rgb(255 184 77 / 0.1);
+}
+
+.tower-pilot-track {
+  flex: 0 0 auto;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.75rem;
+  border-radius: 4px;
+}
+
+.tower-pilot-track:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.tower-pilot-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.tower-pilot-name {
+  font-size: 0.86rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tower-pilot-name code {
+  font-size: 0.82rem;
+}
+
+.tower-pilot-sub {
+  color: var(--muted);
+  font-size: 0.74rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Telemetry table compact form */
+.tower-telemetry-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.tower-telemetry-table td:first-child {
+  color: var(--muted);
+  padding: 0.18rem 0.5rem 0.18rem 0;
+  white-space: nowrap;
+  width: 1%;
+}
+
+.tower-telemetry-table td:last-child {
+  padding: 0.18rem 0;
+  word-break: break-word;
+}
+
+.tower-telemetry-crewlist {
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Comms (stock CommNet) chip used in the Pilot telemetry card and marker modal. */
+.tower-comms-chip {
+  display: inline-block;
+  padding: 0.05rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  font-variant-numeric: tabular-nums;
+}
+
+.tower-comms-chip-home {
+  background: rgba(34, 197, 94, 0.18);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.tower-comms-chip-link {
+  background: rgba(255, 184, 77, 0.18);
+  color: var(--accent-strong);
+  border-color: rgba(255, 184, 77, 0.5);
+}
+
+.tower-comms-chip-blackout {
+  background: rgba(239, 68, 68, 0.22);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.65);
+  animation: tower-comms-blackout-pulse 1.6s ease-in-out infinite;
+}
+
+.tower-comms-chip-na {
+  background: transparent;
+  color: var(--muted);
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+@keyframes tower-comms-blackout-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  50%      { box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.45); }
+}
+
+/* Loud red border around the Pilot telemetry card while the pilot is in CommNet blackout. */
+.card.card-comms-blackout {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.55), 0 0 18px rgba(239, 68, 68, 0.25);
+}
+
+.tower-comms-blackout-banner {
+  margin: 0 0 0.5rem;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  border-radius: 4px;
+}
+
+/* Telemetry-stream health banner. Painted above the telemetry table whenever
+   the controller is looking at frozen/stale data — beacon off, scene left,
+   warp, vessel destroyed, or no signal at all. The two tones match the rest
+   of the desk: amber for "paused for a known reason", red for "lost". */
+.tower-telemetry-health-banner {
+  margin: 0 0 0.5rem;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+.tower-telemetry-health-banner strong {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-right: 0.25rem;
+}
+.tower-telemetry-health-banner.tone-warn {
+  color: #fde68a;
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+.tower-telemetry-health-banner.tone-alert {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.tower-vs-badge {
+  display: inline-block;
+  margin-right: 0.4rem;
+  padding: 0.05rem 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  vertical-align: 1px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tower-vs-badge-asc {
+  background: rgba(34, 197, 94, 0.18);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.tower-vs-badge-desc {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.tower-vs-badge-overg {
+  border-color: #ef4444;
+  border-width: 2px;
+  padding: calc(0.05rem - 1px) calc(0.35rem - 1px);
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.35);
+}
+
+.kerbin-map-marker-crew {
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* Map card lets the map shell touch the card edges; nicer with floating toolbar */
+.tower-map-card {
+  padding: 0.6rem;
+}
+
+.tower-map-shell {
+  position: relative;
+  margin-top: 0;
+}
+
+/* Floating toolbar pinned over the map. Locked to a single row — never wraps, never grows
+   taller than one line.
+
+   IMPORTANT: do NOT use `overflow: auto / hidden` here. Per the CSS spec, setting `overflow-x`
+   to anything other than `visible` forces `overflow-y` to `auto` as well, which clips the
+   `MapBodyDropdown` popover that anchors BELOW the toolbar (the popover extends past the
+   toolbar's bottom edge and gets cut off — the trigger looks broken because nothing visible
+   appears on click). `overflow: clip` is the correct primitive: it clips the X axis while
+   leaving Y as `visible`, so the popover overflows freely. */
+/* Floating control-strip across the top of the map. Mimics a metal instrument
+ * bezel: dark gradient body, top edge highlight, bottom edge shadow, square
+ * corners. Group separators are vertical hairlines so the strip reads as a
+ * single panel divided into sections instead of scattered widgets. */
+.tower-map-toolbar {
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+  right: 0.55rem;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0;
+  align-items: stretch;
+  justify-content: space-between;
+  padding: 0.3rem 0.4rem;
+  background: linear-gradient(180deg, rgb(20 28 40 / 0.92), rgb(8 12 20 / 0.94));
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.05),
+    inset 0 -1px 0 rgb(0 0 0 / 0.45),
+    0 2px 4px rgb(0 0 0 / 0.4);
+  z-index: 5;
+  pointer-events: auto;
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  font-size: 0.74rem;
+  color: var(--text);
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.tower-map-toolbar-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  /* Groups must not wrap or shrink to nothing — each group's controls stay legible and the
+     toolbar scrolls as a unit if the viewport is too narrow. */
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  padding: 0 0.45rem;
+}
+
+/* Vertical hairline divider between groups. We use a pseudo-element on each
+ * group except the first so a 1-px etched line appears between adjacent groups
+ * without us having to thread an `:nth-child` through the JSX. */
+.tower-map-toolbar-group + .tower-map-toolbar-group {
+  border-left: 1px solid rgb(0 0 0 / 0.6);
+  box-shadow: inset 1px 0 0 rgb(255 255 255 / 0.04);
+}
+
+/* Squared zoom buttons — the round inherited button look made the strip feel
+ * like a floating chat header instead of an instrument panel. */
+.tower-map-toolbar-group button {
+  padding: 0.22rem 0.55rem;
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  font-size: 0.74rem;
+  line-height: 1;
+  min-width: 1.8rem;
+  border-radius: 2px;
+  background: linear-gradient(180deg, rgb(20 30 44 / 0.95), rgb(10 16 26 / 0.95));
+  border: 1px solid var(--border);
+  color: var(--text);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    inset 0 -1px 0 rgb(0 0 0 / 0.4);
+}
+
+.tower-map-toolbar-group button:hover {
+  background: linear-gradient(180deg, rgb(28 40 58 / 0.95), rgb(14 22 34 / 0.95));
+  border-color: rgb(255 184 77 / 0.35);
+}
+
+.tower-map-toolbar-group button:active {
+  background: linear-gradient(180deg, rgb(8 12 20 / 0.95), rgb(16 24 36 / 0.95));
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.5);
+}
+
+/* Control-room pill. Squared edges (2px radius — just enough to avoid pixel bleed
+ * on hi-DPI), etched top highlight + bottom shadow so it reads like a recessed
+ * panel button instead of a friendly chat-app chip. The label uses tight
+ * uppercase letter-spacing in the same monospace stack as the readouts so
+ * "NAVAIDS · VOR · ILS" reads as instrumentation, not nav links. */
+.tower-map-world-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.22rem 0.55rem;
+  background: linear-gradient(180deg, rgb(20 30 44 / 0.95), rgb(10 16 26 / 0.95));
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    inset 0 -1px 0 rgb(0 0 0 / 0.4),
+    0 1px 0 rgb(0 0 0 / 0.35);
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.tower-map-world-pill:hover {
+  background: linear-gradient(180deg, rgb(28 40 58 / 0.95), rgb(14 22 34 / 0.95));
+  border-color: rgb(255 184 77 / 0.35);
+}
+
+.tower-map-world-pill:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.tower-map-world-pill[aria-expanded="true"] {
+  background: linear-gradient(180deg, rgb(40 28 12 / 0.85), rgb(20 14 6 / 0.95));
+  border-color: var(--accent);
+  box-shadow:
+    inset 0 1px 0 rgb(255 184 77 / 0.18),
+    inset 0 -1px 0 rgb(0 0 0 / 0.5),
+    0 0 0 1px rgb(255 184 77 / 0.18);
+}
+
+.tower-map-world-pill strong {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+/* "Active" override = the popover holds non-default settings. Amber side-stripe
+ * instead of the previous full-border highlight so it reads at a glance without
+ * fighting the open/closed state colors. */
+.tower-map-world-pill-override {
+  border-left: 2px solid var(--accent);
+  padding-left: calc(0.55rem - 1px);
+}
+
+.tower-map-world-select {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  padding: 0 0.1rem;
+  margin: 0;
+  cursor: pointer;
+  max-width: 18rem;
+}
+
+.tower-map-world-select:focus-visible {
+  outline: 1px dashed var(--accent, #6ec1ff);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.tower-map-world-pill-mods {
+  color: var(--muted);
+}
+
+/* MapBodyDropdown — pill-trigger that opens a tabbed body picker popover. Replaces the old
+   inline `<select>`. The wrap is `position: relative` so the popover can anchor underneath the
+   trigger; the popover itself is absolutely positioned and z-indexed above the floating toolbar
+   (which already sits at z-index 5). */
+.tower-map-world-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.tower-map-world-dropdown .tower-map-world-pill {
+  /* Override the generic pill cursor — this one's a button. */
+  border: 1px solid var(--border);
+  background: rgb(11 18 32 / 0.55);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.tower-map-world-trigger-label {
+  font-weight: 500;
+  white-space: nowrap;
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tower-map-world-caret {
+  color: var(--muted);
+  font-size: 0.7rem;
+  margin-left: 0.1rem;
+}
+
+.tower-map-world-popover {
+  /* Single source of truth for the popover background — the active tab reads this exact color
+     via `--popover-bg` to make its bottom edge "mesh" seamlessly with the panel below it. */
+  --popover-bg: rgb(10 16 26 / 0.97);
+  position: absolute;
+  top: calc(100% + 0.3rem);
+  /* Anchor to the RIGHT edge of the trigger pill so the popover opens leftward. The `Map:`
+     dropdown sits at the rightmost end of the toolbar, and the toolbar uses `overflow-x: clip`
+     to keep itself one row tall — anchoring with `left: 0` would push the popover past the
+     toolbar's right edge and the clip would shave it off. Opening leftward keeps the entire
+     popover inside the clipped X range. */
+  right: 0;
+  left: auto;
+  z-index: 10;
+  width: 24rem;
+  padding: 0.55rem 0.6rem;
+  background: linear-gradient(180deg, rgb(20 28 40 / 0.97), rgb(8 12 20 / 0.97));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--accent);
+  border-radius: 2px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    0 8px 24px rgb(0 0 0 / 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  font-size: 0.74rem;
+}
+
+.tower-map-world-auto-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.35rem 0.5rem;
+  background: rgb(0 0 0 / 0.25);
+  border: 1px solid var(--border);
+  border-left: 2px solid transparent;
+  border-radius: 0;
+  color: var(--text);
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  font-size: 0.74rem;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tower-map-world-auto-row:hover {
+  background: rgb(255 184 77 / 0.08);
+  border-color: rgb(255 184 77 / 0.3);
+  border-left-color: var(--accent);
+}
+
+.tower-map-world-auto-row[aria-pressed="true"] {
+  border-color: var(--accent);
+  border-left-color: var(--accent);
+  background: rgb(255 184 77 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(255 184 77 / 0.18);
+}
+
+.tower-map-world-auto-label {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+.tower-map-world-auto-hint {
+  color: var(--muted);
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+}
+
+/* Single-row tab strip. Tabs are equally weighted (`flex: 1`) and forbidden from wrapping so
+   four short labels (Stock / OPM / JNSQ / RSS) always sit on one line regardless of font.
+   The horizontal "underline" beneath the inactive tabs is drawn by each tab's OWN border-bottom
+   rather than by the wrapper — that way the active tab can simply drop its bottom border to leave
+   a clean gap (no overlay tricks, no 1px misalignments from sub-pixel rounding). */
+.tower-map-world-tabs {
+  display: flex;
+  gap: 0;
+}
+
+.tower-map-world-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  color: var(--muted);
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.32rem 0.3rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.tower-map-world-tab:hover:not(.tower-map-world-tab-active) {
+  color: var(--text);
+  background: rgb(255 255 255 / 0.04);
+}
+
+/* Active tab loses its bottom border so the underline visibly "breaks" exactly under it. The
+   side borders pick up the divider color so it reads as a connected envelope with the panel
+   beneath. */
+.tower-map-world-tab-active {
+  color: var(--accent);
+  background: rgb(255 184 77 / 0.06);
+  border-color: var(--border);
+  border-top: 2px solid var(--accent);
+  border-bottom-color: transparent;
+}
+
+.tower-map-world-tabpanel {
+  /* The embedded BodyPicker manages its own scroll. */
+  min-height: 0;
+}
+
+/* Inside the popover the picker has no header card around it; drop the title (it duplicates the
+   active tab) and pull the body list flush with the tab strip. */
+.tower-map-world-tabpanel .body-picker {
+  gap: 0;
+}
+.tower-map-world-tabpanel .body-picker-header {
+  display: none;
+}
+.tower-map-world-tabpanel .body-picker-list {
+  max-height: 22rem;
+}
+
+.tower-map-world-empty {
+  margin: 0;
+  padding: 0.5rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.tower-map-zoom-readout {
+  min-width: 3.2rem;
+  padding: 0.18rem 0.35rem;
+  text-align: center;
+  color: var(--accent);
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  background: rgb(0 0 0 / 0.45);
+  border: 1px solid rgb(0 0 0 / 0.65);
+  box-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 0.6),
+    inset 0 0 0 1px rgb(255 184 77 / 0.08);
+  border-radius: 2px;
+}
+
+.tower-map-overlays {
+  /* Stay on the toolbar's single row — never wrap. The parent toolbar handles overflow with
+     horizontal scroll if the viewport is too narrow to fit every group. */
+  flex-wrap: nowrap;
+  gap: 0.25rem 0.7rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.tower-map-overlays label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Basemap layer radio group sits next to the overlay checkboxes. Pinned to a single row to keep
+   the toolbar one line tall — overflow is handled by the parent toolbar's horizontal scroll. */
+.tower-map-basemap-layer {
+  flex-wrap: nowrap;
+  gap: 0.2rem 0.55rem;
+  color: var(--muted);
+  white-space: nowrap;
+  border-left: 1px solid var(--border);
+  padding-left: 0.6rem;
+  margin-left: 0.1rem;
+}
+
+.tower-map-basemap-layer label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tower-map-basemap-layer label.tower-map-basemap-layer-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Live/static source pip after each Alt/Biome/Slope label. Green = real KSP data is being
+ * served, muted grey = bundled recolour proxy. Without this the user can't tell at a glance
+ * why all four radios feel identical when KSP isn't running. */
+.tower-map-basemap-layer-pip {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  margin-left: 0.18rem;
+  border: 1px solid rgb(15 23 42 / 0.55);
+  flex-shrink: 0;
+}
+
+/* ── Generic toolbar popover (Navaids / Sites / Map type) ─────────────────────
+ * Mirrors `.tower-map-world-popover` styling so the three new dropdowns look
+ * like siblings of the existing "Map: …" world picker. We keep the popover
+ * component visual contract centralized here instead of inlining one-off styles
+ * in MapToolbarPopover.tsx, so future toolbar dropdowns get the same look for
+ * free. */
+.tower-map-popover-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Drop-down panel under a toolbar pill. Same metal-bezel treatment as the
+ * toolbar itself: dark gradient fill, square corners, etched edges, thin
+ * amber top border that visually "ties" the panel to the open trigger above
+ * it. */
+.tower-map-toolbar-popover {
+  --popover-bg: rgb(10 16 26 / 0.97);
+  position: absolute;
+  top: calc(100% + 0.3rem);
+  z-index: 10;
+  min-width: 14rem;
+  max-width: 22rem;
+  padding: 0.55rem 0.6rem;
+  background: linear-gradient(180deg, rgb(20 28 40 / 0.97), rgb(8 12 20 / 0.97));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--accent);
+  border-radius: 2px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    0 8px 24px rgb(0 0 0 / 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  font-size: 0.74rem;
+  color: var(--text);
+}
+
+/* Anchor side. The toolbar uses `overflow-x: clip` and the Map-type / Sites
+ * dropdowns sit near the right edge, so default `right: 0` opens leftward and
+ * stays inside the clip. The Navaids dropdown lives further left and looks
+ * more natural anchored to its own left edge. */
+.tower-map-toolbar-popover-right {
+  right: 0;
+  left: auto;
+}
+.tower-map-toolbar-popover-left {
+  left: 0;
+  right: auto;
+}
+
+.tower-map-popover-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.tower-map-popover-section + .tower-map-popover-section {
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--border);
+}
+
+.tower-map-popover-heading {
+  margin: 0;
+  padding-bottom: 0.2rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border-bottom: 1px dashed rgb(255 184 77 / 0.25);
+}
+
+.tower-map-popover-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.7rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.tower-map-popover-checks-stack {
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.tower-map-popover-checks label,
+.tower-map-popover-check-block {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tower-map-popover-check-block {
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tower-map-popover-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tower-map-popover-dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  border: 1px solid rgb(15 23 42 / 0.7);
+  flex-shrink: 0;
+}
+
+/* Sites Go-to list. Each row is a button that pans/zooms the map to the site;
+ * we reuse the runway-bar / pad-triangle glyphs from the in-map markers (just
+ * shrunk and recoloured to fit a list row) so the dropdown reads like a
+ * miniature legend the operator can click. */
+.tower-map-popover-goto {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.tower-map-popover-goto-btn {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 0.9rem 1fr auto;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.28rem 0.4rem;
+  background: rgb(0 0 0 / 0.25);
+  border: 1px solid transparent;
+  border-left: 2px solid transparent;
+  border-radius: 0;
+  color: var(--text);
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tower-map-popover-goto-btn:hover {
+  background: rgb(255 184 77 / 0.08);
+  border-color: rgb(255 184 77 / 0.25);
+  border-left-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.tower-map-popover-goto-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tower-map-popover-goto-coord {
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tower-map-popover-glyph {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.6rem;
+  flex-shrink: 0;
+}
+
+.tower-map-popover-glyph-airfield {
+  background: #a3e635;
+  border: 1px solid rgb(15 23 42 / 0.9);
+  border-radius: 1px;
+  height: 0.35rem;
+  align-self: center;
+}
+
+.tower-map-popover-glyph-pad {
+  width: 0;
+  height: 0;
+  border-left: 0.35rem solid transparent;
+  border-right: 0.35rem solid transparent;
+  border-bottom: 0.6rem solid #38bdf8;
+  filter: drop-shadow(0 0 0.5px rgb(15 23 42 / 0.9));
+}
+
+.tower-map-popover-empty {
+  padding: 0.3rem 0.4rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* Range slider inside the Navaids popover sits on its own row under the
+ * "Show range circles" checkbox so the readout has space to breathe. */
+.tower-map-popover-slider {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+
+.tower-map-popover-slider input[type="range"] {
+  width: 100%;
+  margin: 0;
+}
+
+.tower-map-popover-slider-label {
+  color: var(--muted);
+}
+
+/* Inside the Map-type popover we drop the left-divider/padding the inline
+ * variant of `.tower-map-basemap-layer` carried — there's no neighbouring
+ * group to separate from once we're inside the popover. Stack vertically so
+ * each row gets one full line. */
+.tower-map-popover-radio-list.tower-map-basemap-layer {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  border-left: 0;
+  padding-left: 0;
+  margin-left: 0;
+  white-space: normal;
+}
+
+.tower-map-popover-radio-list.tower-map-basemap-layer label {
+  width: 100%;
+  gap: 0.4rem;
+  padding: 0.18rem 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+
+.tower-map-popover-radio-list.tower-map-basemap-layer label:hover {
+  background: rgb(255 184 77 / 0.06);
+}
+
+.tower-map-pickpill {
+  position: absolute;
+  bottom: 0.55rem;
+  left: 0.55rem;
+  z-index: 5;
+  padding: 0.4rem 0.55rem;
+  background: rgb(11 18 32 / 0.86);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 22rem;
+}
+
+.tower-map-pickpill-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.55rem;
+}
+
+.tower-map-pickpill-dms {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.tower-map-pickpill-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.tower-map-pickpill-label {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.62rem;
+}
+
+.tower-map-pickpill-actions {
+  margin-top: 0.15rem;
+}
+
+.tower-map-pickpill-btn {
+  font: inherit;
+  font-size: 0.7rem;
+  padding: 0.18rem 0.5rem;
+  background: rgb(30 41 59 / 0.9);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tower-map-pickpill-btn:hover:not(:disabled) {
+  background: rgb(51 65 85 / 0.95);
+}
+
+.tower-map-pickpill-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tower-map-pickpill-btn-primary {
+  background: rgb(124 58 237 / 0.7);
+  border-color: rgb(167 139 250 / 0.6);
+  color: #f5f3ff;
+}
+
+.tower-map-pickpill-btn-primary:hover:not(:disabled) {
+  background: rgb(124 58 237 / 0.9);
+}
+
+.tower-map-pickpill-error {
+  color: #fca5a5;
+  font-size: 0.68rem;
+}
+
+/* Room shared-waypoints panel: sits to the right of the pickpill so both fit in the map's
+   bottom-left without occluding the basemap legend in the bottom-right. */
+.tower-map-waypoints {
+  position: absolute;
+  bottom: 0.55rem;
+  left: 23rem;
+  z-index: 5;
+  padding: 0.4rem 0.55rem;
+  background: rgb(11 18 32 / 0.86);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.7rem;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  max-width: 18rem;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.tower-map-waypoints-title {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.15rem;
+}
+
+.tower-map-waypoints-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tower-map-waypoints-swatch {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  border: 1px solid rgb(15 23 42 / 0.85);
+  flex-shrink: 0;
+}
+
+.tower-map-waypoints-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tower-map-waypoints-remove {
+  font: inherit;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-muted);
+  width: 1.2rem;
+  height: 1.2rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.tower-map-waypoints-remove:hover:not(:disabled) {
+  color: #fca5a5;
+  border-color: #fca5a5;
+}
+
+.tower-map-waypoints-remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Compact floating legend: bottom-right of the map shell, no explanatory paragraphs. */
+.tower-map-legend {
+  position: absolute;
+  bottom: 0.72rem;
+  right: 0.55rem;
+  z-index: 5;
+  max-width: min(22rem, calc(100% - 1.1rem));
+  padding: 0.3rem 0.45rem 0.4rem;
+  background: rgb(11 18 32 / 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.7rem;
+  color: var(--text);
+  pointer-events: auto;
+}
+
+.tower-map-legend--collapsed {
+  padding: 0.2rem 0.35rem;
+}
+
+.tower-map-legend-toggle {
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0;
+  margin: 0 0 0.25rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.tower-map-legend--collapsed .tower-map-legend-toggle {
+  margin: 0;
+}
+
+.tower-map-legend-toggle:hover {
+  color: var(--text);
+}
+
+.tower-map-legend-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.tower-map-legend-hypso {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid rgb(15 23 42 / 0.9);
+}
+
+.tower-map-legend-hypso-cell {
+  height: 0.6rem;
+  display: block;
+}
+
+.tower-map-legend-hypso-range {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.55rem;
+  color: var(--muted);
+  padding: 0.1rem 0.05rem 0;
+}
+
+/* One-line caveat under the swatches explaining the source / fidelity of the active layer. */
+.tower-map-legend-note {
+  margin: 0;
+  padding: 0;
+  font-size: 0.6rem;
+  line-height: 1.25;
+  color: var(--muted);
+}
+
+/* Anomaly diamond marker key: square with one corner up, no fill border so it reads as a
+ * standalone glyph next to the round dots in the same legend row. */
+.tower-map-legend-anomaly {
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  border: 0;
+}
+
+.tower-map-legend-glyphs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.55rem;
+}
+
+.tower-map-legend-glyphs li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.65rem;
+  color: #cbd5e1;
+  white-space: nowrap;
+}
+
+.tower-map-legend-dot {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  border: 1px solid rgb(15 23 42 / 0.9);
+}
+
+.tower-map-legend-tri {
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  border: 0;
+}
+
+.tower-map-legend-vessel-li {
+  gap: 0.35rem;
+}
+
+.tower-map-legend-vessel-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.tower-map-legend-vessel-icons .kerbin-map-chart-key-vessel-svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---- Admin desk -------------------------------------------------------- */
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.admin-card-wide {
+  grid-column: 1 / -1;
+}
+
+.admin-feed-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.admin-feed-refresh {
+  padding: 0.18rem 0.55rem;
+  font-size: 0.75rem;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+  margin: 0 -0.25rem;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.admin-table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.3rem 0.55rem 0.3rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-table td {
+  padding: 0.32rem 0.55rem 0.32rem 0;
+  vertical-align: top;
+  border-bottom: 1px solid rgb(255 255 255 / 0.04);
+}
+
+.admin-table td.mono {
+  font-family: ui-monospace, monospace;
+  font-size: 0.78rem;
+  word-break: break-all;
+}
+
+.admin-table td.dim {
+  color: var(--muted);
+}
+
+.admin-log-meta {
+  max-width: 22rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-log-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.45rem 0.55rem 0.55rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+.admin-log-filter input[type="search"] {
+  flex: 1 1 18rem;
+  min-width: 0;
+  padding: 0.3rem 0.5rem;
+  background: var(--panel-elev);
+  color: inherit;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.admin-log-quickfilters {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+.admin-log-quickfilters .chip {
+  font-size: 0.72rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel-elev);
+  color: var(--muted);
+  cursor: pointer;
+  text-transform: lowercase;
+}
+.admin-log-quickfilters .chip:hover {
+  color: var(--fg);
+  border-color: var(--accent);
+}
+.admin-log-quickfilters .chip.is-active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgb(93 191 255 / 0.08);
+}
+
+/* Server logs (live backend tail) */
+.admin-feed-refresh.is-active {
+  background: rgb(93 191 255 / 0.18);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.server-log-stream {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.55rem;
+  background: #05080d;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  max-height: 28rem;
+  overflow-y: auto;
+  font-family: ui-monospace, monospace;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+.server-log-line {
+  display: grid;
+  grid-template-columns: 6.5rem 4rem 1fr;
+  gap: 0.5rem;
+  padding: 0.1rem 0.2rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.025);
+  word-break: break-word;
+}
+.server-log-line:last-child {
+  border-bottom: none;
+}
+.server-log-line.lvl-error,
+.server-log-line.lvl-fatal {
+  background: rgb(255 90 90 / 0.06);
+}
+.server-log-line.lvl-warn {
+  background: rgb(255 200 90 / 0.05);
+}
+.server-log-time {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.server-log-level {
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0 0.3rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  align-self: start;
+  line-height: 1.5;
+  background: rgb(255 255 255 / 0.05);
+  color: var(--muted);
+}
+.server-log-level.lvl-trace { color: #6c7785; }
+.server-log-level.lvl-debug { color: #88a8ff; }
+.server-log-level.lvl-info  { color: #5dbfff; }
+.server-log-level.lvl-warn  { color: #f4c768; background: rgb(244 199 104 / 0.1); }
+.server-log-level.lvl-error { color: #ff8a8a; background: rgb(255 138 138 / 0.12); }
+.server-log-level.lvl-fatal { color: #ffffff; background: #b03a3a; }
+.server-log-msg {
+  color: var(--fg);
+  white-space: pre-wrap;
+}
+.server-log-hints {
+  color: var(--muted);
+  font-style: italic;
+}
+.server-log-meta {
+  color: #7e90a6;
+  font-size: 0.72rem;
+}
+
+/* Users derived list */
+.admin-users-list {
+  list-style: none;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 28rem;
+  overflow-y: auto;
+}
+
+.admin-user-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #0b1118;
+}
+
+.admin-user-roleedit {
+  flex: 1 0 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.2rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--panel);
+}
+
+.admin-user-roleedit label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.admin-user-roleedit select {
+  min-width: 7.5rem;
+  padding: 0.3rem 0.45rem;
+  font-size: 0.8rem;
+  background: #060a12;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.admin-user-roleedit button {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+/* Owner desk cleanups (roles + invites + password reset) */
+.owner-search-input {
+  margin-top: 0.2rem;
+}
+
+.owner-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.owner-roles-card,
+.owner-rolelog-card,
+.owner-invites-card {
+  padding: 0.85rem 0.95rem;
+}
+
+.owner-feedback {
+  margin-top: 0.55rem;
+}
+
+.owner-feedback-bottom {
+  margin-bottom: 0.55rem;
+}
+
+.owner-empty {
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.owner-empty-tight {
+  margin-top: 0;
+}
+
+.owner-table-wrap {
+  margin-top: 0.65rem;
+}
+
+.owner-principal-cell {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.owner-principal-name {
+  font-weight: 600;
+}
+
+.owner-principal-id {
+  font-size: 0.72rem;
+  opacity: 0.65;
+}
+
+.owner-principal-self {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.owner-reset-btn {
+  white-space: nowrap;
+}
+
+.owner-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.owner-row-actions .owner-role-select {
+  min-width: 8rem;
+  padding: 0.38rem 0.5rem;
+}
+
+.owner-apply-btn {
+  border-color: rgba(95, 227, 154, 0.55);
+  color: #dcfce7;
+  background: rgb(34 197 94 / 0.14);
+}
+
+.owner-apply-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.owner-secondary-btn {
+  background: rgb(255 255 255 / 0.03);
+}
+
+.owner-role-current {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+.owner-reset-banner {
+  margin-top: 0.65rem;
+}
+
+.owner-reset-banner-actions {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.owner-reset-banner-code {
+  padding: 0.2rem 0.4rem;
+  background: rgb(0 0 0 / 0.2);
+  border-radius: 4px;
+}
+
+.owner-role-pill {
+  font-size: 0.7rem;
+}
+
+.owner-invite-create {
+  margin-top: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgb(6 10 18 / 0.92);
+}
+
+.owner-invite-hint {
+  margin: 0 0 0.9rem;
+  max-width: 52rem;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.owner-invite-form {
+  display: grid;
+  grid-template-columns: minmax(9.5rem, 1fr) minmax(4.5rem, 0.4fr) minmax(11rem, 1fr) minmax(12rem, 1.6fr);
+  gap: 0.75rem 1rem;
+  align-items: end;
+}
+
+.owner-invite-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.owner-invite-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.owner-invite-form select,
+.owner-invite-form input[type="number"],
+.owner-invite-form input[type="datetime-local"],
+.owner-invite-form input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.42rem 0.55rem;
+  font-size: 0.88rem;
+  background: var(--panel-elev, #0a1018);
+  color: inherit;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.owner-invite-submit {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 0.2rem;
+}
+
+.owner-invite-submit button {
+  min-width: 11rem;
+  padding: 0.48rem 1.1rem;
+  font-size: 0.88rem;
+}
+
+.owner-code-actions {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.owner-invite-row-muted {
+  opacity: 0.65;
+}
+
+.owner-invite-list-lead {
+  margin: 1rem 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.owner-invite-table-wrap {
+  margin-top: 0.15rem;
+}
+
+@media (max-width: 900px) {
+  .owner-invite-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .owner-invite-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+.owner-roles-table,
+.owner-rolelog-table,
+.owner-invites-table {
+  font-size: 0.88rem;
+}
+
+.owner-roles-table td,
+.owner-invites-table td,
+.owner-rolelog-table td {
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+}
+
+.owner-roles-table th,
+.owner-invites-table th,
+.owner-rolelog-table th {
+  font-size: 0.72rem;
+}
+
+.owner-roles-table td:first-child {
+  min-width: 13rem;
+}
+
+.owner-roles-table td:last-child {
+  min-width: 17rem;
+}
+
+@media (max-width: 860px) {
+  .owner-roles-card,
+  .owner-rolelog-card,
+  .owner-invites-card {
+    padding: 0.7rem 0.75rem;
+  }
+
+  .owner-roles-table td:last-child {
+    min-width: 13.5rem;
+  }
+}
+
+/* Admin role modal */
+.admin-role-modal {
+  width: min(24rem, calc(100vw - 2rem));
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #0c1219;
+  color: var(--text);
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.55);
+}
+
+.admin-role-modal::backdrop {
+  background: rgb(0 0 0 / 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.admin-role-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-role-form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-role-form-head h3 {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.admin-role-form-close {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+}
+
+.admin-role-form-target {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0.75rem 1rem 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.admin-role-form-target code {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.admin-role-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0 1rem 0.9rem;
+}
+
+.admin-role-form-field > span {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.admin-role-form-field select {
+  padding: 0.45rem 0.55rem;
+}
+
+.admin-role-form-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.7rem 1rem 0.9rem;
+  border-top: 1px solid var(--border);
+  background: rgb(255 255 255 / 0.015);
+}
+
+.admin-role-form-foot button {
+  padding: 0.42rem 0.95rem;
+}
+
+/* ============================================================
+ * Admin action modal (mute / kick / ban / perm-ban / ban-IP)
+ * ============================================================ */
+
+.admin-action-modal {
+  width: min(28rem, calc(100vw - 2rem));
+  padding: 0;
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: 8px;
+  background: #0c1219;
+  color: var(--text);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+  font-family: inherit;
+}
+
+.admin-action-modal::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.admin-action-modal.kind-mute,
+.admin-action-modal.kind-kick {
+  border-left-color: var(--accent);
+}
+
+.admin-action-modal.kind-tempban {
+  border-left-color: rgba(255, 107, 107, 0.7);
+}
+
+.admin-action-modal.kind-permban,
+.admin-action-modal.kind-banip {
+  border-left-color: var(--danger);
+}
+
+.admin-action-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.admin-action-form-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem 0.7rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-action-form-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.admin-action-form-kind {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.admin-action-modal.kind-permban .admin-action-form-kind,
+.admin-action-modal.kind-banip .admin-action-form-kind {
+  color: #ffd0d0;
+}
+
+.admin-action-form-target {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  word-break: break-all;
+}
+
+.admin-action-form-close {
+  margin-left: auto;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  font-size: 0.85rem;
+  line-height: 1;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+}
+
+.admin-action-form-close:hover:not(:disabled) {
+  border-color: var(--border);
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-action-form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.95rem 1rem;
+}
+
+.admin-action-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.admin-action-form .field > span:first-child {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.admin-action-form .field > span:first-child .dim {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  font-style: normal;
+  margin-left: 0.3rem;
+}
+
+.admin-action-form .field-duration {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.admin-action-form .field-duration > span:first-child {
+  flex: 0 0 auto;
+}
+
+.admin-action-form .combo {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: #060a12;
+  overflow: hidden;
+}
+
+.admin-action-form .combo:focus-within {
+  border-color: rgba(255, 184, 77, 0.55);
+}
+
+.admin-action-form .combo input {
+  border: none;
+  background: transparent;
+  width: 4.5rem;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.9rem;
+  color: var(--text);
+  text-align: right;
+}
+
+.admin-action-form .combo input:focus {
+  outline: none;
+}
+
+.admin-action-form .combo .suffix {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.65rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  border-left: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.admin-action-form .field-reason input,
+.admin-action-form .field select {
+  padding: 0.45rem 0.6rem;
+  font-size: 0.9rem;
+  background: #060a12;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+
+.admin-action-form .field-reason input::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.admin-action-form .hint {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.admin-action-form-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem 0.85rem;
+  border-top: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.admin-action-form-foot button {
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+  border-radius: 5px;
+}
+
+.admin-action-form-foot button[type="submit"] {
+  border-color: rgba(255, 107, 107, 0.55);
+  color: #ffd0d0;
+  background: rgb(255 107 107 / 0.14);
+}
+
+.admin-action-modal.kind-mute .admin-action-form-foot button[type="submit"],
+.admin-action-modal.kind-kick .admin-action-form-foot button[type="submit"] {
+  border-color: rgba(255, 184, 77, 0.55);
+  color: var(--accent);
+  background: rgb(255 184 77 / 0.14);
+}
+
+.admin-action-form-foot button[type="submit"]:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+
+.admin-user-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.admin-user-id {
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+.admin-user-roles {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.admin-user-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.05rem 0.4rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: #060a12;
+  color: var(--muted);
+}
+
+.admin-user-tag.tag-pilot {
+  border-color: rgba(255, 184, 77, 0.5);
+  color: var(--accent);
+}
+
+.admin-user-tag.tag-tower,
+.admin-user-tag.tag-controller {
+  border-color: rgba(95, 227, 154, 0.5);
+  color: var(--ok);
+}
+
+.admin-user-tag.tag-guest {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.admin-user-tag.tag-mod,
+.admin-user-tag.tag-supermod,
+.admin-user-tag.tag-owner {
+  border-color: rgba(255, 107, 107, 0.55);
+  color: #ffd0d0;
+}
+
+.admin-user-tag.tag-reported {
+  border-color: rgba(255, 107, 107, 0.55);
+  color: var(--danger);
+}
+
+.admin-user-tag.tag-banned {
+  border-color: rgba(255, 107, 107, 0.65);
+  background: rgb(255 107 107 / 0.12);
+  color: #ffd0d0;
+}
+
+.admin-user-tag.tag-muted {
+  border-color: rgba(255, 184, 77, 0.6);
+  background: rgb(255 184 77 / 0.1);
+  color: var(--accent);
+}
+
+.admin-user-tag.tag-cooldown {
+  border-color: rgba(95, 160, 227, 0.55);
+  background: rgb(95 160 227 / 0.1);
+  color: #b8d6f4;
+}
+
+.admin-user-lift {
+  border-color: rgba(95, 227, 154, 0.5);
+  color: #c8f5dc;
+  background: rgb(95 227 154 / 0.1);
+}
+
+.admin-user-lift:hover:not(:disabled) {
+  border-color: var(--ok);
+  background: rgb(95 227 154 / 0.2);
+}
+
+.admin-user-tag.tag-reporter,
+.admin-user-tag.tag-actor {
+  color: var(--text);
+}
+
+.admin-user-stats {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.85rem;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.admin-user-stats .danger {
+  color: var(--danger);
+}
+
+.admin-user-last {
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.admin-user-ban {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.78rem;
+  border-color: rgba(255, 107, 107, 0.4);
+  color: #ffd0d0;
+  background: rgb(255 107 107 / 0.08);
+}
+
+.admin-user-ban:hover:not(:disabled) {
+  border-color: var(--danger);
+  background: rgb(255 107 107 / 0.18);
+}
+
+.admin-user-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  flex: 0 0 auto;
+}
+
+.admin-user-actions button {
+  padding: 0.32rem 0.6rem;
+  font-size: 0.76rem;
+}
+
+/* ============================================================
+ * ATC roleplay panels (countdown / checklist / scorecard / etc.)
+ * ============================================================ */
+
+.tower-embed-session-strip {
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  background: var(--panel-elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.tower-embed-session-strip .atc-session-header {
+  margin-top: 0;
+}
+
+.atc-session-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.25rem;
+  font-size: 0.92rem;
+  flex-wrap: wrap;
+}
+
+.atc-session-room code {
+  background: var(--panel-elev);
+  border: 1px solid var(--border);
+  padding: 0.05rem 0.4rem;
+  border-radius: 4px;
+}
+
+.atc-session-callsign {
+  font-family: "Consolas", "Menlo", monospace;
+  background: rgb(95 227 154 / 0.1);
+  border: 1px solid rgb(95 227 154 / 0.45);
+  color: var(--ok);
+  padding: 0.1rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.atc-session-squawk {
+  font-family: "Consolas", "Menlo", monospace;
+  background: var(--accent-soft);
+  border: 1px solid rgb(255 184 77 / 0.5);
+  color: var(--accent-strong);
+  padding: 0.1rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.atc-session-squawk.emergency {
+  background: rgb(255 107 107 / 0.18);
+  border-color: var(--danger);
+  color: #ffd0d0;
+  animation: atc-blink 1.4s ease-in-out infinite;
+}
+
+@keyframes atc-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.atc-rp-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 2fr);
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+@media (max-width: 900px) {
+  .atc-rp-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.atc-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+}
+
+.atc-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.atc-panel-head h3,
+.atc-panel-head h4 {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+
+/* Countdown */
+.atc-countdown-clock {
+  font-family: "Consolas", "Menlo", monospace;
+  font-size: 2.2rem;
+  text-align: center;
+  padding: 0.6rem 0;
+  letter-spacing: 0.08em;
+  border-radius: 6px;
+  background: rgb(0 0 0 / 0.25);
+  border: 1px solid var(--border);
+}
+
+.atc-countdown-clock.running {
+  color: var(--accent-strong);
+  border-color: rgb(255 184 77 / 0.6);
+  background: var(--accent-soft);
+}
+
+.atc-countdown-clock.idle {
+  color: var(--muted);
+}
+
+.atc-countdown-requests {
+  margin-top: 0.45rem;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.atc-countdown-request-line {
+  margin: 0;
+  color: var(--text);
+}
+
+.atc-countdown-range-abort {
+  flex-wrap: wrap;
+}
+
+.atc-range-abort-btn {
+  background: linear-gradient(180deg, rgb(255 107 107 / 0.22), rgb(220 60 60 / 0.14));
+  border: 1px solid rgb(255 120 120 / 0.55);
+  color: #ffd6d6;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: filter 0.12s ease;
+}
+
+.atc-range-abort-btn:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.atc-range-abort-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Checklist */
+.atc-checklist-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 700px) {
+  .atc-checklist-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.atc-checklist-col h4 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-strong);
+}
+
+.atc-checklist-phase {
+  margin-bottom: 0.55rem;
+}
+
+.atc-checklist-phase-title {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0.2rem 0 0.15rem;
+}
+
+.atc-checklist-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.18rem 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+
+.atc-checklist-row:hover {
+  background: rgb(255 255 255 / 0.04);
+}
+
+.atc-checklist-row.done span {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.atc-checklist-row.readonly {
+  cursor: not-allowed;
+}
+
+/* Scorecard */
+.atc-scorecard-totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.atc-scorecard-total-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: var(--panel-elev);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.atc-scorecard-total-pill:hover {
+  border-color: var(--accent);
+}
+
+.atc-scorecard-name {
+  font-family: "Consolas", "Menlo", monospace;
+  color: var(--muted);
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atc-scorecard-rep {
+  font-weight: 600;
+}
+
+.atc-scorecard-rep.good { color: var(--ok); }
+.atc-scorecard-rep.bad { color: var(--danger); }
+
+.atc-scorecard-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.atc-scorecard-row {
+  display: grid;
+  grid-template-columns: 5.5rem 3rem 1fr auto;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.2rem 0.1rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.04);
+}
+
+.atc-scorecard-row.src-controller {
+  background: rgb(255 184 77 / 0.05);
+}
+
+.atc-scorecard-row.src-client_preview {
+  opacity: 0.65;
+  font-style: italic;
+}
+
+.atc-scorecard-time {
+  color: var(--muted);
+  font-family: "Consolas", "Menlo", monospace;
+  font-size: 0.78rem;
+}
+
+.atc-scorecard-pts {
+  font-family: "Consolas", "Menlo", monospace;
+  font-weight: 600;
+  text-align: right;
+}
+
+.atc-scorecard-pts.good { color: var(--ok); }
+.atc-scorecard-pts.bad { color: var(--danger); }
+.atc-scorecard-pts.neutral { color: var(--muted); }
+
+.atc-scorecard-target {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: "Consolas", "Menlo", monospace;
+  font-size: 0.78rem;
+  padding: 0;
+  text-align: right;
+  max-width: 18ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atc-scorecard-target:hover {
+  color: var(--accent-strong);
+  text-decoration: underline;
+}
+
+.score-quick-btn {
+  font-size: 0.75rem;
+  padding: 0.3rem 0.55rem;
+}
+
+.score-quick-btn.score-good {
+  border-color: rgb(95 227 154 / 0.45);
+  color: var(--ok);
+  background: rgb(95 227 154 / 0.08);
+}
+
+.score-quick-btn.score-bad {
+  border-color: rgb(255 107 107 / 0.45);
+  color: #ffd0d0;
+  background: rgb(255 107 107 / 0.08);
+}
+
+/* Checklist modal + summary card */
+.atc-checklist-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.55);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 60;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+}
+
+.atc-checklist-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: min(960px, 100%);
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 16px 50px rgb(0 0 0 / 0.5);
+}
+
+.atc-checklist-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.atc-checklist-card-head h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.atc-checklist-card-head button.is-active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.atc-checklist-row-edit,
+.atc-checklist-row-add {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0.18rem 0.25rem;
+}
+
+.atc-checklist-row-edit input[type="text"],
+.atc-checklist-row-add input[type="text"] {
+  flex: 1 1 auto;
+  font-size: 0.88rem;
+  padding: 0.2rem 0.4rem;
+}
+
+.atc-checklist-row-add {
+  border-top: 1px dashed var(--border);
+  margin-top: 0.25rem;
+  padding-top: 0.35rem;
+}
+
+.atc-checklist-templates h4 {
+  margin: 0.6rem 0 0.4rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent-strong);
+}
+
+.atc-checklist-template-save {
+  background: var(--panel-elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  margin-bottom: 0.7rem;
+}
+
+.atc-checklist-template-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.atc-checklist-template-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-elev);
+  flex-wrap: wrap;
+}
+
+.atc-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 0.05rem 0.4rem;
+  margin-left: 0.4rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.06);
+  border: 1px solid var(--border);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.atc-tag-scope {
+  color: var(--accent);
+  border-color: rgb(93 191 255 / 0.35);
+}
+.atc-tag-global {
+  color: rgb(255 198 93);
+  border-color: rgb(255 198 93 / 0.45);
+  background: rgb(255 198 93 / 0.08);
+}
+.atc-tag-craft {
+  color: rgb(150 220 150);
+  border-color: rgb(150 220 150 / 0.4);
+}
+.atc-tag-pending {
+  color: rgb(255 198 93);
+  border-color: rgb(255 198 93 / 0.45);
+  background: rgb(255 198 93 / 0.08);
+}
+
+.atc-checklist-send-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.45rem 0.7rem;
+  margin: 0.4rem 0;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel-elev);
+  font-size: 0.88rem;
+}
+.atc-checklist-send-banner.pending {
+  border-color: rgb(255 198 93 / 0.55);
+  background: rgb(255 198 93 / 0.06);
+}
+.atc-checklist-send-banner.acked {
+  border-color: rgb(110 220 130 / 0.5);
+  background: rgb(110 220 130 / 0.06);
+}
+
+.atc-checklist-send-confirm {
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: rgb(93 191 255 / 0.05);
+}
+.atc-checklist-diff {
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 220px;
+  overflow: auto;
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.4rem;
+}
+.atc-checklist-diff li {
+  padding: 0.1rem 0.2rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.atc-checklist-diff .add { color: rgb(140 220 150); }
+.atc-checklist-diff .remove { color: rgb(240 130 130); }
+.atc-checklist-diff .change { color: rgb(255 198 93); }
+
+.atc-checklist-phase-manager {
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+}
+.atc-checklist-phase-list {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.atc-checklist-phase-list li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.4rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.atc-checklist-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  margin: 0.5rem 0 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.atc-checklist-summary:hover {
+  border-color: var(--accent);
+  background: rgb(93 191 255 / 0.04);
+}
+
+.atc-checklist-summary-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.atc-checklist-summary-meta {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.atc-checklist-summary-row {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.atc-checklist-summary-bar {
+  height: 6px;
+  background: rgb(255 255 255 / 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.atc-checklist-summary-bar-fill {
+  height: 100%;
+  background: var(--accent);
+}
+
+.atc-checklist-summary-cta {
+  align-self: flex-end;
+  font-size: 0.78rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Pilot profile overlay */
+.pilot-profile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.pilot-profile-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  width: min(640px, 100%);
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.4);
+}
+
+.pilot-profile-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.pilot-profile-head h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.pilot-profile-id {
+  font-family: "Consolas", "Menlo", monospace;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.pilot-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin: 0.5rem 0 0.85rem;
+}
+
+.pilot-profile-stat {
+  background: var(--panel-elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+  text-align: center;
+}
+
+.pilot-profile-stat.good {
+  border-color: rgb(95 227 154 / 0.35);
+}
+
+.pilot-profile-stat.bad {
+  border-color: rgb(255 107 107 / 0.35);
+}
+
+.pilot-profile-stat-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+.pilot-profile-stat-value {
+  font-size: 1.6rem;
+  font-family: "Consolas", "Menlo", monospace;
+  font-weight: 600;
+  margin-top: 0.15rem;
+}
+
+.pilot-profile-stat.good .pilot-profile-stat-value { color: var(--ok); }
+.pilot-profile-stat.bad .pilot-profile-stat-value { color: var(--danger); }
+
+.pilot-profile-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.pilot-profile-row {
+  display: grid;
+  grid-template-columns: 11rem 3rem 1fr;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.25rem 0.1rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.04);
+}
+
+/* Pilot-side "ready for countdown" ping. Visually distinct from controller buttons so the pilot
+ * understands this only requests, it does not start the timer. Disabled while one is already live. */
+.atc-ready-btn {
+  background: linear-gradient(180deg, rgb(255 198 88 / 0.18), rgb(255 158 58 / 0.12));
+  border: 1px solid rgb(255 198 88 / 0.55);
+  color: rgb(255 224 168);
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: filter 0.12s ease;
+}
+.atc-ready-btn:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+.atc-ready-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* HullCam panel: tower-side viewer for JPEG snapshots relayed from the pilot's
+ * JustReadTheInstructions plugin. Lives inside a .card in TowerDesk, so we keep the
+ * outer chrome lightweight and let the .card handle padding/border. */
+.hullcam-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 0;
+}
+.hullcam-panel--compact {
+  gap: 0.25rem;
+}
+.hullcam-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.hullcam-panel__title {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+}
+.hullcam-panel__sub {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.hullcam-panel__empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.hullcam-panel__grid {
+  display: grid;
+  /* auto-fit (not auto-fill): empty tracks collapse so a few cameras share the full
+     slot width instead of shrinking into a strip beside blank columns. */
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.5rem;
+}
+
+/* Tower View panel: live "look out the tower window" hullcam streams (KSC-TOWER-* sessions).
+   Shares the .hullcam-tile look so the visual language is consistent with the pilot's HullCam
+   feeds; only the outer chrome (head + multi-stream picker) is bespoke. */
+.tower-view-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.tower-view-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.tower-view-panel__title {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+}
+.tower-view-panel__sub {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.tower-view-panel__featured {
+  display: block;
+}
+.tower-view-panel__picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.tower-view-panel__pick {
+  font: inherit;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  background: rgb(255 255 255 / 0.04);
+  color: var(--muted);
+  cursor: pointer;
+}
+.tower-view-panel__pick:hover {
+  border-color: rgb(93 191 255 / 0.55);
+}
+.tower-view-panel__pick.is-active {
+  border-color: rgb(93 191 255 / 0.85);
+  background: rgb(93 191 255 / 0.12);
+  color: rgb(214 234 255);
+}
+.tower-view-panel__empty {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.tower-view-panel__empty strong {
+  color: rgb(93 191 255);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.vessel-schematic-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.vessel-schematic-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.vessel-schematic-panel__title {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+}
+.vessel-schematic-panel__sub {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.vessel-schematic-panel__svg-wrap {
+  display: block;
+  width: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgb(8 13 22);
+  border: 1px solid rgb(255 255 255 / 0.06);
+}
+.vessel-schematic-panel__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 600 / 320;
+}
+.vessel-schematic-panel__controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+.vessel-schematic-panel__projection {
+  display: flex;
+  gap: 0.3rem;
+}
+.vessel-schematic-panel__pick {
+  font: inherit;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  background: rgb(255 255 255 / 0.04);
+  color: var(--muted);
+  cursor: pointer;
+}
+.vessel-schematic-panel__pick:hover {
+  border-color: rgb(93 191 255 / 0.55);
+}
+.vessel-schematic-panel__pick.is-active {
+  border-color: rgb(93 191 255 / 0.85);
+  background: rgb(93 191 255 / 0.12);
+  color: rgb(214 234 255);
+}
+.vessel-schematic-panel__craft {
+  font-size: 0.82rem;
+  color: rgb(214 234 255);
+  letter-spacing: 0.04em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+}
+.vessel-schematic-panel__empty {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.hullcam-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: 6px;
+  background: rgb(0 0 0 / 0.55);
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: border-color 0.12s ease, transform 0.12s ease;
+}
+.hullcam-tile:hover {
+  border-color: rgb(93 191 255 / 0.55);
+  transform: translateY(-1px);
+}
+.hullcam-tile--los {
+  border-color: rgb(248 113 113 / 0.55);
+}
+.hullcam-tile__img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  background: #000;
+}
+.hullcam-tile__los {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: repeating-linear-gradient(
+    45deg,
+    rgb(127 29 29 / 0.65),
+    rgb(127 29 29 / 0.65) 8px,
+    rgb(0 0 0 / 0.85) 8px,
+    rgb(0 0 0 / 0.85) 16px
+  );
+  color: rgb(254 226 226);
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+}
+.hullcam-tile__caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.3rem 0.45rem;
+  background: rgb(255 255 255 / 0.04);
+  font-size: 0.78rem;
+}
+.hullcam-tile__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hullcam-tile__age {
+  color: var(--muted);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.hullcam-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 80;
+  padding: 1.5rem;
+}
+.hullcam-modal {
+  width: min(1100px, 96vw);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  background: rgb(15 23 42 / 0.96);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.hullcam-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+}
+.hullcam-modal__head h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+.hullcam-modal__sub {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.hullcam-modal__head button {
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  color: inherit;
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}
+.hullcam-modal__viewport {
+  flex: 1;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+}
+.hullcam-modal__viewport--los {
+  background: repeating-linear-gradient(
+    45deg,
+    rgb(127 29 29 / 0.65),
+    rgb(127 29 29 / 0.65) 12px,
+    rgb(0 0 0 / 0.9) 12px,
+    rgb(0 0 0 / 0.9) 24px
+  );
+}
+.hullcam-modal__img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.hullcam-modal__los {
+  font-size: 1.1rem;
+  letter-spacing: 0.2em;
+  font-weight: 700;
+  color: rgb(254 226 226);
+}
+
+/* TowerWall single-cam slot: same square frame + contain as other tiles (no stretch to slot). */
+.hullcam-tile--static {
+  cursor: default;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+.hullcam-tile--static:hover {
+  border-color: rgb(255 255 255 / 0.08);
+  transform: none;
+}
+.hullcam-tile--static .hullcam-tile__img,
+.hullcam-tile--static .hullcam-tile__los {
+  flex: 0 0 auto;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  min-height: 0;
+}
+.hullcam-tile--static .hullcam-tile__img {
+  object-fit: contain;
+}
+
+/* ---------- Tower Wall (full-viewport monitor wall) ---------- */
+/* A separate route at /tower/wall that lets the controller pick how many monitor slots to
+   show and what each one displays (any hullcam, telemetry, schematic, …). Layout is a
+   flexbox so any slot count fits any viewport without manual breakpoints. Persistence is
+   session-only by design — see the page header comment for why. */
+
+.tower-wall {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  /* Sized by content, not the viewport. Keep a modest floor so empty slots
+     still read as a wall — 70vh dominated the desk; lower default leaves room
+     for clearances / map below while `flex: 1` (workspace) can still grow it. */
+  min-height: 38vh;
+}
+
+/* Wall-first layouts: make `<main>` a column flexbox so nested `.tower-wall__rows`
+   gets a definite height — otherwise CSS `fr` row tracks size to content and H
+   weights look like they do nothing. */
+main.layout.app-shell:has(.tower-workspace--wall),
+main.layout.app-shell:has(.tower-wall--row-popout),
+main.layout.app-shell:has(.tower-wall-route) {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 3.5rem);
+}
+
+/* Standalone `/tower/wall` shell: only child of `<main>`, must stretch to main. */
+.tower-wall-route {
+  flex: 1 1 auto;
+  /* Floor so an empty or late-hydrating flex chain never leaves this at 0px tall. */
+  min-height: calc(100vh - 6rem);
+  display: flex;
+  flex-direction: column;
+}
+
+.tower-workspace--wall .tower-wall {
+  flex: 1 1 auto;
+  /* Match `.tower-wall` floor — do not use `0` here (kills row `fr` + caused 1px rows). */
+  min-height: 38vh;
+  overflow: hidden;
+}
+
+.tower-wall-route > .tower-wall {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tower-wall-embed-desk {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+}
+
+.tower-wall-embed-desk--flush {
+  overflow: hidden;
+}
+
+.tower-wall-embed-desk--scroll {
+  overflow: auto;
+}
+
+/* Single row popped to `/tower/wall/row` — flex column so the row grid fills the popup. */
+.tower-wall--row-popout {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.tower-wall--row-popout .tower-wall__rows {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.tower-wall__popout--row {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Opens the consolidated wall / row layout dialog (replaces the old top + per-row toolbars). */
+.tower-wall__settings-open {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 2;
+  appearance: none;
+  font: inherit;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: rgb(15 23 42 / 0.85);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+.tower-wall__settings-open:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+.tower-wall__settings-open:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgb(255 184 77 / 0.25);
+}
+
+/* Desk: room strip + Wall layout share one panel (see `sessionStrip` on TowerWall). */
+.tower-wall__session-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+  width: 100%;
+  height: 100%;
+}
+
+.tower-wall__session-strip-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.85rem;
+}
+
+.tower-wall__session-strip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+.tower-wall__session-strip--strip-ok {
+  border-color: var(--ok);
+}
+
+.tower-wall__session-strip--no-tower {
+  border-color: rgb(255 184 77 / 0.5);
+}
+
+.tower-wall__active-tower-label,
+.tower-wall__strip-role-label {
+  font-size: 0.92rem;
+  flex-shrink: 0;
+}
+
+.tower-wall__settings-open--in-session-strip {
+  position: static;
+  top: auto;
+  right: auto;
+  flex-shrink: 0;
+}
+
+/* Portaled to `document.body` so it stacks above map tiles / toolbars (z-index
+   island) and receives backdrop clicks + Escape from `TowerWall.tsx`. */
+.tower-wall-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
+  background: rgb(0 0 0 / 0.55);
+}
+
+.tower-wall-settings-dialog {
+  max-width: min(32rem, calc(100vw - 2rem));
+  max-height: min(85vh, 36rem);
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-elevated, rgb(15 23 42 / 0.98));
+  color: var(--text);
+  box-shadow: 0 1.25rem 3rem rgb(0 0 0 / 0.45);
+  /* One scroll surface: clip at the panel; scroll only the inner block. */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.tower-wall-settings-dialog__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 1rem 1.1rem 1.15rem;
+}
+.tower-wall-settings-dialog__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+.tower-wall-settings-dialog__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.tower-wall-settings-dialog__close {
+  appearance: none;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.25rem 0.55rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.tower-wall-settings-dialog__close:hover {
+  color: var(--text);
+  border-color: rgb(255 255 255 / 0.2);
+}
+.tower-wall-settings-dialog__section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+.tower-wall-settings-dialog__meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.tower-wall-settings-dialog__persist-hint {
+  margin: -0.35rem 0 0.95rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--muted);
+  max-width: 28rem;
+}
+.tower-wall-settings-dialog__layout-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+  margin-left: auto;
+}
+.tower-wall-settings-dialog__save-defaults {
+  appearance: none;
+  font: inherit;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  color: var(--accent-strong, var(--accent));
+  background: var(--accent-soft);
+  border: 1px solid rgb(255 184 77 / 0.45);
+  border-radius: 4px;
+  padding: 0.28rem 0.55rem;
+  cursor: pointer;
+}
+.tower-wall-settings-dialog__save-defaults:hover {
+  color: var(--text);
+  border-color: rgb(255 184 77 / 0.75);
+  background: rgb(255 184 77 / 0.2);
+}
+.tower-wall-settings-dialog__save-defaults:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(255 184 77 / 0.35);
+}
+.tower-wall-settings-dialog__defaults-saved {
+  flex-basis: 100%;
+  width: 100%;
+  order: 10;
+  margin: 0.35rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--accent);
+}
+.tower-wall-settings-dialog__reset {
+  appearance: none;
+  font: inherit;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  padding: 0.28rem 0.55rem;
+  cursor: pointer;
+}
+.tower-wall-settings-dialog__reset:hover {
+  color: var(--text);
+  border-color: rgb(248 113 113 / 0.55);
+  border-style: solid;
+}
+.tower-wall-settings-dialog__reset:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(248 113 113 / 0.25);
+}
+.tower-wall-settings-dialog__blurb {
+  margin: 0 0 1rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.tower-wall-settings-dialog__blurb code {
+  font-size: 0.78em;
+  word-break: break-all;
+}
+.tower-wall-settings-dialog__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.tower-wall-settings-dialog__row-block {
+  padding: 0.65rem 0.75rem;
+  background: rgb(0 0 0 / 0.2);
+  border: 1px solid rgb(255 255 255 / 0.06);
+  border-radius: 6px;
+}
+.tower-wall-settings-dialog__row-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+}
+.tower-wall-settings-dialog__row-name {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.tower-wall-settings-dialog__row-badge {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0.12rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.tower-wall-settings-dialog__row-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+}
+
+.tower-wall__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgb(15 23 42 / 0.6);
+  border: 1px solid rgb(255 255 255 / 0.06);
+  border-radius: 6px;
+}
+.tower-wall__toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.tower-wall__toolbar-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+/* "Pop out" button on the inline (desk) wall — opens /tower/wall in a named
+   popup. Restyled out of the native button look so it sits nicely next to the
+   muted hullcam-count text. */
+.tower-wall__popout {
+  appearance: none;
+  font: inherit;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+.tower-wall__popout:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+.tower-wall__popout:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgb(255 184 77 / 0.25);
+}
+.tower-wall__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.tower-wall__field > span {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+}
+.tower-wall__field input[type="number"] {
+  width: 3.25rem;
+  padding: 0.25rem 0.4rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+/* Re-enable the spinner on hover/focus only (keeps the resting state clean and
+   avoids the cramped native arrows clipping the small width). */
+.tower-wall__field input[type="number"]::-webkit-inner-spin-button,
+.tower-wall__field input[type="number"]::-webkit-outer-spin-button {
+  appearance: auto;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.tower-wall__field input[type="number"]:hover::-webkit-inner-spin-button,
+.tower-wall__field input[type="number"]:focus::-webkit-inner-spin-button {
+  opacity: 1;
+}
+.tower-wall__field input[type="number"]:hover {
+  border-color: rgb(255 255 255 / 0.18);
+}
+.tower-wall__field input[type="number"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgb(255 184 77 / 0.25);
+}
+.tower-wall__field--width input[type="number"] {
+  width: 2.75rem;
+}
+.tower-wall__field--session {
+  min-width: 0;
+  flex: 0 1 14rem;
+}
+.tower-wall__slot-session {
+  min-width: 0;
+  width: 100%;
+  max-width: 14rem;
+  font-size: 0.76rem;
+}
+.tower-wall-settings-dialog .tower-wall__field--width input[type="number"] {
+  width: 3.35rem;
+}
+
+/* Vertical CSS grid of rows. `grid-template-rows` is set inline from per-row
+   H values (now `vh` units) so each row can be an absolute viewport-height band.
+   If the sum exceeds the wall container, scroll inside this grid. */
+.tower-wall__rows {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  gap: 0.5rem;
+  grid-auto-rows: 1fr;
+  align-content: start;
+  overflow: auto;
+}
+
+.tower-wall__row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  /* Grid/flex default `min-height: auto` would clamp each track to ~content
+     height (slots used to force 200px); use 0 so row H (fr weights) can shrink. */
+  min-height: 0;
+}
+.tower-wall__row-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.tower-wall__slot {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-height: 0;
+  background: rgb(0 0 0 / 0.5);
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.tower-wall__slot-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  background: rgb(255 255 255 / 0.04);
+  border-bottom: 1px solid rgb(255 255 255 / 0.06);
+}
+.tower-wall__slot-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  font-weight: 700;
+}
+.tower-wall__slot-picker {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.8rem;
+}
+.tower-wall__slot-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  overflow: auto;
+  padding: 0.4rem;
+}
+/* Make any direct child fill the body so HullCamPanel/SystemSchematic/etc. don't shrink to content. */
+.tower-wall__slot-body > * {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.tower-wall__empty {
+  margin: auto;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.tower-wall__hullcam-large {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.tower-wall__telemetry {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.tower-wall__telemetry td {
+  padding: 0.2rem 0.5rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.04);
+  vertical-align: top;
+}
+.tower-wall__telemetry td:first-child {
+  color: var(--muted);
+  width: 40%;
+  white-space: nowrap;
+}
+
+.tower-wall__roster {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+.tower-wall__roster th,
+.tower-wall__roster td {
+  padding: 0.3rem 0.45rem;
+  text-align: left;
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+}
+.tower-wall__roster th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* ---------- Solar system map (multi-body) ---------- */
+/* Body picker, off-world traffic, system schematic, body map. Mounted only when a static
+   system catalog matches the player's planet pack (stock / RSS / JNSQ / OPM in v1). */
+
+.body-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.body-picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.85rem;
+}
+.body-picker-title {
+  font-weight: 600;
+}
+.body-picker-count {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.body-picker-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  max-height: 18rem;
+  overflow-y: auto;
+}
+.body-picker-row {
+  display: flex;
+}
+.body-picker-button {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.4rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--text);
+  text-align: left;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.body-picker-button:hover:not(:disabled) {
+  background: var(--panel);
+  border-color: var(--border);
+}
+.body-picker-button:disabled {
+  cursor: default;
+  color: var(--muted);
+}
+.body-picker-row-focused .body-picker-button {
+  background: var(--panel);
+  border-color: var(--accent, #fde68a);
+}
+.body-picker-row-star .body-picker-button {
+  font-style: italic;
+}
+.body-picker-badge {
+  background: #22c55e;
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  min-width: 1.1rem;
+  text-align: center;
+}
+
+.off-world-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.off-world-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.85rem;
+}
+.off-world-panel-count {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.off-world-panel-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.off-world-panel-groups {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.off-world-panel-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.off-world-panel-body-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.25rem 0.4rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.82rem;
+  text-align: left;
+}
+.off-world-panel-body-button:hover {
+  border-color: var(--accent, #fde68a);
+}
+.off-world-panel-body-name {
+  font-weight: 600;
+}
+.off-world-panel-body-parent {
+  color: var(--muted);
+  font-size: 0.72rem;
+  flex: 1;
+}
+.off-world-panel-body-count {
+  background: #22c55e;
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+}
+.off-world-panel-vessels {
+  list-style: none;
+  margin: 0 0 0 0.4rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.off-world-panel-vessel {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.78rem;
+  padding-left: 0.4rem;
+  border-left: 2px solid var(--border);
+}
+.off-world-panel-vessel-self {
+  border-left-color: #fde68a;
+}
+.off-world-panel-vessel-call {
+  font-weight: 600;
+}
+.off-world-panel-vessel-meta {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.system-schematic {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.system-schematic-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.85rem;
+}
+.system-schematic-hint {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.system-schematic-canvas-wrap {
+  position: relative;
+}
+.system-schematic-svg {
+  width: 100%;
+  max-height: 32rem;
+  background: #020617;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  display: block;
+  user-select: none;
+  touch-action: none;
+}
+.system-schematic-controls {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  background: rgba(2, 6, 23, 0.7);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.2rem 0.35rem;
+  backdrop-filter: blur(4px);
+}
+.system-schematic-controls button {
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #e2e8f0;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 0;
+}
+.system-schematic-controls button:hover {
+  background: rgba(148, 163, 184, 0.18);
+}
+.system-schematic-zoom-readout {
+  color: var(--muted);
+  font-size: 0.7rem;
+  min-width: 2.6rem;
+  text-align: right;
+}
+.system-schematic-details {
+  position: relative;
+  display: flex;
+  gap: 0.8rem;
+  padding: 0.6rem 0.7rem;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.system-schematic-details-close {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.4rem;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.1rem 0.3rem;
+}
+.system-schematic-details-close:hover {
+  color: #e2e8f0;
+}
+.system-schematic-details-picture {
+  flex: 0 0 auto;
+}
+.system-schematic-details-disc {
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 50%;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow: inset -8px -8px 16px rgba(0, 0, 0, 0.45),
+    inset 6px 6px 12px rgba(255, 255, 255, 0.08);
+}
+.system-schematic-details-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.system-schematic-details-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+.system-schematic-details-title strong {
+  font-size: 0.95rem;
+}
+.system-schematic-details-kind {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.system-schematic-details-grid {
+  display: grid;
+  grid-template-columns: minmax(7rem, auto) 1fr;
+  gap: 0.15rem 0.8rem;
+  margin: 0;
+  font-size: 0.78rem;
+}
+.system-schematic-details-grid dt {
+  color: var(--muted);
+}
+.system-schematic-details-grid dd {
+  margin: 0;
+  color: #e2e8f0;
+}
+
+.body-map {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.5rem;
+}
+.body-map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.body-map-title {
+  font-size: 0.95rem;
+}
+.body-map-parent {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-style: italic;
+}
+.body-map-vessel-count {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.body-map-svg {
+  width: 100%;
+  height: auto;
+  background: #0f172a;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.tower-system-overview-card {
+  margin-bottom: 0.6rem;
+}
+.tower-map-focus-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--panel);
+  border: 1px solid var(--accent, #fde68a);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+
+/* kOS screen mirror: monospace VT-style block that renders kOS terminal lines
+ * forwarded by the plugin's TowerKosScreenAutoCapture. Lives inside a .card on
+ * TowerDesk, so we keep the outer chrome lightweight. */
+.kos-screen-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.kos-screen-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.kos-screen-panel__head h2 {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.kos-screen-panel__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+.kos-screen-panel__follow {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.14em;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  border: 1px solid currentColor;
+}
+.kos-screen-panel__follow--on {
+  color: rgb(74 222 128);
+}
+.kos-screen-panel__follow--off {
+  color: rgb(250 204 21);
+}
+.kos-screen-panel__viewport {
+  /* CRT-ish: dark background, soft green text, monospace, generous line height.
+   * Lines never wrap — a long log line stays on one row and the viewport
+   * scrolls horizontally instead. Wrapping shoved earlier lines off the top
+   * of the panel as a single long log line split into 2-3 visual rows.
+   *
+   * Width is `100%` of the parent card (no hard min-width — earlier
+   * `min-width: 92ch` made the viewport overflow the side column). The card
+   * lives in the wide .tower-main column so there's actually room to grow.
+   * `resize: both` gives the player a drag handle in the bottom-right corner;
+   * `max-width: 100%` keeps the user from dragging it past the card edge,
+   * and `max-height: 80vh` keeps a runaway drag from filling the viewport.
+   *
+   * Default font-size 0.8rem in monospace + an 80-100ch wide card = enough
+   * room for the kOS terminal's native 50 cols plus the [HH:MM:SS] gutter,
+   * without forcing a horizontal scroll on every line. */
+  background: #050a0a;
+  color: rgb(134 239 172);
+  border: 1px solid rgb(74 222 128 / 0.25);
+  border-radius: 4px;
+  padding: 0.5rem 0.65rem;
+  width: 100%;
+  height: 18rem;
+  min-height: 6rem;
+  max-width: 100%;
+  max-height: 80vh;
+  overflow: auto;
+  resize: both;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+.kos-screen-panel__empty {
+  margin: 0;
+  color: rgb(134 239 172 / 0.55);
+}
+.kos-screen-panel__line {
+  /* Block, not flex — flex with flex:1 on the body forced it to share the
+   * viewport's content width, which then triggered word-break. With block +
+   * white-space:pre on the body each line is exactly one row tall, period. */
+  display: block;
+  white-space: pre;
+}
+.kos-screen-panel__time {
+  color: rgb(74 222 128 / 0.55);
+  margin-right: 0.55rem;
+  font-variant-numeric: tabular-nums;
+}
+.tower-map-range-altitude {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 0.2rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.tower-map-range-altitude input[type="range"] {
+  width: 90px;
+  accent-color: #fb923c;
+}
+.tower-map-range-altitude-readout {
+  font-variant-numeric: tabular-nums;
+  min-width: 3.2rem;
+  text-align: right;
+}
+
+/* ---- Settings page (per-user profile + moderation history) ------------- */
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+.settings-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.settings-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.settings-input-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.settings-input-row input[type="text"] {
+  flex: 1 1 14rem;
+  min-width: 12rem;
+}
+.settings-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.settings-empty {
+  margin: 0.4rem 0 0;
+  font-size: 0.88rem;
+}
+.settings-meta {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 0.75rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+}
+.settings-meta > div {
+  display: contents;
+}
+.settings-meta dt {
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  align-self: center;
+}
+.settings-meta dd {
+  margin: 0;
+  word-break: break-all;
+}
+.settings-roomname {
+  font-size: 0.75rem;
+  margin-right: 0.4rem;
+  background: #060a12;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* Aerodrome chart modal — opened from the in-map "PLT" button next to KKSC/KAFD.
+ * Reuses the .kerbin-map-marker-modal* skeleton for the head/close button, then
+ * widens the dialog and switches the body to an image viewer with optional
+ * tabs (KKSC has 4 chart pages: aerodrome top-down + ILS overview + 2 plates;
+ * KAFD has 1). */
+.aerodrome-chart-modal {
+  max-width: min(56rem, 92vw);
+}
+
+.aerodrome-chart-modal-body {
+  padding: 0.65rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-height: calc(100vh - 8rem);
+}
+
+.aerodrome-chart-modal-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.aerodrome-chart-modal-tab {
+  font-size: 0.78rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: #0b1220;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.aerodrome-chart-modal-tab:hover {
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+.aerodrome-chart-modal-tab-active {
+  background: #1e3a8a;
+  color: #f8fafc;
+  border-color: #60a5fa;
+}
+
+.aerodrome-chart-modal-image-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #04070d;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: auto;
+  padding: 0.4rem;
+}
+
+.aerodrome-chart-modal-image {
+  max-width: 100%;
+  max-height: calc(100vh - 16rem);
+  height: auto;
+  display: block;
+  background: #fff;
+  border-radius: 4px;
+}
+
+.aerodrome-chart-modal-blurb {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.aerodrome-chart-modal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  font-size: 0.82rem;
+}
+
+
+.tower-status-grid {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.tower-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  width: fit-content;
+  max-width: 100%;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+.tower-status-pill.tone-ok {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+}
+
+.tower-status-pill.tone-warn {
+  color: #ffbd4a;
+  background: color-mix(in srgb, #ffbd4a 12%, transparent);
+}
+
+.tower-status-pill.tone-alert {
+  color: #ff7d7d;
+  background: color-mix(in srgb, #ff7d7d 14%, transparent);
+}
+
+.tower-status-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.86rem;
+}
+
+.tower-status-key {
+  color: var(--muted);
+}
+
+.tower-status-value {
+  color: var(--text);
+}
+
+.tower-status-value.muted {
+  color: var(--muted);
+}
+
+/* Tower wall: one compact card per pilot session (wraps instead of one stretched column). */
+.tower-wall__slot-body > .tower-status-wall {
+  flex: 0 1 auto;
+  align-self: flex-start;
+  width: 100%;
+  max-height: 100%;
+  min-height: 0;
+  overflow: auto;
+}
+
+.tower-status-wall {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-content: flex-start;
+  align-items: flex-start;
+}
+
+.tower-status-wall__item {
+  flex: 0 0 auto;
+}
+
+.tower-status-player-card {
+  width: 14.25rem;
+  max-width: min(14.25rem, 100%);
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+  border-radius: 8px;
+  padding: 0.45rem 0.5rem 0.5rem;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+}
+
+.tower-status-player-card--tracked {
+  border-color: color-mix(in srgb, var(--accent, #6ea8ff) 55%, var(--line));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent, #6ea8ff) 35%, transparent);
+}
+
+.tower-status-player-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.tower-status-player-card__titles {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.tower-status-player-card__room {
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tower-status-player-card__pilot {
+  font-size: 0.68rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tower-status-player-card__tower-on {
+  color: var(--ok);
+}
+
+.tower-status-player-card__badge {
+  flex: 0 0 auto;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--accent, #6ea8ff);
+  border: 1px solid color-mix(in srgb, var(--accent, #6ea8ff) 40%, transparent);
+  border-radius: 4px;
+  padding: 0.12rem 0.28rem;
+  line-height: 1;
+}
+
+.tower-status-pill--compact {
+  font-size: 0.72rem;
+  padding: 0.22rem 0.45rem;
+  width: 100%;
+  max-width: 100%;
+  justify-content: center;
+  box-sizing: border-box;
+  margin-bottom: 0.35rem;
+}
+
+.tower-status-player-card__dl {
+  margin: 0;
+  display: grid;
+  gap: 0.28rem;
+}
+
+.tower-status-player-card__dl-row {
+  display: grid;
+  grid-template-columns: 4.2rem 1fr;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  line-height: 1.25;
+  align-items: start;
+}
+
+.tower-status-player-card__dl-row dt {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.tower-status-player-card__dl-row dd {
+  margin: 0;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tower-status-player-card__dl-row dd.muted {
+  color: var(--muted);
+}
+
+.tower-status-player-card__dl-row dd.is-alert {
+  color: #ff7d7d;
+  font-weight: 600;
+}
+
+.tower-status-player-card__sep {
+  height: 1px;
+  margin: 0.4rem 0;
+  background: color-mix(in srgb, var(--line) 80%, transparent);
+  border: 0;
+}
+
+.tower-status-player-card__no-telem {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.3;
+}
+
+.tower-status-player-card__dl--telemetry .tower-status-player-card__dl-row dd {
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* Pilot card: annunciator / warning lamps (comms, gear, Kerbalism, storm, …) */
+.tower-status-player-card__annun {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.42rem;
+  align-items: flex-start;
+  margin: 0.15rem 0 0.42rem;
+  padding: 0.32rem 0.38rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, #000 38%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+}
+
+.tower-annun-cap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.12rem;
+  min-width: 1.55rem;
+  flex: 0 0 auto;
+}
+
+.tower-annun-lamp {
+  width: 0.58rem;
+  height: 0.58rem;
+  border-radius: 50%;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, #000 65%, transparent);
+}
+
+.tower-annun-lamp--dim {
+  background: #1a1a1f;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.55);
+}
+
+.tower-annun-lamp--ok {
+  background: #1f5c32;
+  box-shadow:
+    0 0 6px color-mix(in srgb, #3cff7a 45%, transparent),
+    inset 0 -1px 1px rgb(0 0 0 / 0.35);
+}
+
+.tower-annun-lamp--warn {
+  background: #6a5210;
+  box-shadow:
+    0 0 7px color-mix(in srgb, #ffb020 48%, transparent),
+    inset 0 -1px 1px rgb(0 0 0 / 0.35);
+}
+
+.tower-annun-lamp--alert {
+  background: #6a1818;
+  box-shadow:
+    0 0 8px color-mix(in srgb, #ff5555 52%, transparent),
+    inset 0 -1px 1px rgb(0 0 0 / 0.35);
+}
+
+.tower-annun-lamp--pulse {
+  animation: tower-annun-lamp-pulse 1.05s ease-in-out infinite;
+}
+
+@keyframes tower-annun-lamp-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+    opacity: 1;
+  }
+  50% {
+    filter: brightness(1.25);
+    opacity: 0.88;
+  }
+}
+
+.tower-annun-cap__tag {
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  text-transform: uppercase;
+  line-height: 1;
+  max-width: 2.4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}

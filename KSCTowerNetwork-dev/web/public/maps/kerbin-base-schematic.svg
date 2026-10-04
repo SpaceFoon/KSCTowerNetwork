@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 596 298" width="596" height="298" preserveAspectRatio="xMidYMid meet">
+  <title>Kerbin equirectangular schematic basemap</title>
+  <desc>Original 2:1 equirectangular plate (596x298, lon -180..180, lat -90..90). Ocean fill, polar shading, and a faint 10 degree pattern grid. No terrain art. Replace via public/maps/basemap.json.</desc>
+  <defs>
+    <linearGradient id="kbn-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0e3a5a"/>
+      <stop offset="0.18" stop-color="#0b3552"/>
+      <stop offset="0.5" stop-color="#082d44"/>
+      <stop offset="0.82" stop-color="#0b3552"/>
+      <stop offset="1" stop-color="#0e3a5a"/>
+    </linearGradient>
+    <pattern id="kbn-grid10" x="0" y="0" width="16.55556" height="16.55556" patternUnits="userSpaceOnUse">
+      <path d="M 16.55556 0 L 0 0 0 16.55556" fill="none" stroke="#16567f" stroke-opacity="0.22" stroke-width="0.25"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="0" width="596" height="298" fill="url(#kbn-bg)"/>
+  <g fill="#1c4f72" fill-opacity="0.45">
+    <rect x="0" y="0" width="596" height="33.111"/>
+    <rect x="0" y="264.889" width="596" height="33.111"/>
+  </g>
+  <rect x="0" y="110.097" width="596" height="77.806" fill="#0c4869" fill-opacity="0.18"/>
+  <rect x="0" y="0" width="596" height="298" fill="url(#kbn-grid10)"/>
+  <rect x="0" y="0" width="596" height="298" fill="none" stroke="#0a2436" stroke-width="0.6"/>
+</svg>
