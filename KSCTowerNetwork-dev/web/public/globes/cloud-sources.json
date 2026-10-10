@@ -1,0 +1,62 @@
+{
+  "kerbin": {
+    "url": "/globes/kerbin-avp-clouds.webp",
+    "source": "Astronomer's Visual Pack",
+    "texture": "AVP_Configs/Textures/kerbin1.dds",
+    "originalWidth": 8192,
+    "originalHeight": 4096,
+    "width": 4096,
+    "height": 2048,
+    "transformation": "Vertical flip; alpha coverage; maximum 4096 x 2048; lossless WebP"
+  },
+  "laythe": {
+    "url": "/globes/laythe-avp-clouds.webp",
+    "source": "Astronomer's Visual Pack",
+    "texture": "AVP_Configs/Textures/laythe1.dds",
+    "originalWidth": 8192,
+    "originalHeight": 4096,
+    "width": 4096,
+    "height": 2048,
+    "transformation": "Vertical flip; alpha coverage; maximum 4096 x 2048; lossless WebP"
+  },
+  "eve": {
+    "url": "/globes/eve-avp-clouds.webp",
+    "source": "Astronomer's Visual Pack",
+    "texture": "AVP_Configs/Textures/eve1.dds",
+    "originalWidth": 2048,
+    "originalHeight": 1024,
+    "width": 2048,
+    "height": 1024,
+    "transformation": "Vertical flip; alpha coverage; maximum 4096 x 2048; lossless WebP"
+  },
+  "duna": {
+    "url": "/globes/duna-avp-clouds.webp",
+    "source": "Astronomer's Visual Pack",
+    "texture": "AVP_Configs/Textures/duna1.dds",
+    "originalWidth": 8192,
+    "originalHeight": 4096,
+    "width": 4096,
+    "height": 2048,
+    "transformation": "Vertical flip; alpha coverage; maximum 4096 x 2048; lossless WebP"
+  },
+  "jool": {
+    "url": "/globes/jool-avp-clouds.webp",
+    "source": "Astronomer's Visual Pack",
+    "texture": "AVP_Configs/Textures/joolLayers1.dds",
+    "originalWidth": 8192,
+    "originalHeight": 4618,
+    "width": 3633,
+    "height": 2048,
+    "transformation": "Vertical flip; alpha coverage; maximum 4096 x 2048; lossless WebP"
+  },
+  "cirrus": {
+    "url": "/globes/cirrus-avp-clouds.webp",
+    "source": "Astronomer's Visual Pack",
+    "texture": "AVP_Configs/Textures/cirrus.dds",
+    "originalWidth": 8192,
+    "originalHeight": 4618,
+    "width": 3633,
+    "height": 2048,
+    "transformation": "Vertical flip; alpha coverage; maximum 4096 x 2048; lossless WebP"
+  }
+}

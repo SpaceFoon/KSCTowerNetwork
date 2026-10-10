@@ -102,3 +102,9 @@ KSCTowerNetwork-dev/web/.chart-tools/
 
 # Machine-specific dev ports (for example, WSL mirrored-network reservations).
 KSCTowerNetwork-dev/dev-ports.local.json
+
+# Optional locally imported planet textures keep their separate asset rights.
+KSCTowerNetwork-dev/web/public/globes/*
+!KSCTowerNetwork-dev/web/public/globes/README.md
+!KSCTowerNetwork-dev/web/public/globes/*LICENSE*
+!KSCTowerNetwork-dev/web/public/globes/*-sources.json

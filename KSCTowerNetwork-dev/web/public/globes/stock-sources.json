@@ -1,0 +1,130 @@
+{
+  "jool": {
+    "url": "/globes/jool-stock.webp",
+    "source": "KSP stock scaled-space",
+    "texture": "CloudPattern_low",
+    "asset": "sharedassets9.assets",
+    "width": 8192,
+    "height": 4096
+  },
+  "tylo": {
+    "url": "/globes/tylo-stock.webp",
+    "source": "KSP stock scaled-space",
+    "texture": "rockyMoon00",
+    "asset": "sharedassets9.assets",
+    "width": 4096,
+    "height": 2048
+  },
+  "ike": {
+    "url": "/globes/ike-stock.webp",
+    "source": "KSP stock scaled-space",
+    "texture": "desertplanetmoon00",
+    "asset": "sharedassets9.assets",
+    "width": 2048,
+    "height": 1024
+  },
+  "laythe": {
+    "url": "/globes/laythe-stock.webp",
+    "source": "KSP stock scaled-space",
+    "texture": "newoceanmoon00",
+    "asset": "sharedassets9.assets",
+    "width": 8192,
+    "height": 4096
+  },
+  "eeloo": {
+    "url": "/globes/eeloo-stock.webp",
+    "source": "KSP stock scaled-space",
+    "texture": "snowydwarfplanet00",
+    "asset": "sharedassets9.assets",
+    "width": 8192,
+    "height": 4096
+  },
+  "bop": {
+    "url": "/globes/bop-stock.webp",
+    "source": "KSP stock scaled-space",
+    "texture": "gp1minormoon100",
+    "asset": "sharedassets9.assets",
+    "width": 4096,
+    "height": 2048
+  },
+  "pol": {
+    "url": "/globes/pol-stock.webp",
+    "source": "KSP stock scaled-space",
+    "texture": "gp1minormoon200",
+    "asset": "sharedassets9.assets",
+    "width": 2048,
+    "height": 1024
+  },
+  "gilly": {
+    "url": "/globes/gilly-stock.webp",
+    "source": "KSP stock scaled-space",
+    "texture": "evemoon100",
+    "asset": "sharedassets9.assets",
+    "width": 2048,
+    "height": 1024
+  },
+  "duna": {
+    "url": "/globes/duna-stock.webp",
+    "source": "KSP stock scaled-space",
+    "texture": "Duna [Albedo]",
+    "asset": "sharedassets9.assets",
+    "width": 4096,
+    "height": 2048
+  },
+  "eve": {
+    "url": "/globes/eve-stock.webp",
+    "source": "KSP stock scaled-space",
+    "texture": "Eve2_00",
+    "asset": "sharedassets9.assets",
+    "width": 4096,
+    "height": 2048
+  },
+  "dres": {
+    "url": "/globes/dres-stock.webp",
+    "source": "KSP stock scaled-space",
+    "texture": "dwarfplanet100",
+    "asset": "sharedassets9.assets",
+    "width": 2048,
+    "height": 1024
+  },
+  "minmus": {
+    "url": "/globes/minmus-stock.webp",
+    "source": "KSP stock scaled-space",
+    "texture": "NewMunSurfaceMap00",
+    "asset": "sharedassets9.assets",
+    "width": 4096,
+    "height": 2048
+  },
+  "moho": {
+    "url": "/globes/moho-stock.webp",
+    "source": "KSP stock scaled-space",
+    "texture": "moho01",
+    "asset": "sharedassets9.assets",
+    "width": 4096,
+    "height": 2048
+  },
+  "vall": {
+    "url": "/globes/vall-stock.webp",
+    "source": "KSP stock scaled-space",
+    "texture": "gp1icemoon00",
+    "asset": "sharedassets9.assets",
+    "width": 4096,
+    "height": 2048
+  },
+  "mun": {
+    "url": "/globes/mun-stock.webp",
+    "source": "KSP stock scaled-space",
+    "texture": "NewMunSurfaceMapDiffuse",
+    "asset": "sharedassets2.assets",
+    "width": 4096,
+    "height": 2048
+  },
+  "kerbin": {
+    "url": "/globes/kerbin-stock.png",
+    "source": "KSP terrain",
+    "width": 8192,
+    "height": 4096,
+    "texture": "Kerbin_600000_v4__alt.png",
+    "asset": "KSCTowerNetwork plugin map cache"
+  }
+}

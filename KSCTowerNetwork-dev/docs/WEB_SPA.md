@@ -275,3 +275,23 @@ are interchangeable from the page's perspective.
 The authenticated `/charts` route shows download and installation links when no bundle is installed. Server owners download the original ASET PDF separately and run `web/scripts/install_charts.py` after building the web app. Generated files go into `dist/charts/` (or an explicit output directory), served at `/charts/`. Once installed, the viewer provides 22 pages, full-document search, section filters, transcripts, PDF links and reference-data download. Third-party chart assets and transcripts are excluded from source control and retain CC BY-NC-SA 3.0. See [installation instructions](AEROCHART_REFERENCE.md).
 
 The production `/charts` route requires sign-in and is available through the Charts navigation link; it does not require an active room.
+
+## Solar-system artwork and planet globes
+
+`components/SystemSchematic.tsx` uses `SystemArtwork.tsx` for the starfield and
+shaded overview markers. Selecting a body opens an inspector with the WebGL
+`PlanetGlobe.tsx` renderer: rotating terrain, separate cloud layers, OPM rings,
+optional illustrative radiation belts, drag/keyboard rotation, zoom, pause,
+and an expanded dialog. Reduced-motion preferences disable automatic rotation.
+The inspector overlays wide scenes and flows below narrow panels.
+
+`data/globeTextures.ts` selects textures from the generated
+`globeAssetSources.ts` registry, guarded by stock/OPM world ID. A matching live
+PNG terrain layer takes priority. Local `public/globes/` textures are optional
+and ignored; provenance and license notices remain tracked. Import from your
+own KSP/AVP installation with `scripts/import-globe-textures.py`; see
+[the asset README](../web/public/globes/README.md) and [NOTICE.md](NOTICE.md).
+Missing image files use the renderer's illustrated fallback.
+
+`/globe-preview.html` is a development-only gallery for stock and OPM bodies.
+The production build uses the normal authenticated Tower Desk route.

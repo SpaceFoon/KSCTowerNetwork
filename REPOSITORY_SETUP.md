@@ -91,3 +91,11 @@ Backend tests now preload isolated settings before imports and skip personal dot
 See `KSCTowerNetwork-dev/docs/DEVELOPMENT.md` for standalone-checkout builds
 and local verification commands. Reinstall optional charts after each web
 build, which clears `web/dist/`.
+## Legacy globe restoration - October 10, 2026
+
+The fresh-history snapshot predated the legacy repository's later solar-system
+artwork and rotating WebGL globes. The renderer, inspector, starfield, texture
+registry, importer and preview were restored from the legacy checkout. Existing
+local stock KSP, OPM and AVP images were copied into ignored `web/public/globes/`
+with their provenance and license notices. These images do not accompany a clone;
+see `KSCTowerNetwork-dev/docs/WEB_SPA.md` for optional local imports.

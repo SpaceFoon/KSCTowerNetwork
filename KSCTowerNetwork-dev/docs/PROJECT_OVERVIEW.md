@@ -700,3 +700,14 @@ Third-party chart bundles are not included. `web/scripts/install_charts.py` rend
 ## Operator documentation and example configs
 
 `docs/SERVER_HOSTING.md` provides the manual VPS recipe from prerequisites/database creation to owner login, HTTPS, systemd, updates and troubleshooting. `deploy/Caddyfile.example` and `deploy/ksctower-backend.service.example` are editable configs for that recipe. The production Charts route is authenticated and reachable from the app navigation even without an active room.
+
+## Restored planet globe files
+
+The solar-system view includes `web/src/components/SystemArtwork.tsx` and
+`PlanetGlobe.tsx`, integrated by `SystemSchematic.tsx`. Globe source selection
+and provenance live in `web/src/data/globeTextures.ts` and
+`globeAssetSources.ts`; texture selection has a focused regression suite.
+`scripts/import-globe-textures.py` imports optional local images into ignored
+`web/public/globes/`; license/source manifests and the asset README remain in
+Git. `web/globe-preview.html` and `src/previews/GlobePreview.tsx` provide the
+development gallery. See [WEB_SPA.md](WEB_SPA.md#solar-system-artwork-and-planet-globes).

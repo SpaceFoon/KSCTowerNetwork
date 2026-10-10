@@ -1,0 +1,146 @@
+{
+  "sarnus": {
+    "url": "/globes/sarnus-opm.webp",
+    "source": "Outer Planets Mod",
+    "texture": "Sarnus_color.dds",
+    "repository": "https://github.com/Poodmund/Outer-Planets-Mod",
+    "revision": "ffedf02e23d2d620e1018d1467f5e485f7950fa0",
+    "width": 1024,
+    "height": 512
+  },
+  "hale": {
+    "url": "/globes/hale-opm.webp",
+    "source": "Outer Planets Mod",
+    "texture": "Hale_color.dds",
+    "repository": "https://github.com/Poodmund/Outer-Planets-Mod",
+    "revision": "ffedf02e23d2d620e1018d1467f5e485f7950fa0",
+    "width": 1024,
+    "height": 512
+  },
+  "ovok": {
+    "url": "/globes/ovok-opm.webp",
+    "source": "Outer Planets Mod",
+    "texture": "Ovok_color.dds",
+    "repository": "https://github.com/Poodmund/Outer-Planets-Mod",
+    "revision": "ffedf02e23d2d620e1018d1467f5e485f7950fa0",
+    "width": 1024,
+    "height": 512
+  },
+  "eeloo": {
+    "url": "/globes/eeloo-opm.webp",
+    "source": "Outer Planets Mod",
+    "texture": "Eeloo_color.dds",
+    "repository": "https://github.com/Poodmund/Outer-Planets-Mod",
+    "revision": "ffedf02e23d2d620e1018d1467f5e485f7950fa0",
+    "width": 4096,
+    "height": 2048
+  },
+  "slate": {
+    "url": "/globes/slate-opm.webp",
+    "source": "Outer Planets Mod",
+    "texture": "Slate_color.dds",
+    "repository": "https://github.com/Poodmund/Outer-Planets-Mod",
+    "revision": "ffedf02e23d2d620e1018d1467f5e485f7950fa0",
+    "width": 4096,
+    "height": 2048
+  },
+  "tekto": {
+    "url": "/globes/tekto-opm.webp",
+    "source": "Outer Planets Mod",
+    "texture": "Tekto_color.dds",
+    "repository": "https://github.com/Poodmund/Outer-Planets-Mod",
+    "revision": "ffedf02e23d2d620e1018d1467f5e485f7950fa0",
+    "width": 4096,
+    "height": 2048
+  },
+  "urlum": {
+    "url": "/globes/urlum-opm.webp",
+    "source": "Outer Planets Mod",
+    "texture": "Urlum_color.dds",
+    "repository": "https://github.com/Poodmund/Outer-Planets-Mod",
+    "revision": "ffedf02e23d2d620e1018d1467f5e485f7950fa0",
+    "width": 1024,
+    "height": 512
+  },
+  "polta": {
+    "url": "/globes/polta-opm.webp",
+    "source": "Outer Planets Mod",
+    "texture": "Polta_color.dds",
+    "repository": "https://github.com/Poodmund/Outer-Planets-Mod",
+    "revision": "ffedf02e23d2d620e1018d1467f5e485f7950fa0",
+    "width": 2048,
+    "height": 1024
+  },
+  "priax": {
+    "url": "/globes/priax-opm.webp",
+    "source": "Outer Planets Mod",
+    "texture": "Priax_color.dds",
+    "repository": "https://github.com/Poodmund/Outer-Planets-Mod",
+    "revision": "ffedf02e23d2d620e1018d1467f5e485f7950fa0",
+    "width": 1024,
+    "height": 512
+  },
+  "wal": {
+    "url": "/globes/wal-opm.webp",
+    "source": "Outer Planets Mod",
+    "texture": "Wal_color.dds",
+    "repository": "https://github.com/Poodmund/Outer-Planets-Mod",
+    "revision": "ffedf02e23d2d620e1018d1467f5e485f7950fa0",
+    "width": 2048,
+    "height": 1024
+  },
+  "tal": {
+    "url": "/globes/tal-opm.webp",
+    "source": "Outer Planets Mod",
+    "texture": "Tal_color.dds",
+    "repository": "https://github.com/Poodmund/Outer-Planets-Mod",
+    "revision": "ffedf02e23d2d620e1018d1467f5e485f7950fa0",
+    "width": 1024,
+    "height": 512
+  },
+  "neidon": {
+    "url": "/globes/neidon-opm.webp",
+    "source": "Outer Planets Mod",
+    "texture": "Neidon_color.dds",
+    "repository": "https://github.com/Poodmund/Outer-Planets-Mod",
+    "revision": "ffedf02e23d2d620e1018d1467f5e485f7950fa0",
+    "width": 1024,
+    "height": 512
+  },
+  "thatmo": {
+    "url": "/globes/thatmo-opm.webp",
+    "source": "Outer Planets Mod",
+    "texture": "Thatmo_color.dds",
+    "repository": "https://github.com/Poodmund/Outer-Planets-Mod",
+    "revision": "ffedf02e23d2d620e1018d1467f5e485f7950fa0",
+    "width": 2048,
+    "height": 1024
+  },
+  "nissee": {
+    "url": "/globes/nissee-opm.webp",
+    "source": "Outer Planets Mod",
+    "texture": "Nissee_color.dds",
+    "repository": "https://github.com/Poodmund/Outer-Planets-Mod",
+    "revision": "ffedf02e23d2d620e1018d1467f5e485f7950fa0",
+    "width": 1024,
+    "height": 512
+  },
+  "plock": {
+    "url": "/globes/plock-opm.webp",
+    "source": "Outer Planets Mod",
+    "texture": "Plock_color.dds",
+    "repository": "https://github.com/Poodmund/Outer-Planets-Mod",
+    "revision": "ffedf02e23d2d620e1018d1467f5e485f7950fa0",
+    "width": 2048,
+    "height": 1024
+  },
+  "karen": {
+    "url": "/globes/karen-opm.webp",
+    "source": "Outer Planets Mod",
+    "texture": "Karen_color.dds",
+    "repository": "https://github.com/Poodmund/Outer-Planets-Mod",
+    "revision": "ffedf02e23d2d620e1018d1467f5e485f7950fa0",
+    "width": 2048,
+    "height": 1024
+  }
+}

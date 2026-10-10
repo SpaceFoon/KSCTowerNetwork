@@ -1,19 +1,22 @@
-import { JSX, useEffect, useMemo, useRef, useState } from "react";
+import { JSX, useEffect, useId, useMemo, useRef, useState } from "react";
+import { PlanetArtwork, SystemSky, planetAccentFor } from "./SystemArtwork";
+import { PlanetGlobe } from "./PlanetGlobe";
+import { fetchWorldMapsManifest, type WorldMapsManifest } from "../data/worldMapsClient";
+import { useApiQuery } from "../query/hooks";
+import { queryKeys } from "../query/client";
+import { globeTextureFor, globeMarkerTextureFor } from "../data/globeTextures";
 import {
-  basemapUrlFor,
   type SystemCatalog,
   type SystemCatalogBody
 } from "../data/systemCatalog";
 
 /**
  * Concentric solar-system schematic. The star sits at the center; planets are placed on rings
- * spaced by `sma^0.45` so the inner system stays clustered (as it really is) and outer-pack
- * planets (Sarnus → Plock under OPM) still get distinct rings without flattening to "every
- * planet at the same distance" the way pure log10 does.
+ * spaced evenly in semi-major-axis order, keeping inner and outer planets readable.
  *
- * Bodies are rendered as circles textured with their basemap SVG (clipped to a disc), giving a
- * crude "planet picture" using assets we already ship under `/maps/{worldId}/{Body}.svg`.
- * Atmospheric bodies get a subtle halo ring sized off `atmosphereDepthM` (visual only).
+ * Illustrated spheres use surface features, atmospheric rims, and shading toward the star.
+ * The decorative sky stays fixed behind the interactive schematic. Artwork and lighting are
+ * illustrative; neither is a geographic map or a simulation of live celestial positions.
  *
  * Vessels show as live dots on whichever body their telemetry says they're on. When the caller
  * supplies `vesselOrbits` we additionally draw an approximate orbit ellipse around the parent
@@ -47,24 +50,21 @@ const SVG_W = 1000;
 const SVG_H = 1000;
 const CENTER_X = SVG_W / 2;
 const CENTER_Y = SVG_H / 2;
-const STAR_R = 18;
-const PLANET_R = 7;
-const MOON_R = 3.5;
+const STAR_R = 24;
+const PLANET_R = 11;
+const MOON_R = 5;
 const VESSEL_R = 1.6;
 /** Outermost ring radius in SVG units; planets are distributed evenly into [MIN_RING_R, this]. */
-const MAX_RING_R = Math.min(SVG_W, SVG_H) / 2 - 30;
-const MIN_RING_R = STAR_R + 30;
-const MOON_RING_BASE_R = 14;
-const MOON_RING_STEP_R = 6;
+const MAX_RING_R = Math.min(SVG_W, SVG_H) / 2 - 80;
+const MIN_RING_R = STAR_R + 40;
+const MOON_RING_BASE_R = 22;
+const MOON_RING_STEP_R = 7;
 /**
  * Minimum gap (SVG units) we want between adjacent planet rings. Has to clear the worst-case
  * moon fan: a planet with N moons extends ~MOON_RING_BASE_R + (N-1)·MOON_RING_STEP_R from its
- * marker, plus a planet radius, so 5-moon Sarnus / Jool need ~45 units of clearance to the
- * next ring. Used as a floor when even-spacing collapses (very few planets and a huge canvas
- * would otherwise space them absurdly far apart, which is fine, but very many planets would
- * crush them — the floor side never triggers in practice with current SVG_W=1000).
+ * marker. Angular staggering provides additional clearance for larger moon fans.
  */
-const MIN_RING_GAP = 45;
+const MIN_RING_GAP = 48;
 
 /**
  * Initial / "Reset view" zoom. 1× shows the whole system (Moho out to Plock under OPM) at once
@@ -102,6 +102,7 @@ export type VesselOrbitSpec = {
 };
 
 type Props = {
+  sessionId?: string;
   catalog: SystemCatalog;
   /** Vessel counts keyed by body name (case-insensitive). Used to size the body marker. */
   vesselCounts: Map<string, number>;
@@ -248,31 +249,12 @@ function surfaceGravity(body: SystemCatalogBody): { ms2: number; gees: number } 
 }
 
 /**
- * Per-body atmosphere ring radius in SVG units. Real atmosphere depth would be invisible at
- * this scale (Kerbin: 70 km vs 600 km radius → 11% halo) so we exaggerate slightly (×1.5) and
- * cap at +60% of body radius so gas giants don't swallow neighbors.
- */
-function atmosphereHaloRadius(baseR: number, body: SystemCatalogBody): number | null {
-  if (!body.hasAtmosphere || !body.atmosphereDepthM || !body.radiusM) return null;
-  const fraction = body.atmosphereDepthM / body.radiusM;
-  return baseR * (1 + Math.min(0.6, fraction * 1.5));
-}
-
-/**
  * Map an orbital ALTITUDE (m above body surface) onto an SVG offset from the body marker's
  * surface. Goal: LKO (Kerbin Pe ≈ 80 km vs 600 km radius) renders as a ring just outside the
  * atmosphere halo — visibly an orbit, not a planet decoration — while geostationary altitude
  * (~2868 km on Kerbin) is clearly farther out, and SOI-grazing orbits don't blow off the canvas.
  *
  * Curve:  offset = baseR · 0.9 · log10(1 + 8 · altM/radiusM)
- *
- * Numbers it produces around Kerbin (baseR=7, radius=600 km):
- *   - Atmosphere halo top ≈ 8.2 svg
- *   - LKO  (80 km)    →  8.98 svg  (just outside the halo, exactly what you want)
- *   - HKO  (200 km)   → 10.55 svg
- *   - KEO  (2868 km)  → 17.04 svg
- *   - Mun-distance    → ~21 svg
- *   - SOI-grazing     → ~26 svg (clamped further by `MAX_OFFSET_RATIO` below)
  *
  * Returns 0 (collapses to body surface) if altM ≤ 0 or radiusM is missing.
  */
@@ -314,12 +296,22 @@ function vesselOrbitsFor(
 }
 
 export function SystemSchematic({
+  sessionId,
   catalog,
   vesselCounts,
   vesselOrbits,
   focusedBodyName,
   onFocusBody
 }: Props): JSX.Element {
+  const worldMaps = useApiQuery<WorldMapsManifest | null>({
+    queryKey: queryKeys.world.maps(sessionId || "__none__"),
+    queryFn: () => fetchWorldMapsManifest(sessionId!),
+    enabled: !!sessionId,
+    staleTime: 30_000,
+    refetchInterval: sessionId ? 60_000 : false
+  }).data;
+  const textureFor = (body: SystemCatalogBody) => globeTextureFor(body, catalog.worldId, worldMaps);
+  const artworkId = useId().replace(/:/g, "");
   const placements = useMemo(() => layoutSystem(catalog), [catalog]);
   const focusedLower = focusedBodyName.toLowerCase();
 
@@ -328,9 +320,7 @@ export function SystemSchematic({
   // anchoring "just works" (the SVG point under the cursor before a wheel-zoom is the same
   // SVG point under the cursor after, like Google Maps / Figma / every map library).
   //
-  // Default zoom is 3× centered on the star: at 1× the inner planets are tiny dots and the
-  // first thing every user did was hit the "+" button three times. Pre-zooming gives Moho /
-  // Eve / Kerbin / Mun room to actually be readable on first paint.
+  // Start at the full-system view; evenly spaced rings keep the inner bodies readable.
   const [view, setView] = useState<{ x: number; y: number; w: number; h: number }>(
     () => DEFAULT_VIEW
   );
@@ -343,9 +333,7 @@ export function SystemSchematic({
     moved: boolean;
   } | null>(null);
 
-  // Inline details card state. `null` = no card. We seed it from `focusedBodyName` if present
-  // (so callers that pre-select a body open the card too) but allow the user to close it.
-  const [detailsBodyName, setDetailsBodyName] = useState<string | null>(focusedBodyName || null);
+  const [detailsBodyName, setDetailsBodyName] = useState<string | null>(null);
 
   const { x: vbX, y: vbY, w: vbW, h: vbH } = view;
   const scale = SVG_W / vbW;
@@ -495,6 +483,13 @@ export function SystemSchematic({
     return catalog.bodies.find((b) => b.name.toLowerCase() === lower) ?? null;
   }, [catalog, detailsBodyName]);
 
+  const closeDetails = () => {
+    setDetailsBodyName(null);
+    const target = Array.from(svgRef.current?.querySelectorAll<SVGGElement>(".system-schematic-body") ?? [])
+      .find((element) => element.dataset.bodyName === detailsBodyName);
+    target?.focus();
+  };
+
   // Pre-compute orbital ring radii for the star's children so we can draw them as guide circles.
   const ringRadii = useMemo(() => {
     const planets = placements.filter((p) => p.depth === 1);
@@ -506,13 +501,21 @@ export function SystemSchematic({
   }, [placements]);
 
   return (
-    <div className="system-schematic" role="img" aria-label={`${catalog.displayName} overview`}>
+    <div className="system-schematic" role="group" aria-label={`${catalog.displayName} overview`}
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && detailsBodyName) {
+          event.preventDefault();
+          event.stopPropagation();
+          closeDetails();
+        }
+      }}>
       <div className="system-schematic-header">
         <strong>{catalog.displayName}</strong>
         <span className="system-schematic-hint">Wheel to zoom · drag to pan · click a body</span>
       </div>
 
       <div className="system-schematic-canvas-wrap">
+        <SystemSky />
         <svg
           ref={svgRef}
           viewBox={`${vbX} ${vbY} ${vbW} ${vbH}`}
@@ -525,36 +528,26 @@ export function SystemSchematic({
           style={{ cursor: dragRef.current ? "grabbing" : "grab" }}
         >
           <defs>
-            {/* One clip path per body lets us crop the equirectangular basemap into a disc.
-                Radii here intentionally match the body's draw radius below. */}
-            {placements.map(({ body, depth }) => {
-              const r = body.isStar ? STAR_R : depth === 1 ? PLANET_R : MOON_R;
-              return (
-                <clipPath
-                  key={`clip-${body.name}`}
-                  id={`schematic-clip-${body.name.replace(/[^a-z0-9]/gi, "_")}`}
-                  clipPathUnits="userSpaceOnUse"
-                >
-                  <circle cx={0} cy={0} r={r} />
-                </clipPath>
-              );
-            })}
-            <radialGradient id="schematic-star-glow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#fde68a" />
-              <stop offset="60%" stopColor="#facc15" />
-              <stop offset="100%" stopColor="#b45309" />
+            <radialGradient id={`${artworkId}-sun`} cx="42%" cy="38%" r="65%">
+              <stop offset="0%" stopColor="#fffbea" />
+              <stop offset="35%" stopColor="#ffe7a2" />
+              <stop offset="75%" stopColor="#ffb64e" />
+              <stop offset="100%" stopColor="#e96b23" />
             </radialGradient>
-            <radialGradient id="schematic-shade" cx="35%" cy="35%" r="65%">
-              <stop offset="0%" stopColor="rgba(255,255,255,0.35)" />
-              <stop offset="60%" stopColor="rgba(255,255,255,0)" />
-              <stop offset="100%" stopColor="rgba(0,0,0,0.55)" />
+            <radialGradient id={`${artworkId}-corona`}>
+              <stop stopColor="#ffdd8d" stopOpacity="0.48" />
+              <stop offset="0.25" stopColor="#f6b855" stopOpacity="0.2" />
+              <stop offset="0.5" stopColor="#de8435" stopOpacity="0.06" />
+              <stop offset="1" stopColor="#de8435" stopOpacity="0" />
             </radialGradient>
           </defs>
 
+          <circle cx={CENTER_X} cy={CENTER_Y} r={STAR_R * 5} fill={`url(#${artworkId}-corona)`} pointerEvents="none" />
+
           <g
             className="system-schematic-rings"
-            stroke="rgba(148, 163, 184, 0.22)"
-            strokeWidth={0.5}
+            stroke="rgba(162, 185, 214, 0.2)"
+            strokeWidth={0.8}
             fill="none"
           >
             {ringRadii.map((r, i) => (
@@ -568,17 +561,9 @@ export function SystemSchematic({
               detailsBody && body.name.toLowerCase() === detailsBody.name.toLowerCase();
             const count = vesselCountFor(vesselCounts, body.name);
             const baseR = body.isStar ? STAR_R : depth === 1 ? PLANET_R : MOON_R;
-            const clipId = `schematic-clip-${body.name.replace(/[^a-z0-9]/gi, "_")}`;
-            const halo = atmosphereHaloRadius(baseR, body);
-            // Stars use the gradient; everyone else uses the basemap texture. The basemap is a
-            // 2:1 equirectangular SVG; we scale it 2× wider than tall and let the circle clip
-            // pull the equator slice. Missing files just render as a transparent circle (the
-            // browser swallows the 404), and the stroke + shade gradient still convey "this
-            // is a body, not background".
-            const basemapHref = body.isStar ? null : basemapUrlFor(catalog.worldId, body.name);
+            const lightAngle = Math.atan2(CENTER_Y - cy, CENTER_X - cx) * 180 / Math.PI;
             // Selection ring (clicked-for-details) takes precedence over focus ring color.
-            const ringColor = isDetails ? "#22d3ee" : isFocused ? "#fde68a" : "rgba(15, 23, 42, 0.85)";
-            const ringWidth = isDetails ? 1.6 : isFocused ? 1.4 : 0.6;
+            const ringColor = isDetails ? "#91d8f0" : isFocused ? "#ffe7a2" : "transparent";
             // Translate the abstract label placement into concrete SVG attributes. "above" puts
             // the baseline far enough above the marker that the text bottom (incl. descenders)
             // clears the body ring; "right" / "left" sit alongside the marker on that side.
@@ -586,56 +571,53 @@ export function SystemSchematic({
             let labelDy = 1.8;
             let labelAnchor: "start" | "middle" | "end" = "start";
             if (labelPlacement === "right") {
-              labelDx = baseR + 3;
+              labelDx = baseR + 7;
               labelAnchor = "start";
             } else if (labelPlacement === "left") {
-              labelDx = -(baseR + 3);
+              labelDx = -(baseR + 7);
               labelAnchor = "end";
             } else {
               labelDx = 0;
-              labelDy = -(baseR + 2);
+              labelDy = -(baseR + 9);
               labelAnchor = "middle";
             }
             return (
               <g
                 key={body.name}
+                className="system-schematic-body"
+                data-body-name={body.name}
+                role="button"
+                tabIndex={0}
+                aria-label={`View ${body.displayName}`}
+                aria-pressed={Boolean(isDetails)}
+                aria-expanded={Boolean(isDetails)}
+                aria-controls={isDetails ? `${artworkId}-details` : undefined}
                 transform={`translate(${cx} ${cy})`}
                 style={{ cursor: "pointer" }}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleBodyClick(body);
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleBodyClick(body);
+                  }
+                }}
               >
-                {halo != null ? (
-                  <circle
-                    r={halo}
-                    fill="rgba(125, 211, 252, 0.18)"
-                    stroke="rgba(125, 211, 252, 0.45)"
-                    strokeWidth={0.4}
-                  />
-                ) : null}
+                <circle r={baseR + 7} fill="transparent" />
 
                 {body.isStar ? (
-                  <circle r={baseR} fill="url(#schematic-star-glow)" />
-                ) : basemapHref ? (
                   <>
-                    <circle r={baseR} fill="#1e293b" />
-                    <image
-                      href={basemapHref}
-                      x={-baseR}
-                      y={-baseR}
-                      width={baseR * 2}
-                      height={baseR * 2}
-                      preserveAspectRatio="xMidYMid slice"
-                      clipPath={`url(#${clipId})`}
-                    />
-                    <circle r={baseR} fill="url(#schematic-shade)" />
+                    <circle r={baseR + 2} fill="none" stroke="#ffd58a" strokeOpacity="0.25" strokeWidth="2" />
+                    <circle r={baseR} fill={`url(#${artworkId}-sun)`} />
+                    <path d="M-16-6Q-7-16 5-12M5 15Q16 10 17 1" stroke="#fff5cb" strokeOpacity="0.35" strokeWidth="1.5" fill="none" />
                   </>
                 ) : (
-                  <circle r={baseR} fill={depth === 1 ? "#60a5fa" : "#94a3b8"} />
+                  <PlanetArtwork body={body} radius={baseR} lightAngle={lightAngle} textureUrl={globeMarkerTextureFor(body, catalog.worldId)} />
                 )}
 
-                <circle r={baseR} fill="none" stroke={ringColor} strokeWidth={ringWidth} />
+                <circle className="system-schematic-selection" r={baseR + 4} fill="none" stroke={ringColor} strokeWidth="1" strokeDasharray="3 3" />
 
                 {count > 0 ? (
                   <g>
@@ -662,14 +644,15 @@ export function SystemSchematic({
                 <text
                   x={labelDx}
                   y={labelDy}
-                  fontSize={5.5}
-                  fill="#e5e7eb"
-                  stroke="#0f172a"
-                  strokeWidth={0.3}
+                  fontSize={depth > 1 ? 11 : 18}
+                  fontWeight={depth > 1 ? 400 : 500}
+                  fill={depth > 1 ? "#b8c5d6" : "#edf3fc"}
+                  stroke="#030711"
+                  strokeWidth={2.5}
                   paintOrder="stroke"
                   textAnchor={labelAnchor}
                 >
-                  {body.displayName}
+                  {body.name}
                 </text>
 
                 {/* Orbit ellipses for any vessel known to be captured by this body. Each ellipse
@@ -744,47 +727,54 @@ export function SystemSchematic({
         </svg>
 
         <div className="system-schematic-controls" aria-label="Zoom controls">
-          <button type="button" onClick={() => zoomBy(1.4)} title="Zoom in">
+          <button type="button" onClick={() => zoomBy(1.4)} title="Zoom in" aria-label="Zoom in">
             +
           </button>
-          <button type="button" onClick={() => zoomBy(1 / 1.4)} title="Zoom out">
+          <button type="button" onClick={() => zoomBy(1 / 1.4)} title="Zoom out" aria-label="Zoom out">
             −
           </button>
-          <button type="button" onClick={resetView} title="Reset view">
+          <button type="button" onClick={resetView} title="Reset view" aria-label="Reset view">
             ⟲
           </button>
           <span className="system-schematic-zoom-readout">{scale.toFixed(2)}×</span>
         </div>
+        <span className="system-schematic-caption">System overview · illustrative scale</span>
+        {detailsBody ? (
+          <BodyDetailsCard
+            key={detailsBody.name}
+            id={`${artworkId}-details`}
+            body={detailsBody}
+            textureUrl={textureFor(detailsBody)}
+            worldId={catalog.worldId}
+            kind={detailsBody.isStar ? "Star" : detailsBody.parent === catalog.starName ? "Planet" : "Moon"}
+            onClose={closeDetails}
+          />
+        ) : null}
       </div>
-
-      {detailsBody ? (
-        <BodyDetailsCard
-          body={detailsBody}
-          worldId={catalog.worldId}
-          onClose={() => setDetailsBodyName(null)}
-        />
-      ) : null}
     </div>
   );
 }
 
 function BodyDetailsCard({
+  id,
   body,
+  kind,
+  textureUrl,
   worldId,
   onClose
 }: {
+  id: string;
   body: SystemCatalogBody;
+  kind: "Star" | "Planet" | "Moon";
+  textureUrl?: string;
   worldId: string;
   onClose: () => void;
 }): JSX.Element {
   const g = surfaceGravity(body);
-  const kind = body.isStar ? "Star" : body.parent ? "Moon / Body" : "Planet";
-  // The card's "picture" reuses the same equirectangular basemap clipped to a disc; if the
-  // file is missing the browser swallows the 404 and we fall back to the colored placeholder.
-  const pictureHref = body.isStar ? null : basemapUrlFor(worldId, body.name);
 
   return (
-    <div className="system-schematic-details">
+    <section id={id} className="system-schematic-details" aria-label={`${body.displayName} details`}
+      style={{ "--planet-accent": planetAccentFor(body) } as React.CSSProperties}>
       <button
         type="button"
         className="system-schematic-details-close"
@@ -795,8 +785,8 @@ function BodyDetailsCard({
         ×
       </button>
 
-      <div className="system-schematic-details-picture" aria-hidden>
         {body.isStar ? (
+          <div className="system-schematic-details-picture" aria-hidden>
           <div
             className="system-schematic-details-disc"
             style={{
@@ -804,24 +794,18 @@ function BodyDetailsCard({
                 "radial-gradient(circle at 50% 50%, #fde68a 0%, #facc15 60%, #b45309 100%)"
             }}
           />
-        ) : pictureHref ? (
-          <div
-            className="system-schematic-details-disc"
-            style={{
-              backgroundImage: `url(${pictureHref})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center"
-            }}
-          />
+          </div>
         ) : (
-          <div className="system-schematic-details-disc" style={{ background: "#1e293b" }} />
+          <PlanetGlobe body={body} textureUrl={textureUrl} worldId={worldId} />
         )}
-      </div>
 
       <div className="system-schematic-details-info">
         <div className="system-schematic-details-title">
-          <strong>{body.displayName}</strong>
           <span className="system-schematic-details-kind">{kind}</span>
+          <h3>{body.displayName}</h3>
+          <span className="system-schematic-details-environment">
+            {body.isStar ? "Central star" : body.hasAtmosphere ? "Atmosphere present" : "Airless world"}
+          </span>
         </div>
 
         <dl className="system-schematic-details-grid">
@@ -871,6 +855,6 @@ function BodyDetailsCard({
           ) : null}
         </dl>
       </div>
-    </div>
+    </section>
   );
 }
