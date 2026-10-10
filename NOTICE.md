@@ -12,7 +12,7 @@ The flat-color body placeholders and `kerbin-base-schematic.svg` are project-cre
 
 ## LiveKit patch and dependencies
 
-The bridge patch in `KSCTowerNetwork-voice-bridge/voice-bridge/patches/` modifies `@livekit/rtc-node` 0.13.25, distributed by LiveKit under Apache-2.0. The license is preserved in [licenses/LiveKit-Apache-2.0.txt](licenses/LiveKit-Apache-2.0.txt). The upstream archive and extracted staging tree are not included. Dependency manifests and lockfiles remain; retain dependencies' own licenses and notices when packaging installed dependencies.
+The bridge patch in `KSCTowerNetwork-voice-bridge/voice-bridge/patches/` modifies `@livekit/rtc-node` 1.1.0, distributed by LiveKit under Apache-2.0. The license is preserved in [licenses/LiveKit-Apache-2.0.txt](licenses/LiveKit-Apache-2.0.txt). The upstream archive and extracted staging tree are not included. Dependency manifests and lockfiles remain; retain dependencies' own licenses and notices when packaging installed dependencies.
 
 ## Optional Kerbin chart reference
 

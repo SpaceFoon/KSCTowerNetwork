@@ -46,8 +46,10 @@ This:
 1. Runs `npm run build` in the bridge source tree (`tsc -p tsconfig.build.json`).
 2. Copies `package.json`, `package-lock.json`, and `dist/` into
    `GameData/KSCTowerNetwork/PluginData/bridge-runtime/app/`.
-3. Runs `npm ci --omit=dev` inside that staged app to install **production-only**
-   `node_modules` (currently just `@livekit/rtc-node`).
+3. Runs `npm ci --omit=dev --ignore-scripts` inside that staged app to install **production-only**
+   `node_modules` (`@livekit/rtc-node` 1.1.0 and its dependencies), then overlays the
+   patched `dist/room.cjs` from the source install. Both ESM and CJS use this file.
+   The build fails if the duplicate-participant or data-handle crash guard is absent.
 4. Copies the supplied `node.exe` into
    `GameData/KSCTowerNetwork/PluginData/bridge-runtime/node/node.exe`.
 5. Writes a hardened `start-bridge.cmd` that fails fast with a readable error

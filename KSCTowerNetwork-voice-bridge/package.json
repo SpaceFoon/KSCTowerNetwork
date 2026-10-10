@@ -3,17 +3,17 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=18"
+    "node": ">=24"
   },
   "scripts": {
-    "start": "\"C:\\Users\\Darren\\AppData\\Local\\nvm\\v18.20.8\\node.exe\" node_modules/tsx/dist/cli.mjs src/bridge.ts"
+    "start": "tsx src/bridge.ts"
   },
   "dependencies": {
-    "@livekit/rtc-node": "^0.13.25"
+    "@livekit/rtc-node": "^1.1.0"
   },
   "devDependencies": {
-    "@types/node": "^22.19.17",
-    "tsx": "^4.19.3",
-    "typescript": "^5.8.2"
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
   }
 }

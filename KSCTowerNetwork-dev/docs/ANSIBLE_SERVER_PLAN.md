@@ -283,7 +283,7 @@ The voice bridge (`KSCTowerNetwork-voice-bridge/voice-bridge/`) connects **KSP o
 | **Normal** — bridge on pilot PC with KSP | **Do not** deploy with server `site.yml`. Document manual install or a **Windows**-specific automation outside this Linux plan. |
 | **Headless bridge** on Linux | Separate inventory group `tower_bridge`; template `TOWER_API_BASE`, `PCM_*`, `CTL_*`, `BRIDGE_IDENTITY`, `SESSION_ID`; fix **`KSP_PROCESS_NAME`** / **`KSP_WATCHDOG`** for Linux; open only required ports. |
 
-**Note:** Root `KSCTowerNetwork-voice-bridge/package.json` uses a **hardcoded Windows `node.exe` path** — not suitable for servers. Use `voice-bridge/package.json` patterns with a normal `PATH` Node on Linux.
+**Note:** Both voice-bridge packages require Node 24 or newer from `PATH`. Use the maintained inner `voice-bridge/package.json` for Linux servers; the outer package is a legacy source entrypoint.
 
 ---
 

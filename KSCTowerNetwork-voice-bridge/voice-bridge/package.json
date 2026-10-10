@@ -13,12 +13,12 @@
     "test": "node --import tsx --test \"test/**/*.test.ts\""
   },
   "dependencies": {
-    "@livekit/rtc-node": "^0.13.25"
+    "@livekit/rtc-node": "^1.1.0"
   },
   "devDependencies": {
-    "@types/node": "^22.19.17",
+    "@types/node": "^26.6.5",
     "patch-package": "^8.0.1",
-    "tsx": "^4.19.3",
-    "typescript": "^5.8.2"
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
   }
 }

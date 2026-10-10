@@ -106,17 +106,17 @@ finally {
 
 # Overlay @livekit/rtc-node fix for duplicate participantConnected FFI events (crashes with
 # "Participant already exists"). Dev tree must have run `npm install` so patch-package applied.
-$patchedLkRoom = Join-Path $bridgeRoot "node_modules\@livekit\rtc-node\dist\room.js"
 $patchedLkRoomCjs = Join-Path $bridgeRoot "node_modules\@livekit\rtc-node\dist\room.cjs"
-if ((Test-Path -LiteralPath $patchedLkRoom) -and (Test-Path -LiteralPath $patchedLkRoomCjs)) {
-    $rtLkJs = Join-Path $runtimeApp "node_modules\@livekit\rtc-node\dist\room.js"
-    $rtLkCjs = Join-Path $runtimeApp "node_modules\@livekit\rtc-node\dist\room.cjs"
-    Copy-Item -LiteralPath $patchedLkRoom -Destination $rtLkJs -Force
-    Copy-Item -LiteralPath $patchedLkRoomCjs -Destination $rtLkCjs -Force
-    Write-Host "LiveKit rtc-node: overlaid duplicate participantConnected patch into runtime."
-} else {
-    Write-Warning "Patched @livekit/rtc-node dist/room.js not found. Run npm install in voice-bridge (applies patches/) before build-bridge-runtime, or the bridge may exit on duplicate ParticipantConnected."
+if (-not (Test-Path -LiteralPath $patchedLkRoomCjs)) {
+    throw "LiveKit rtc-node dist/room.cjs is missing. Run npm ci in voice-bridge before building."
 }
+$patchedRoomText = Get-Content -LiteralPath $patchedLkRoomCjs -Raw
+if (-not $patchedRoomText.Contains('duplicate identity') -or -not $patchedRoomText.Contains('failed to dispose user data handle')) {
+    throw "LiveKit rtc-node crash guards are missing. Run npm run postinstall in voice-bridge before building."
+}
+$rtLkCjs = Join-Path $runtimeApp "node_modules\@livekit\rtc-node\dist\room.cjs"
+Copy-Item -LiteralPath $patchedLkRoomCjs -Destination $rtLkCjs -Force
+Write-Host "LiveKit rtc-node: overlaid participant and data-handle crash guards into runtime."
 
 # Copy portable node runtime.
 Copy-Item -LiteralPath $NodeExePath -Destination (Join-Path $runtimeNode "node.exe")
