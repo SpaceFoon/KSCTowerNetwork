@@ -23,10 +23,9 @@ import jwt from "jsonwebtoken";
 import { env } from "../config/env";
 import { requireAuth, __resetPluginIdentityBridgeForTests } from "./auth";
 
-// `.env.development` is loaded with override:true by config/env, so we sign
-// JWTs with whatever APP_JWT_SECRET ended up after that pass — not a value
-// hardcoded here. DEV_USER_ID is consulted the same way to keep the assertions
-// honest if the dev .env is ever retuned.
+// Auth fixtures explicitly enable the dev identity bridge; personal dotenv files stay unloaded.
+env.DEV_OPEN_AUTH = true;
+env.DEV_OPEN_AUTH_BRIDGE_TO_PLUGIN = true;
 const SIGNING_SECRET = env.APP_JWT_SECRET;
 const DEV_USER_ID = env.DEV_USER_ID;
 

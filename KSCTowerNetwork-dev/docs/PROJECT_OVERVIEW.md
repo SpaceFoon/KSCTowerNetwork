@@ -148,6 +148,7 @@ Key files:
 | `src/services/craftThumbnailStore.ts` | Validated saved craft PNGs: 128 sessions, 256 KiB each, five-minute TTL. Pilot-only POST and controller/member GET `/craft-thumbnail/:sessionId`; see API_REFERENCE. |
 | `src/services/worldInventory.ts` | Per-session record of which planet pack / launch sites the pilot's KSP install has. |
 | `src/services/worldMaps.ts` | Catalog of map basemaps + navaids per body. |
+| `test/setup.cjs` | Backend test preload: test mode, in-memory persistence, dummy signing settings and empty LiveKit credentials before imports; local dotenv files are skipped in tests. |
 | `src/lib/db.ts` | MariaDB pool + schema bootstrap. |
 | `src/lib/redis.ts` | Redis client + ping. |
 

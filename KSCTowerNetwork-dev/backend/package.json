@@ -7,7 +7,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "test": "node --import tsx --test --test-concurrency=1 \"src/**/*.test.ts\"",
+    "test": "node --require ./test/setup.cjs --import tsx --test --test-concurrency=1 \"src/**/*.test.ts\"",
     "test:mutation": "stryker run",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json"
   },

@@ -174,7 +174,11 @@ $defines = @()
 if ($Dev) { $defines += "/define:DEV_AUTOFILL" }
 
 $srcQuoted = $src | ForEach-Object { "`"$_`"" }
-& $csc /target:library /optimize+ "/out:$stagingDll" @defines @refs @srcQuoted
+# A response file keeps quoted paths consistent across Windows PowerShell and PowerShell 7.
+$responsePath = Join-Path $objDir "plugin-build.rsp"
+$compilerArgs = @("/target:library", "/optimize+", "/out:`"$stagingDll`"") + $defines + $refs + $srcQuoted
+[IO.File]::WriteAllLines($responsePath, $compilerArgs, [Text.UTF8Encoding]::new($false))
+& $csc "@$responsePath"
 if ($LASTEXITCODE -ne 0) {
     throw "csc failed (see compiler output above)."
 }

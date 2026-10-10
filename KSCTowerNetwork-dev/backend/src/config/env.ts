@@ -3,10 +3,13 @@ import dotenv from "dotenv";
 import { z } from "zod";
 
 const cwd = process.cwd();
-// Default dotenv only reads `.env`. Vite-style `.env.development` is not automatic for Node — load it in dev.
-dotenv.config({ path: path.join(cwd, ".env") });
-if (process.env.NODE_ENV !== "production") {
-  dotenv.config({ path: path.join(cwd, ".env.development"), override: true });
+// Test settings must not be replaced by the developer's credentials or runtime configuration.
+const isTestProcess = process.env.NODE_ENV === "test" || Boolean(process.env.NODE_TEST_CONTEXT);
+if (!isTestProcess) {
+  dotenv.config({ path: path.join(cwd, ".env") });
+  if (process.env.NODE_ENV !== "production") {
+    dotenv.config({ path: path.join(cwd, ".env.development"), override: true });
+  }
 }
 
 const DEV_DEFAULT_APP_JWT_SECRET = "dev-only-change-me-please";

@@ -269,3 +269,58 @@ beacon enabled and the rebuilt DLL, confirm the correct editor thumbnail on
 the web Flightwall, then switch to a differently named craft and confirm the
 old image disappears. Compilation and local HTTP tests do not prove that
 live KSP-to-browser path.
+
+## Moving an existing local checkout
+
+Keep the legacy checkout until the new checkout has passed local login,
+voice and in-game telemetry checks. Ignored configuration does not travel
+with a clone: preserve backend/web dotenv files, plugin settings/auth,
+local invite/user stores, release configuration and optional fonts/maps.
+Keep backups before replacing configuration, and keep all private files
+ignored. Dependency directories and generated runtime output must belong
+to the new checkout rather than junctions into the legacy checkout.
+
+For a source checkout outside KSP, build against the game's assemblies:
+
+```powershell
+# From KSCTowerNetwork-dev/, with KSP closed:
+.\build-plugin.ps1 -KspManagedPath '<KSP install>\KSP_x64_Data\Managed'
+```
+
+The compiler response file supports both Windows PowerShell and PowerShell
+7, including paths with spaces. The DLL is written to the checkout's
+`GameData/`, not automatically installed into the external game directory.
+
+Backend `npm test` preloads `backend/test/setup.cjs` before TypeScript imports.
+It selects test mode, in-memory persistence and dummy signing settings, and
+clears LiveKit credentials. The env loader skips local dotenv files for
+`NODE_ENV=test` and Node test-runner children. Integration tests release
+MariaDB/Redis handles on completion. This keeps personal dev configuration
+from overriding fixtures or making tests contact the owner's LiveKit project.
+
+If Windows rejects the default ports with EADDRINUSE while netstat shows no
+listener, diagnose the machine's sockets/reservations. Temporary checks can
+use explicit localhost ports in separate terminals:
+
+```powershell
+# From web/, backend running on 48787:
+node .\node_modules\vite\bin\vite.js --host 127.0.0.1 --port 48800
+
+# From KSCTowerNetwork-voice-bridge/voice-bridge/:
+$env:PCM_PORT = '48801'
+$env:CTL_PORT = '48802'
+node .\dist\bridge.js
+```
+
+These commands do not change the normal ports. In-game checks on alternate
+ports also require matching `voiceListenPort`/`voiceCtlPort` in the game's
+local settings; temporary TCP startup alone does not prove game audio works.
+
+The migrated owner's chart source is in ignored `.local-assets/`. After a
+web build, install charts again before serving the built app:
+
+```powershell
+# From web/:
+.\scripts\install-charts.ps1 -PdfPath '..\..\.local-assets\Kerbin_AEROCHARTS-25-nov-2017.pdf'
+node .\node_modules\vite\bin\vite.js preview --host 127.0.0.1 --port 48803 --strictPort
+```

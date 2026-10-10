@@ -32,7 +32,7 @@ does not establish in-game thumbnail relay or deployment readiness.
 
 ## GitHub
 
-Create `SpaceFoon/KSCTowerNetwork` as **private** and connect it as `origin`. Push only this repository's `main` branch, not the old repository's branches or tags. The original checkout still points to its existing remote.
+The fresh repository points to `SpaceFoon/KSCTowerNetwork` as `origin`. GitHub visibility was verified as **private** on October 10, 2026; public publication is a separate step. Push only this repository's `main` branch, not the old repository's branches or tags. The original checkout still points to its existing remote.
 
 ## Validation of the initial snapshot
 
@@ -49,3 +49,42 @@ The previously unpublished chart-bundle commit was replaced before publication. 
 The local installer was exercised against the owner-held source PDF: 22 rendered pages and thumbnails, 68 printed navaid rows, matching transcripts and SHA256; existing-bundle overwrite was refused. The web production build and two source-only chart search tests passed. Desktop/mobile isolated ChartsPage browser checks covered the empty installation links and generated assets/search with no page errors or failed requests. This is component evidence, not a full authenticated backend/KSP session. The web TypeScript check still reports 21 baseline diagnostics outside the changed chart code. Invite revocation, comprehensive secrets review and runtime/release validation remain separate publication gates.
 
 PowerShell and Bash chart-install wrappers were verified end to end on October 10, 2026 in Windows PowerShell and Git Bash, with spaces in PDF/output paths. Each generated 22 pages and matching attribution. Linux/macOS execution was not directly tested. Bash files use LF checkout endings; wrapper dependencies remain in the ignored web/.chart-tools environment.
+
+## Local checkout relocation - October 10, 2026
+
+The new checkout was moved out of `ksctower/.new-repo/KSCTowerNetwork` into
+its sibling folder `KSCTowerNetwork`. The original `ksctower` checkout and
+its history remain available as the legacy repository. Git integrity and
+remaining-file comparison passed before the nested checkout remnants were
+removed. Open the sibling checkout for future development.
+
+Local backend/web `.env.development` files were copied from the legacy
+checkout; plugin settings were merged with its personal settings, and its
+invite store was retained. Existing new-checkout configuration is backed up
+in the ignored `.local-migration-backup-20261010/` folder. Local fonts and
+cached game maps were copied into their ignored runtime locations. The
+owner-held optional chart PDF was copied into ignored `.local-assets/`, and
+the installer generated 22 chart pages in `web/dist/charts/`. These local
+files are outside Git and do not accompany a public clone.
+
+Backend and web builds, 110 web regression tests, 13 bridge tests, voice and
+ACARS invariant checks, and plugin compilation against installed KSP
+assemblies passed after relocation. The plugin compiler now uses a response
+file so quoted paths work in Windows PowerShell and PowerShell 7. Owner login,
+lobby navigation and the installed Charts route were verified in Edge against
+the actual local backend, with no page errors or failed responses. Migrated
+LiveKit credentials passed a read-only room-listing request.
+
+During this check Windows rejected bindings on default web/voice ports
+45173/47372/47373 with EADDRINUSE despite no matching listener in netstat.
+Local verification used web 48800, built preview 48803, and bridge TCP
+48801/48802 instead; backend remained on 48787. These diagnostic overrides
+are not the default configuration. Normal-port startup and a live KSP
+voice/telemetry session must still pass before archiving the legacy repo.
+The game installation was not overwritten by this source-checkout move.
+
+Backend tests now preload isolated settings before imports and skip personal dotenv files. The standard test run covers 240 tests, with four optional tests skipped. Its cleanup hook releases database/Redis clients in each test child. Production JWT guards remain enforced.
+
+See `KSCTowerNetwork-dev/docs/DEVELOPMENT.md` for standalone-checkout builds
+and local verification commands. Reinstall optional charts after each web
+build, which clears `web/dist/`.

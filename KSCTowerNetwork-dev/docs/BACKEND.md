@@ -57,7 +57,7 @@ from `KSCTowerNetwork-dev/`.
 
 `index.ts` does, in order:
 
-1. Loads `.env` and (in non-prod) `.env.development` via `dotenv`.
+1. Loads `.env` and (in non-prod) `.env.development` via `dotenv`, except in test mode or Node test-runner children. `npm test` preloads `backend/test/setup.cjs` for isolated in-memory fixtures and clears LiveKit credentials before imports.
 2. Configures `pino-http` with the silence list from `httpRequestLogSilence.ts`
    so high-frequency polls (telemetry, hullcam) don't drown the log.
 3. Helmet + CORS. CORS is **explicit allowlist**:
