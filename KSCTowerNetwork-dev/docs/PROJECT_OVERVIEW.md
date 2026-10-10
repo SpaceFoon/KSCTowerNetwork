@@ -711,3 +711,5 @@ and provenance live in `web/src/data/globeTextures.ts` and
 `web/public/globes/`; license/source manifests and the asset README remain in
 Git. `web/globe-preview.html` and `src/previews/GlobePreview.tsx` provide the
 development gallery. See [WEB_SPA.md](WEB_SPA.md#solar-system-artwork-and-planet-globes).
+
+For the October 10 legacy comparison, restored map/globe connections and verification evidence, see [MIGRATION_PARITY.md](MIGRATION_PARITY.md).

@@ -974,7 +974,7 @@ label.auth-token-label {
   display: block;
 }
 
-/* Kerbin map tile: 2∶1. Desk caps height to viewport; wall adds `.kerbin-map-shell--wall-fill`. */
+/* Desk maps preserve 2:1; wall maps stretch terrain and overlays together to fill the slot. */
 .kerbin-map-aspect-wrap {
   position: relative;
   width: 100%;
@@ -1006,10 +1006,10 @@ label.auth-token-label {
   overflow: hidden;
 }
 .kerbin-map-shell--wall-fill .kerbin-map-aspect-wrap {
-  width: auto;
-  height: 100cqh;
+  width: 100%;
+  height: 100%;
   max-width: none;
-  aspect-ratio: 2 / 1;
+  aspect-ratio: auto;
   flex-shrink: 0;
 }
 

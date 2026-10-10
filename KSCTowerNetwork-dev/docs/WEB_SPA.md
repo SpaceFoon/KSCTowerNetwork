@@ -296,3 +296,16 @@ Missing image files use the renderer's illustrated fallback.
 
 `/globe-preview.html` is a development-only gallery for stock and OPM bodies.
 The production build uses the normal authenticated Tower Desk route.
+
+## Wall-map sizing and session terrain
+
+Wall-slot maps stretch the complete terrain and overlays to the available
+width and height without cropping; unusually shaped slots distort the
+projection. Desk maps retain 2:1 aspect and `xMidYMid meet`. The SVG patch
+accepts an optional aspect mode; wall terrain and overlay both use `none`.
+
+Tower Desk and Tower Wall pass their active session ID to the system schematic,
+allowing its globe inspector to use the connected KSP session's PNG terrain.
+Without a matching live layer it uses the optional local texture fallback.
+
+Globe tests always validate source selection and provenance. The installed-image completeness check runs only when local globe textures are present, so a source-only clone can run the suite without proprietary images.

@@ -1605,6 +1605,7 @@ function SlotContent({
       }
       return (
         <SystemSchematic
+          sessionId={sessionId}
           catalog={catalog}
           // Wall doesn't aggregate vessels-per-body (that lives in TowerDesk's
           // multi-session state); pass an empty map so markers default-size.

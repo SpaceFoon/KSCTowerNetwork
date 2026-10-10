@@ -26,7 +26,7 @@ function legacyCropPlateToOverlayMatrix(): string {
   return `matrix(${sx} 0 0 ${sy} ${e} ${f})`;
 }
 
-export function patchKerbinTerrainSvgRoot(svg: string): string {
+export function patchKerbinTerrainSvgRoot(svg: string, preserveAspectRatio: string = KERBIN_MAP_PRESERVE_ASPECT): string {
   // XML declaration is not valid in HTML fragment parsing; some browsers drop
   // the whole subtree when `innerHTML` starts with `<?xml …?>`.
   let out = svg.replace(/^\s*<\?xml\b[^?]*\?>\s*/i, "");
@@ -48,8 +48,8 @@ export function patchKerbinTerrainSvgRoot(svg: string): string {
   if (/preserveAspectRatio\s*=/i.test(out)) {
     return out.replace(
       /\bpreserveAspectRatio\s*=\s*["'][^"']*["']/i,
-      `preserveAspectRatio="${KERBIN_MAP_PRESERVE_ASPECT}"`
+      `preserveAspectRatio="${preserveAspectRatio}"`
     );
   }
-  return out.replace(/<svg\b/i, `<svg preserveAspectRatio="${KERBIN_MAP_PRESERVE_ASPECT}" `);
+  return out.replace(/<svg\b/i, `<svg preserveAspectRatio="${preserveAspectRatio}" `);
 }

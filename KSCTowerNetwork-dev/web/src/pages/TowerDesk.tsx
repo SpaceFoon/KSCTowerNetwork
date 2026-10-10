@@ -1366,6 +1366,7 @@ export function TowerDesk({
           {systemCatalog ? (
             <div className="card tower-system-overview-card">
               <SystemSchematic
+                sessionId={sessionId}
                 catalog={systemCatalog}
                 vesselCounts={vesselCounts}
                 vesselOrbits={vesselOrbits}

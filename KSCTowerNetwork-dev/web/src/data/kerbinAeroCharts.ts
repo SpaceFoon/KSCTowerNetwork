@@ -3,7 +3,7 @@
  * aerodrome reference points / runway thresholds, tower / approach / ATIS
  * frequencies) keyed to the same beacon / site IDs as `MAS_NavAid.cfg` (mirrored
  * in `kerbinNavaids.ts`). The full source PDF, all 22 page images, searchable
- * transcripts, and printed source rows are bundled under `web/public/charts/`.
+ * transcripts, and printed source rows are optional local chart installations.
  * Those reference assets retain CC BY-NC-SA 3.0; see the root NOTICE.md.
  *
  * Navaid lat/lon still comes from MAS; this module holds fields MAS does not

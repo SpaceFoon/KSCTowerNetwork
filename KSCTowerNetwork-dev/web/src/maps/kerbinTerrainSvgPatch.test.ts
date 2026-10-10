@@ -6,6 +6,11 @@ import {
 } from "./kerbinTerrainSvgPatch";
 
 describe("patchKerbinTerrainSvgRoot", () => {
+  it("fills wall slots without cropping while keeping desk aspect behavior", () => {
+    const input = '<svg viewBox="0 0 596 298" preserveAspectRatio="xMidYMid meet"></svg>';
+    assert.ok(patchKerbinTerrainSvgRoot(input, "none").includes('preserveAspectRatio="none"'));
+    assert.ok(patchKerbinTerrainSvgRoot(input).includes('preserveAspectRatio="xMidYMid meet"'));
+  });
   it("remaps legacy cropped-plate root viewBox to overlay coordinates and preserves aspect", () => {
     const input =
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="50 106.5 702.25 351.5" preserveAspectRatio="none"><path d="M0 0"/></svg>';

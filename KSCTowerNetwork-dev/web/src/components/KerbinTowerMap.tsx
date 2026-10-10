@@ -2954,7 +2954,7 @@ export function KerbinTowerMap({
         const text = await r.text();
         if (cancelled) return;
         setBasemap(manifest);
-        setTerrainSvgHtml(patchKerbinTerrainSvgRoot(text));
+        setTerrainSvgHtml(patchKerbinTerrainSvgRoot(text, wallSlot ? "none" : KERBIN_MAP_PRESERVE_ASPECT));
         setRasterUrl(null);
         setRasterLoaded(false);
         setBasemapTerrainErr(null);
@@ -2980,7 +2980,7 @@ export function KerbinTowerMap({
         rasterBlobRevokeRef.current = null;
       }
     };
-  }, [worldMaps, basemapLayerPref, homeBodyName, mapBodyPref, liveBakeMatchesView]);
+  }, [worldMaps, basemapLayerPref, homeBodyName, mapBodyPref, liveBakeMatchesView, wallSlot]);
 
   // World-maps manifest is now sourced from the TanStack query above
   // (`worldMapsQuery`) — replaces the old 60s setInterval poller.
@@ -3331,7 +3331,7 @@ export function KerbinTowerMap({
                     ref={mapOverlaySvgRef}
                     className="kerbin-map-overlay-svg"
                     viewBox={`0 0 ${KERBIN_MAP_VB_W} ${KERBIN_MAP_VB_H}`}
-                    preserveAspectRatio={KERBIN_MAP_PRESERVE_ASPECT}
+                    preserveAspectRatio={wallSlot ? "none" : KERBIN_MAP_PRESERVE_ASPECT}
                     role="img"
                     aria-label="Kerbin map graticule and click pick overlay"
                   >

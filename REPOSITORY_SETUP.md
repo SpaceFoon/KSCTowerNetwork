@@ -99,3 +99,5 @@ registry, importer and preview were restored from the legacy checkout. Existing
 local stock KSP, OPM and AVP images were copied into ignored `web/public/globes/`
 with their provenance and license notices. These images do not accompany a clone;
 see `KSCTowerNetwork-dev/docs/WEB_SPA.md` for optional local imports.
+
+The final legacy source comparison and restored wall-map/session-globe connections are recorded in [the migration parity audit](KSCTowerNetwork-dev/docs/MIGRATION_PARITY.md). No further missing feature code was found; real in-game voice/telemetry validation remains outstanding.
