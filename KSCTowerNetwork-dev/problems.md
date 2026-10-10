@@ -25,7 +25,7 @@ From the audit and spot-checks, these **remain plausible** until proven fixed in
 ## Repo hygiene
 
 - ~~`voice-bridge-tmp/` under `KSCTowerNetwork-dev` is scratch packaging and not in `.gitignore`.~~ **Fixed 2026-04-22:** added `KSCTowerNetwork-dev/voice-bridge-tmp/` to the root `.gitignore`. (Existing tracked files, if any, would still need `git rm --cached`.)
-- ~~**`Kerbin_AEROCHARTS-25-nov-2017.pdf` copies under `GameData` / dev**~~ — removed: no aerochart PDF is shipped or copied by the build; numeric supplement data lives in `web/src/data/kerbinAeroCharts.ts` only.
+- **Optional Kerbin aerocharts** — third-party PDF/pages/transcripts and terrain SVG are excluded. Server owners install separately using `docs/AEROCHART_REFERENCE.md`; generated adaptations retain their source license.
 - **Tracked `node_modules`** under `GameData/.../bridge-runtime/` is intentional per the `.gitignore` notes, but it bloats the repo and is unusual; be careful with upgrades and licensing.
 
 ## Summary

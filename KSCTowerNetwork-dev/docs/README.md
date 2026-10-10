@@ -28,7 +28,8 @@ already exists.
 | Decode a term or acronym | [`GLOSSARY.md`](GLOSSARY.md) |
 | Live internet radio / stream stations (not shipped) | [`RADIO_LIVE_STREAMS.md`](RADIO_LIVE_STREAMS.md) |
 | Know which other mods we play with, why, and which are required | [`INTEGRATIONS.md`](INTEGRATIONS.md) — player-facing, mirrors the CKAN dependency list |
-| Kerbin navaid / aerodrome supplement (numeric + text, no bundled chart document) | [`web/src/data/kerbinAeroCharts.ts`](../web/src/data/kerbinAeroCharts.ts) (with `kerbinNavaids.ts` for lat/lon) |
+| Install optional chart PDF and searchable pages | [`AEROCHART_REFERENCE.md`](AEROCHART_REFERENCE.md) |
+| Kerbin navaid / aerodrome supplement (operational values; optional charts installed separately) | [`web/src/data/kerbinAeroCharts.ts`](../web/src/data/kerbinAeroCharts.ts) (with `kerbinNavaids.ts` for lat/lon) |
 
 ## Plan documents (future / in-flight work)
 
@@ -55,3 +56,5 @@ yet shipped — don't treat them as current behavior.
   **`48788`**, bridge PCM **`47372`**, bridge control **`47373`**.
 - "Bridge" without qualification means the **voice bridge** Node process,
   not any other kind of bridge.
+
+Optional chart download, installation, source export and search: [AEROCHART_REFERENCE.md](AEROCHART_REFERENCE.md).

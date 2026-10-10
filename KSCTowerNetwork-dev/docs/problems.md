@@ -79,12 +79,9 @@ bridge bandwidth and KSP frame hitch each tick. Consider keeping the snapshot
 for first fetch only and re-introducing `?since=` later with a real fix on
 the server side.
 
-### 4. ~~Kerbin aerocharts PDF / raster bundle~~ (removed)
-The Kerbin aeronautical-charts **PDF**, in-game PDF opener, web wall PDF slot,
-`build-plugin.ps1` copy step, and doc links to `Kerbin_AEROCHARTS-25-nov-2017.pdf`
-were removed. Chart-style **numeric** supplement data (morse, ranges, runway
-thresholds, ILS geometry constants) remains in `web/src/data/kerbinAeroCharts.ts`
-only — no bundled third-party chart document or page raster images in this fresh source snapshot. The previous repository still tracked these files despite the earlier removal claim. The optional Charts viewer now has an empty manifest and an explicit unavailable state. Numeric data provenance remains a public-release review item; see ../../REPOSITORY_SETUP.md.
+### 4. Optional Kerbin chart installation
+
+Third-party chart PDFs, rendered pages, transcripts/reference-data bundle and extracted terrain SVG are excluded from the public source branch. The unpublished bundle commit was replaced. Owners can download the upstream PDF separately and run the local installer; see [AEROCHART_REFERENCE.md](AEROCHART_REFERENCE.md). Generated assets retain CC BY-NC-SA 3.0. Retained operational navigation tables preserve their existing source attribution; live installed-game data remains authoritative.
 
 ---
 

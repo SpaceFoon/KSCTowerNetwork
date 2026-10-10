@@ -52,8 +52,7 @@ broadcast, and multi-seat controller roles (ground, approach, range safety).
 This source snapshot has fresh Git history. Root README, LICENSE, NOTICE.md, and
 REPOSITORY_SETUP.md document its scope and publication status. DLLs, compiled
 bridge runtime files, portable Node, user settings, and auth/invite stores are
-local build/runtime outputs rather than tracked source. Optional charts, fonts,
-and cached game maps are excluded; Earth topo adaptations retain CC BY-SA 4.0.
+local build/runtime outputs rather than tracked source. Optional chart bundles, font binaries and cached game maps are excluded. Server owners can install charts separately; see AEROCHART_REFERENCE.md. Earth topo adaptations retain CC BY-SA 4.0.
 The runtime layout below describes a built installation, not a fresh clone.
 
 The KSP install root contains **three separate trees** that work together:
@@ -671,3 +670,7 @@ Kerbin’s default tower plate is in-repo (**`kerbin-base-schematic.svg`**) or l
 textures from the player’s game session — not NC-licensed chart plates.
 
 Third-party notes for anything else live in [`NOTICE.md`](NOTICE.md).
+
+## Optional chart installation
+
+Third-party chart bundles are not included. `web/scripts/install_charts.py` renders and indexes a separately downloaded upstream PDF into `web/dist/charts/` after the web build (or an explicit output folder). `web/scripts/chart-requirements.txt` lists the Python dependencies. The empty Charts page links to the upstream PDF and `web/public/charts/README.md`. See [installation instructions](AEROCHART_REFERENCE.md).

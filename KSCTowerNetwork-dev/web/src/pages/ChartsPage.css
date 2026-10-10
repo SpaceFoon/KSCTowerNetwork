@@ -1,0 +1,29 @@
+.charts-header .card-head { flex-wrap: wrap; gap: 1rem; }
+.charts-toolbar, .charts-search { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; }
+.charts-toolbar button, .charts-search input, .charts-search select { min-height: 36px; }
+.charts-search { margin-top: 1rem; }
+.charts-search label { display: flex; align-items: center; gap: .5rem; }
+.charts-search input { min-width: 240px; max-width: 100%; }
+.charts-search-count { color: var(--text-muted, #aab3c3); }
+.charts-body { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 1rem; margin: 1rem 0; }
+.charts-strip { max-height: 78vh; overflow: auto; display: flex; flex-direction: column; gap: .5rem; }
+.charts-strip-item { text-align: left; padding: .5rem; border: 1px solid #394457; background: #172130; color: #e9eef6; border-radius: 5px; }
+.charts-strip-item-active { border-color: #6bb5ff; background: #223a55; }
+.charts-strip-item img { width: 100%; max-height: 120px; object-fit: contain; background: white; }
+.charts-strip-label { display: flex; gap: .5rem; margin-top: .3rem; }
+.charts-strip-num { font-variant-numeric: tabular-nums; color: #91c9ff; }
+.charts-viewer { min-width: 0; overflow: auto; padding: .5rem; }
+.charts-viewer img { display: block; margin: auto; background: white; }
+.charts-viewer-error { display: flex; gap: .75rem; padding: 1rem; align-items: center; flex-wrap: wrap; }
+.charts-reference { margin-bottom: 1rem; }
+.charts-reference summary { cursor: pointer; padding: .5rem 0; }
+.charts-reference pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 55vh; overflow: auto; font-size: .85rem; line-height: 1.6; }
+.charts-shortcuts, .charts-footer { font-size: .85rem; }
+.charts-page-fullscreen { position: fixed; inset: 0; z-index: 1000; overflow: auto; padding: 1rem; background: #101722; }
+@media (max-width: 720px) {
+  .charts-body { grid-template-columns: minmax(0, 1fr); }
+  .charts-strip { flex-direction: row; max-height: 170px; }
+  .charts-strip-item { flex: 0 0 140px; }
+  .charts-search label { width: 100%; flex-wrap: wrap; }
+  .charts-search input { min-width: 0; flex: 1; }
+}

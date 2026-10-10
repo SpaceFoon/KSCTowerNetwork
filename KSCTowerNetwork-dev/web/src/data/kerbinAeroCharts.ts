@@ -2,8 +2,9 @@
  * Kerbin aviation supplement data (reception ranges, morse + antenna heights,
  * aerodrome reference points / runway thresholds, tower / approach / ATIS
  * frequencies) keyed to the same beacon / site IDs as `MAS_NavAid.cfg` (mirrored
- * in `kerbinNavaids.ts`). Tabular / numeric fields only — no chart raster or PDF
- * is bundled in this repository.
+ * in `kerbinNavaids.ts`). The full source PDF, all 22 page images, searchable
+ * transcripts, and printed source rows are bundled under `web/public/charts/`.
+ * Those reference assets retain CC BY-NC-SA 3.0; see the root NOTICE.md.
  *
  * Navaid lat/lon still comes from MAS; this module holds fields MAS does not
  * publish. Where published reference coords disagree with MAS by more than a small

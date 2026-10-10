@@ -16,8 +16,7 @@
 This repository stores source and runtime templates. Build the plugin DLL and
 bridge runtime locally using the commands in AGENTS.md. Copy
 GameData/KSCTowerNetwork/PluginData/settings.example.cfg to settings.cfg if
-needed; per-install settings and invite/user stores are ignored. Optional charts
-and font binaries are excluded. See [repository setup](../../REPOSITORY_SETUP.md).
+needed; per-install settings and invite/user stores are ignored. Charts are optional and downloaded separately by the server owner; see [chart installation](AEROCHART_REFERENCE.md). Font binaries are excluded. See [repository setup](../../REPOSITORY_SETUP.md).
 
 ## First-time setup
 

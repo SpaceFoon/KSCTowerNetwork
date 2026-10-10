@@ -1,6 +1,3 @@
-# Third-party asset notices
+# Third-party notices
 
-The repository-wide notices are maintained in [NOTICE.md](../../NOTICE.md).
-They distinguish MIT project code, CC BY-SA Earth map adaptations, the LiveKit
-patch license, optional assets excluded from source, and player-installed data.
-See [repository setup](../../REPOSITORY_SETUP.md) before changing visibility or packaging assets.
+See the [canonical repository notices](../../NOTICE.md) for Earth terrain, LiveKit, retained navigation data, excluded fonts and player-installed mods. Optional Kerbin charts are downloaded and installed by the server owner; see [installation and attribution](AEROCHART_REFERENCE.md). Third-party chart bundles are not included in this repository.

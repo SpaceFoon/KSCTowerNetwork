@@ -14,9 +14,12 @@ The flat-color body placeholders and `kerbin-base-schematic.svg` are project-cre
 
 The bridge patch in `KSCTowerNetwork-voice-bridge/voice-bridge/patches/` modifies `@livekit/rtc-node` 0.13.25, distributed by LiveKit under Apache-2.0. The license is preserved in [licenses/LiveKit-Apache-2.0.txt](licenses/LiveKit-Apache-2.0.txt). The upstream archive and extracted staging tree are not included. Dependency manifests and lockfiles remain; retain dependencies' own licenses and notices when packaging installed dependencies.
 
+## Optional Kerbin chart reference
+
+Third-party chart PDFs, page images, transcripts and the extracted terrain SVG are excluded from this repository. Server owners may download the November 25, 2017 Kerbin Aeronautical Charts from the ASET upstream repository and generate a local installation. The charts and generated adaptations retain CC BY-NC-SA 3.0, separate from MIT code. See [download, installation and attribution](KSCTowerNetwork-dev/docs/AEROCHART_REFERENCE.md). Chart-derived navigation tables retained in source also retain their existing source attribution and license notices.
+
 ## Optional material excluded from this snapshot
 
-- Kerbin Aeronautical Charts by alexustas / ASET Aviation Agency: the old manifest identifies CC BY-NC-SA 3.0. PDFs, page images, thumbnails, and the extracted `kerbin-jebbesen-terrain.svg` are excluded. The optional viewer remains with an empty manifest. Numeric navigation supplement data remains in source; its provenance must be reviewed before public release.
 - DS-Digital fonts by Dusit Supasawat: excluded. The retained historical `KSCTowerNetwork-dev/fonts/DIGITAL.TXT` describes the author's shareware terms, including distribution and registration conditions; it is not a grant under MIT.
 - DSEG7Classic font: excluded because the old runtime tree did not include its accompanying license notice.
 - Unused Wikimedia biome and climate reference SVGs: excluded. Only the attributed topo source and its derivatives remain.

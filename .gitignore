@@ -51,7 +51,7 @@ KSCTowerNetwork-dev/voice-bridge-tmp/
 # Do not commit — GitHub warns on >50MB; AV also hates binaries under Steam.
 GameData/KSCTowerNetwork/PluginData/bridge-runtime/node/node.exe
 
-# Third-party Kerbin aeronautical-charts PDF (not shipped; do not re-add to git).
+# Optional third-party chart PDFs are installed by the server owner.
 **/Kerbin_AEROCHARTS*.pdf
 
 # ----- 5) Secrets / per-user / per-deployment files (never commit) -----
@@ -89,8 +89,10 @@ KSCTowerNetwork-dev/backend/data/registered-users*.json
 **/release-config.json
 **/*.ttf
 **/*.TTF
+# Optional chart installations stay outside source control.
 KSCTowerNetwork-dev/web/public/charts/*
 !KSCTowerNetwork-dev/web/public/charts/manifest.json
+!KSCTowerNetwork-dev/web/public/charts/README.md
 KSCTowerNetwork-dev/web/public/maps/kerbin-jebbesen-terrain.svg
 KSCTowerNetwork-dev/web/public/maps/_earth_src/biomes_of_the_world.svg
 KSCTowerNetwork-dev/web/public/maps/_earth_src/world_koppen_classification.svg

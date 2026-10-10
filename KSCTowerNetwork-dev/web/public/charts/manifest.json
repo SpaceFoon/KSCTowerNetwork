@@ -1,7 +1,7 @@
 {
-  "source": "Optional chart bundle is not included in this source repository",
-  "license": "Install only with the source author's license and attribution",
+  "source": "Optional Kerbin Aeronautical Charts",
+  "license": "CC BY-NC-SA 3.0",
   "pageCount": 0,
-  "renderZoom": 4,
+  "renderZoom": 0,
   "pages": []
 }

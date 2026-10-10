@@ -12,4 +12,6 @@ This source repository starts with a fresh history. Keep the GitHub repository *
 
 Start with [Development](KSCTowerNetwork-dev/docs/DEVELOPMENT.md), [Project overview](KSCTowerNetwork-dev/docs/PROJECT_OVERVIEW.md), and the [documentation index](KSCTowerNetwork-dev/docs/README.md). Plugin builds require a local KSP installation. Compiled plugin DLLs, the portable Node runtime, and compiled bridge files are generated locally and belong in releases.
 
-Project code is under the [MIT license](LICENSE). Third-party material has separate terms in [NOTICE.md](NOTICE.md). Optional third-party charts and fonts are not included in this source snapshot.
+Project code is under the [MIT license](LICENSE). Third-party material has separate terms in [NOTICE.md](NOTICE.md). Optional Kerbin Aeronautical Charts and their generated adaptations retain CC BY-NC-SA 3.0 and are downloaded separately. Chart bundles and font binaries are excluded.
+
+The web app's `/charts` route explains how to install optional charts; once installed it provides full-document search, original PDF access, and downloadable reference data. See [chart download and installation](KSCTowerNetwork-dev/docs/AEROCHART_REFERENCE.md).

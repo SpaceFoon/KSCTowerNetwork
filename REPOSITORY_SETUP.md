@@ -8,7 +8,7 @@ Prepared on October 4, 2026, from the tracked working files in the previous `Spa
 - Excluded compiled DLLs, `obj/`, compiled bridge runtime app files, crash logs, and LiveKit scratch packaging.
 - Excluded the populated invite-code store. A missing store starts empty. Runtime invite/user stores, auth, and deployment configuration are ignored.
 - Replaced the tracked runtime `settings.cfg` with the local template. Per-install settings are ignored; edit `settings.example.cfg` for shared defaults.
-- Excluded optional charts, fonts, cached game maps, and unused third-party reference maps. The Charts viewer displays an explicit unavailable state until an operator installs a valid chart bundle locally.
+- Chart PDFs, all rendered pages, extracted transcripts/reference data, and the terrain SVG are excluded. The optional local installer generates a server-owned bundle from an upstream PDF downloaded separately. Fonts and cached game maps remain excluded. See KSCTowerNetwork-dev/docs/AEROCHART_REFERENCE.md.
 - Retained the active bridge patch and its upstream Apache-2.0 license. Build release binaries from source and carry dependency notices into releases.
 
 ## Before opening the repository publicly
@@ -29,3 +29,9 @@ Create `SpaceFoon/KSCTowerNetwork` as **private** and connect it as `origin`. Pu
 - Web TypeScript checking reports the same 21 diagnostics as the original checkout; none is in ChartsPage.tsx. These baseline errors remain open.
 - Source hygiene and the previously tracked invite-value exclusion were checked before the initial commit.
 - No KSP runtime, C# plugin build, full test suite, or production deployment was verified during this repository migration.
+
+## Optional chart installation verification - October 10, 2026
+
+The previously unpublished chart-bundle commit was replaced before publication. No third-party chart PDF, rendered pages, transcripts/reference-data bundle, or extracted terrain SVG is in the publishable branch history. The original local files were preserved outside this checkout.
+
+The local installer was exercised against the owner-held source PDF: 22 rendered pages and thumbnails, 68 printed navaid rows, matching transcripts and SHA256; existing-bundle overwrite was refused. The web production build and two source-only chart search tests passed. Desktop/mobile isolated ChartsPage browser checks covered the empty installation links and generated assets/search with no page errors or failed requests. This is component evidence, not a full authenticated backend/KSP session. The web TypeScript check still reports 21 baseline diagnostics outside the changed chart code. Invite revocation, comprehensive secrets review and runtime/release validation remain separate publication gates.

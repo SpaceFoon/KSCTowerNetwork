@@ -1,32 +1,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { filterAerochartPages, type AerochartPage, type AerochartManifest } from "../data/aerochartIndex";
+import "./ChartsPage.css";
 
 /**
- * Optional raster viewer for the Kerbin Aeronautical Charts PDF (alexustas / ASET; CC BY-NC-SA 3.0).
- * Third-party documents and page images are excluded from the source repository.
- * Operators may install a licensed bundle locally using `web/public/charts/manifest.json`.
+ * Complete Kerbin Aeronautical Charts reference (alexustas / ASET; CC BY-NC-SA 3.0).
+ * Original pages accompany the searchable transcript so diagrams and custom-font
+ * symbols remain available even when PDF text extraction is incomplete.
  *
  * Hotkeys: Left/Right or PageUp/PageDown step pages, Home/End jump to first/last, +/- zoom,
  * 0 fits, F toggles fullscreen.
  */
 
-type ChartManifestPage = {
-  page: number;
-  file: string;
-  thumb: string;
-  widthPx: number;
-  heightPx: number;
-  title: string;
-  blurb: string;
-  chartTag: string | null;
-};
+const CHART_SOURCE_URL = "https://github.com/StoneBlue/ASET-Consolidated-Avionics/blob/main/Docs%20%26%20Manuals/ASET%20Consolidated%20Avionics-%20Kerbin%20AEROCHARTS%20v17-11-25.pdf";
 
-type ChartManifest = {
-  source: string;
-  license: string;
-  pageCount: number;
-  renderZoom: number;
-  pages: ChartManifestPage[];
-};
+function ChartInstallHelp(): JSX.Element {
+  return <>
+    <p>Charts are optional. Ask the server owner to install the Kerbin Aeronautical Charts.</p>
+    <p><a href={CHART_SOURCE_URL} target="_blank" rel="noopener noreferrer">Download the original PDF from the ASET repository</a></p>
+    <p>Server owners: follow <a href="/charts/README.md" target="_blank" rel="noopener noreferrer">the chart installation instructions</a>, then reload this page.</p>
+    <p>Charts by alexustas / ASET Aviation Agency, under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 3.0</a>.</p>
+  </>;
+}
 
 const MANIFEST_URL = "/charts/manifest.json";
 const ZOOM_STEPS = [0.25, 0.4, 0.6, 0.8, 1.0, 1.4, 2.0, 3.0];
@@ -55,11 +49,14 @@ function readInitialPage(pageCount: number): number {
 }
 
 export function ChartsPage(): JSX.Element {
-  const [manifest, setManifest] = useState<ChartManifest | null>(null);
+  const [manifest, setManifest] = useState<AerochartManifest | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pageNum, setPageNum] = useState<number>(1);
   const [zoomMode, setZoomMode] = useState<"fit" | "actual" | number>("fit");
   const [fullscreen, setFullscreen] = useState<boolean>(false);
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("All");
+  const [imageError, setImageError] = useState<string | null>(null);
   const stripRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -67,7 +64,7 @@ export function ChartsPage(): JSX.Element {
     fetch(MANIFEST_URL, { cache: "no-cache" })
       .then((r) => {
         if (!r.ok) throw new Error(`charts manifest HTTP ${r.status}`);
-        return r.json() as Promise<ChartManifest>;
+        return r.json() as Promise<AerochartManifest>;
       })
       .then((data) => {
         if (cancelled) return;
@@ -84,7 +81,9 @@ export function ChartsPage(): JSX.Element {
   }, []);
 
   const pages = manifest?.pages ?? [];
-  const currentPage: ChartManifestPage | null = pages[pageNum - 1] ?? null;
+  const currentPage: AerochartPage | null = pages[pageNum - 1] ?? null;
+  const visiblePages = filterAerochartPages(pages, query, category);
+  const categories = [...new Set(pages.map((page) => page.category).filter((value): value is string => !!value))];
 
   const goTo = useCallback(
     (n: number) => {
@@ -201,8 +200,9 @@ export function ChartsPage(): JSX.Element {
         <h2>Charts</h2>
         <p style={{ color: "#fca5a5" }}>Failed to load chart manifest: {error}</p>
         <p>
-          Install an optional licensed chart bundle and its manifest under <code>web/public/charts/</code>.
+          Reload the page to try again. If charts have not been installed, follow the instructions below.
         </p>
+        <ChartInstallHelp />
       </div>
     );
   }
@@ -211,7 +211,8 @@ export function ChartsPage(): JSX.Element {
     return (
       <div className="card">
         <h2>Charts</h2>
-        <p>No chart bundle is installed. Charts are optional and supplied separately under their author's license.</p>
+        <p>No chart bundle is installed.</p>
+        <ChartInstallHelp />
       </div>
     );
   }
@@ -282,17 +283,38 @@ export function ChartsPage(): JSX.Element {
             >
               Open
             </a>
+            {manifest.sourcePdf && (
+              <a href={`${manifest.sourcePdf}#page=${pageNum}`} target="_blank" rel="noopener noreferrer">Original PDF</a>
+            )}
+            {pageNum === 2 && manifest.terrainVector && (
+              <a href={manifest.terrainVector} target="_blank" rel="noopener noreferrer">Vector terrain map</a>
+            )}
           </div>
         </div>
         <p className="charts-blurb">
           <strong>{currentPage.title}</strong>
           {currentPage.blurb ? <span> — {currentPage.blurb}</span> : null}
         </p>
+        <div className="charts-search">
+          <label>
+            Search all charts
+            <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Navaid, frequency, procedure…" />
+          </label>
+          <label>
+            Section
+            <select value={category} onChange={(event) => setCategory(event.target.value)}>
+              <option value="All">All sections</option>
+              {categories.map((value) => <option key={value} value={value}>{value}</option>)}
+            </select>
+          </label>
+          <span className="charts-search-count" role="status">{visiblePages.length} of {pages.length} pages</span>
+        </div>
       </div>
 
       <div className="charts-body">
         <nav className="charts-strip" aria-label="Chart pages" ref={stripRef}>
-          {pages.map((p) => (
+          {visiblePages.length === 0 && <p>No charts match this search.</p>}
+          {visiblePages.map((p) => (
             <button
               key={p.page}
               type="button"
@@ -300,6 +322,7 @@ export function ChartsPage(): JSX.Element {
               className={"charts-strip-item" + (p.page === pageNum ? " charts-strip-item-active" : "")}
               onClick={() => goTo(p.page)}
               title={`${p.title}${p.chartTag ? ` (${p.chartTag})` : ""}`}
+              aria-current={p.page === pageNum ? "page" : undefined}
             >
               <img src={p.thumb} alt="" loading="lazy" width={120} />
               <span className="charts-strip-label">
@@ -311,31 +334,45 @@ export function ChartsPage(): JSX.Element {
         </nav>
 
         <div className="charts-viewer card" aria-label={`Chart page ${currentPage.page}: ${currentPage.title}`}>
+          {imageError === currentPage.file ? (
+            <div className="charts-viewer-error">
+              <p>This chart image could not be loaded.</p>
+              <button type="button" onClick={() => setImageError(null)}>Retry image</button>
+              {manifest.sourcePdf && <a href={`${manifest.sourcePdf}#page=${pageNum}`} target="_blank" rel="noopener noreferrer">Open the original PDF page</a>}
+            </div>
+          ) : (
           <img
             key={currentPage.file}
             src={currentPage.file}
             alt={`Page ${currentPage.page}: ${currentPage.title}`}
             style={viewerStyle}
             draggable={false}
+            onError={() => setImageError(currentPage.file)}
           />
+          )}
         </div>
       </div>
 
+      <details key={currentPage.page} className="card charts-reference">
+        <summary>Read and copy this page's reference text</summary>
+        <p>For diagram positions, symbols, and table layout, use the chart image or original PDF.</p>
+        <pre>{currentPage.text || "This page has no extractable text. Use the original chart image."}</pre>
+      </details>
+
       <div className="card charts-footer">
         <p>
-          Source: <code>{manifest.source}</code>. Licensed{" "}
+          Source: {manifest.sourceUrl ? <a href={manifest.sourceUrl} target="_blank" rel="noopener noreferrer">{manifest.source}</a> : manifest.source}. Licensed{" "}
           <a
-            href="https://creativecommons.org/licenses/by-nc-sa/3.0/"
+            href={manifest.licenseUrl ?? "https://creativecommons.org/licenses/by-nc-sa/3.0/"}
             target="_blank"
             rel="noopener noreferrer"
           >
-            CC BY-NC-SA 3.0
+            {manifest.license}
           </a>{" "}
-          by alexustas / ASET Aviation Agency. Raster pages are produced locally by{" "}
-          <code>web/public/maps/_aero_preview/render_charts.py</code> (they are not committed by
-          default). Tabular navaid / aerodrome fields for the live map live in{" "}
-          <code>web/src/data/kerbinAeroCharts.ts</code>.
+          by {manifest.author ?? "alexustas / ASET Aviation Agency"}. Published 25 November 2017.
+          All 22 original pages are included; extracted text supplements the original diagrams.
         </p>
+        {manifest.referenceData && <p><a href={manifest.referenceData} target="_blank" rel="noopener noreferrer">Download the complete reference data</a></p>}
         <p className="charts-shortcuts">
           Shortcuts: ← / → page • Home / End jump • + / − zoom • 0 fit • 1 actual • F fullscreen.
         </p>

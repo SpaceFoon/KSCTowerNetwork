@@ -226,3 +226,7 @@ in the backend's `CORS_ORIGINS` allowlist.
 
 These are deliberately thin shims so the static data and the dynamic API
 are interchangeable from the page's perspective.
+
+## Optional chart reference
+
+The authenticated `/charts` route shows download and installation links when no bundle is installed. Server owners download the original ASET PDF separately and run `web/scripts/install_charts.py` after building the web app. Generated files go into `dist/charts/` (or an explicit output directory), served at `/charts/`. Once installed, the viewer provides 22 pages, full-document search, section filters, transcripts, PDF links and reference-data download. Third-party chart assets and transcripts are excluded from source control and retain CC BY-NC-SA 3.0. See [installation instructions](AEROCHART_REFERENCE.md).
