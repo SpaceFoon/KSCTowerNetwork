@@ -62,7 +62,7 @@ LIVEKIT_WS_URL=wss://your-project.livekit.cloud
 
 ## Running everything
 
-This starts three services in parallel via `concurrently`:
+This starts three services in parallel via `concurrently` 10 (Node 22+). The launcher uses the CLI with explicit service names and colors; the v10 ESM-only API and removed deprecated options do not require script changes:
 
 | Service | Port | URL |
 |---|---|---|
