@@ -21,8 +21,8 @@ nano setup-vps.sh
 bash setup-vps.sh
 # 4. In a SECOND terminal, confirm:  ssh -p 22 tower@<your-domain>
 # 5. Visit https://<your-domain>/ and log in.
-# 6. Rebuild the KSP plugin DLL with the new ApiBaseUrl, ship it + the bridge
-#    runtime to your buddy. Done.
+# 6. Package a player release configured for your server. Browser-only
+#    controllers need the website URL and an account/invite.
 ```
 
 The script handles: hardening, Node/nginx/MariaDB/Redis install, repo clone + build, systemd service, Cloudflare API automation (DNS, SSL settings, Origin Cert generation, Authenticated Origin Pulls), origin lockdown verification.
@@ -282,37 +282,15 @@ The web side is now public, but the buddy needs the KSP plugin (and bridge runti
 
 ### Pilot side (anyone running KSP)
 
-1. On your Windows machine, edit two C# files:
-   - `KSCTowerNetwork-dev/PluginSrc/TowerToolbar.cs`
-   - `KSCTowerNetwork-dev/PluginSrc/TowerTelemetryPublisher.cs`
+The server URLs come from runtime settings, not hardcoded constants in TowerToolbar/TowerTelemetryPublisher. Follow [Development](../docs/DEVELOPMENT.md) to build the plugin and bundled bridge with a local KSP installation; the VPS does not do those builds.
 
-   Change:
-   ```csharp
-   private const string ApiBaseUrl = "http://127.0.0.1:8787/v1";
-   ```
-   To:
-   ```csharp
-   private const string ApiBaseUrl = "https://your-domain.com/v1";
-   ```
+Copy `KSCTowerNetwork-dev/release-config.example.json` to the gitignored `KSCTowerNetwork-dev/release-config.json`. Set `backend.origin` and `web.origin` to your public HTTPS hostname, `backend.apiPath` to `/v1`, and `session.id` to the desired default. From `KSCTowerNetwork-voice-bridge/voice-bridge/`, after the plugin and runtime have been built:
 
-2. Rebuild:
-   ```powershell
-   .\KSCTowerNetwork-dev\build-plugin.ps1
-   ```
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/package-release.ps1 -ConfigPath ../../KSCTowerNetwork-dev/release-config.json
+```
 
-3. The recommended distribution path is the existing release packager. From `KSCTowerNetwork-voice-bridge/voice-bridge/`:
-   ```powershell
-   # Edit GameData/KSCTowerNetwork/release-config.json:
-   #   web.origin     = "https://your-domain.com"
-   #   backend.origin = "https://your-domain.com"
-   #   sessionId      = "tower-public"   (or whatever)
-   # Web SPA is built from KSCTowerNetwork-dev/web when that folder exists next to
-   # your KSP root (no need to copy web/ into GameData). Override with -WebSourcePath if needed.
-   powershell -ExecutionPolicy Bypass -File .\scripts\package-release.ps1
-   ```
-   Output: `release/KSCTowerNetwork-<version>.zip`. That's the file your buddy downloads. Inside is a single `GameData/KSCTowerNetwork/` they drop into their KSP install.
-
-4. They launch KSP, the bridge auto-starts (watch Task Manager for `node.exe`), they open `https://your-domain.com/` in a browser, log in with the credentials you gave them, hit PTT.
+Use the ZIP reported by the packager. Players extract its `GameData/KSCTowerNetwork/` into their KSP installation, sign in/pair, and verify their bridge/voice and telemetry. Existing installations can edit the server host/port/TLS/path and web URL in their runtime settings; changing a server hostname does not require editing those C# sources.
 
 ### Tower-only side (browser only, no KSP)
 
@@ -508,7 +486,7 @@ The NodeSource setup script may have changed format. Update `step_node` to use t
 
 ### Plugin can't reach the backend after rebuild
 
-The `ApiBaseUrl` constant in `TowerToolbar.cs` and `TowerTelemetryPublisher.cs` is hardcoded into the DLL at compile time. If you changed it but didn't rebuild, it still points at localhost. Re-run `build-plugin.ps1` and redistribute the DLL.
+Check the active runtime settings for towerApiHost, towerApiPort, towerApiTls, towerApiPath and webBaseUrl. The plugin resolves its API URL through TowerModSettings; it is not fixed by editing hardcoded constants in those files. Check that the packaged settings used the intended release configuration.
 
 ---
 

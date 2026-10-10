@@ -161,11 +161,7 @@ export default function App(): JSX.Element {
         <Route path="/tower/wall/row" element={activeRoomOnly(<TowerWallRowPopoutPage />)} />
         <Route
           path="/charts"
-          element={
-            import.meta.env.DEV
-              ? shell(user ? <ChartsPage /> : null)
-              : <Navigate to="/lobby" replace />
-          }
+          element={shell(<ChartsPage />)}
         />
         <Route path="/chat" element={<Navigate to="/tower" replace />} />
         <Route path="/voice" element={<Navigate to="/tower" replace />} />

@@ -44,6 +44,7 @@ type NavItem = {
  */
 const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { to: "/lobby", label: "Lobby", visible: () => true },
+  { to: "/charts", label: "Charts", visible: () => true },
   { to: "/dm", label: "DMs", visible: (u) => userHasCapability(u, "chat:dm") },
   // Tower is the per-session workspace (telemetry + chat + voice). Visible only
   // when the caller actually has a session — pilot of the room, or the assigned

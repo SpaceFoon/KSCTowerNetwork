@@ -1000,11 +1000,9 @@ NEXT STEPS
   Pulls were applied by step_cloudflare_api. Origin lockdown was verified by
   step_verify_origin_lockdown. Nothing left to click in the dashboard unless
   you want to enable extras (Page Rules, Custom WAF rules, etc.).
-  3. On your Windows box, edit these two C# files and rebuild the plugin:
-       PluginSrc/TowerToolbar.cs           ApiBaseUrl = "https://${DOMAIN}/v1"
-       PluginSrc/TowerTelemetryPublisher.cs ApiBaseUrl = "https://${DOMAIN}/v1"
-     Then run KSCTowerNetwork-dev/build-plugin.ps1 and ship the resulting
-     KSCTowerNetwork.Client.dll + bridge runtime to your buddy.
+  3. Build/package the player plugin and bridge separately using the Development guide.
+     Configure release-config.json backend.origin and web.origin for https://${DOMAIN}.
+     Existing players can change runtime server settings; no hardcoded C# URL edit is needed.
   4. Migrate WEB_LOGIN_USERS_JSON entries from "password" to "passwordHash"
      (argon2id) per HOSTING.md §8 — backend is logging a WARN until you do.
 

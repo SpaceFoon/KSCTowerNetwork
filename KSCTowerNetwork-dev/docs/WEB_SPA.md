@@ -273,3 +273,5 @@ are interchangeable from the page's perspective.
 ## Optional chart reference
 
 The authenticated `/charts` route shows download and installation links when no bundle is installed. Server owners download the original ASET PDF separately and run `web/scripts/install_charts.py` after building the web app. Generated files go into `dist/charts/` (or an explicit output directory), served at `/charts/`. Once installed, the viewer provides 22 pages, full-document search, section filters, transcripts, PDF links and reference-data download. Third-party chart assets and transcripts are excluded from source control and retain CC BY-NC-SA 3.0. See [installation instructions](AEROCHART_REFERENCE.md).
+
+The production `/charts` route requires sign-in and is available through the Charts navigation link; it does not require an active room.

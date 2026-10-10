@@ -1,0 +1,12 @@
+# Replace the hostname and root with your own values. Direct-origin HTTPS example.
+tower.example.com {
+    @api path /v1 /v1/*
+    handle @api {
+        reverse_proxy 127.0.0.1:48787
+    }
+    handle {
+        root * /opt/ksctower/KSCTowerNetwork/KSCTowerNetwork-dev/web/dist
+        try_files {path} /index.html
+        file_server
+    }
+}

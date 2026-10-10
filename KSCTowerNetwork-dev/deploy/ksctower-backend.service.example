@@ -1,0 +1,21 @@
+[Unit]
+Description=KSCTowerNetwork backend
+After=network-online.target mariadb.service redis-server.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=tower
+Group=tower
+WorkingDirectory=/opt/ksctower/KSCTowerNetwork/KSCTowerNetwork-dev/backend
+EnvironmentFile=/opt/ksctower/KSCTowerNetwork/KSCTowerNetwork-dev/backend/.env.production
+Environment=NODE_ENV=production
+# Use the absolute node path from: command -v node
+ExecStart=/usr/bin/node dist/index.js
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

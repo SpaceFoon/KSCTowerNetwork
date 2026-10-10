@@ -5,8 +5,8 @@ The system has three deployable parts. Two are operator-managed (backend
 end users as a ZIP. They can all live on different infrastructure as long
 as the URLs match.
 
-> See also [`../HOSTING.md`](../HOSTING.md) for the original "going live"
-> checklist and [`../PRODUCTION_DEPLOYMENT_PLAN.md`](../PRODUCTION_DEPLOYMENT_PLAN.md)
+> See also [`HOSTING.md`](HOSTING.md) for the original "going live"
+> checklist and [`PRODUCTION_DEPLOYMENT_PLAN.md`](PRODUCTION_DEPLOYMENT_PLAN.md)
 > for per-platform recipes (Railway, Vercel, Render).
 
 For server-only Bash/PowerShell setup, build and production startup, see [SERVER_HOSTING.md](SERVER_HOSTING.md). No Windows or KSP installation is required on a Linux VPS.
@@ -61,7 +61,7 @@ MARIADB_DATABASE=ksc_tower
 REDIS_URL=redis://default:...@host:6379
 ```
 
-If any `DEV_*` flag is set the backend **will refuse to start** in
+If development auth/bypass flags are enabled, the backend **will refuse to start** in
 production. That's deliberate.
 
 ### Build / run
@@ -78,7 +78,7 @@ Or run with `tsx` if you don't care about the build step.
 ### Reverse proxy
 
 Behind nginx/Caddy, terminate TLS at the proxy and forward to the Node
-port. Set `app.set('trust proxy', 1)` in `index.ts` (already set) so
+port. Set `TRUST_PROXY` for the actual proxy topology (one hop for the direct proxy recipe) so
 `req.ip` honors the proxy's `X-Forwarded-For`.
 
 Don't strip the `Authorization` header. Don't rewrite paths under `/v1`.
@@ -188,7 +188,7 @@ Then in a browser:
 
 ## Rolling updates
 
-- Backend: stateless w.r.t. user data; restart any time. JWTs survive.
+- Backend: preserve MariaDB, private env/JWT secret, and local `backend/data` stores across updates. JWTs survive while their signing secret remains unchanged.
 - Web SPA: pure static; redeploy whenever.
 - LiveKit: managed by provider.
 - Plugin/bridge: ship a new release ZIP. Old `auth.cfg` JWTs keep working

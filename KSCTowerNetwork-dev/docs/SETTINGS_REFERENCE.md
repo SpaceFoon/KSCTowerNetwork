@@ -1,11 +1,11 @@
 # Settings Reference
 
-Five places where configuration lives. **Source of truth column** says
-which file owns the value — don't duplicate it elsewhere.
+Configuration locations are listed below. Each row identifies where settings are loaded and who configures them.
 
 | File | Owner | Edited by |
 |---|---|---|
-| `backend/.env` | Backend | Operator (server-side). |
+| `backend/.env` | Backend | Operator; loaded directly by the backend. |
+| `backend/.env.production` or a private service env | Server launcher/systemd | Operator; `deploy/server.* start` loads it explicitly, or systemd reads EnvironmentFile. |
 | `backend/.env.development` | Backend in dev | Devs. Loaded only when `NODE_ENV !== production`. |
 | `web/.env` (`VITE_*`) | Web SPA build | Devs/operator. |
 | `GameData/KSCTowerNetwork/PluginData/settings.cfg` | KSP plugin | End users (per-install). |
@@ -14,8 +14,7 @@ which file owns the value — don't duplicate it elsewhere.
 
 ## Backend env
 
-Schema: `backend/src/config/env.ts` (Zod). Production guards reject every
-`DEV_*` flag.
+Schema: `backend/src/config/env.ts` (Zod). Production guards reject development auth/bypass flags; false values in the production template are allowed.
 
 ### Core
 

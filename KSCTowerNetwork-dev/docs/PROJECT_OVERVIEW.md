@@ -692,3 +692,7 @@ Third-party chart bundles are not included. `web/scripts/install_charts.py` rend
 ## Server-only hosting entry points
 
 `deploy/server.sh` and `deploy/server.ps1` invoke `deploy/server.mjs` for setup, build and production startup of backend/web only. `deploy/server.env.example` provides private production configuration defaults. `deploy/setup-vps.sh` targets the public repository main branch for fresh Ubuntu provisioning. See [SERVER_HOSTING.md](SERVER_HOSTING.md).
+
+## Operator documentation and example configs
+
+`docs/SERVER_HOSTING.md` provides the manual VPS recipe from prerequisites/database creation to owner login, HTTPS, systemd, updates and troubleshooting. `deploy/Caddyfile.example` and `deploy/ksctower-backend.service.example` are editable configs for that recipe. The production Charts route is authenticated and reachable from the app navigation even without an active room.
