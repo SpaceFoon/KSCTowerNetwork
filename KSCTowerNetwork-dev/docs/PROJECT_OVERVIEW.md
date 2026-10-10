@@ -673,4 +673,4 @@ Third-party notes for anything else live in [`NOTICE.md`](NOTICE.md).
 
 ## Optional chart installation
 
-Third-party chart bundles are not included. `web/scripts/install_charts.py` renders and indexes a separately downloaded upstream PDF into `web/dist/charts/` after the web build (or an explicit output folder). `web/scripts/chart-requirements.txt` lists the Python dependencies. The empty Charts page links to the upstream PDF and `web/public/charts/README.md`. See [installation instructions](AEROCHART_REFERENCE.md).
+Third-party chart bundles are not included. `web/scripts/install_charts.py` renders and indexes a separately downloaded upstream PDF into `web/dist/charts/` after the web build (or an explicit output folder). `web/scripts/chart-requirements.txt` lists the Python dependencies. `web/scripts/install-charts.ps1` and `web/scripts/install-charts.sh` set up an isolated Python environment and run the installer. The empty Charts page links to the upstream PDF and `web/public/charts/README.md`. See [installation instructions](AEROCHART_REFERENCE.md).

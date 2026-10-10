@@ -96,3 +96,6 @@ KSCTowerNetwork-dev/web/public/charts/*
 KSCTowerNetwork-dev/web/public/maps/kerbin-jebbesen-terrain.svg
 KSCTowerNetwork-dev/web/public/maps/_earth_src/biomes_of_the_world.svg
 KSCTowerNetwork-dev/web/public/maps/_earth_src/world_koppen_classification.svg
+
+# Isolated optional-chart installer dependencies
+KSCTowerNetwork-dev/web/.chart-tools/
