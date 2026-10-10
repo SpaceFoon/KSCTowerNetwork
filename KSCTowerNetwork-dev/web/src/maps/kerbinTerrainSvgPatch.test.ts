@@ -1,5 +1,4 @@
-import assert from "node:assert";
-import { describe, it } from "vitest";
+import { assert, describe, it } from "vitest";
 import {
   KERBIN_MAP_VB_H,
   KERBIN_MAP_VB_W,

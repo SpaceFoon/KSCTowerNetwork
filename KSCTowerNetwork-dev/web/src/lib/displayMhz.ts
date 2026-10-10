@@ -10,7 +10,7 @@ export function displayMhzFromCanonical(mhz: string | null | undefined): string 
   if (mhz == null) return "";
   const t = mhz.trim();
   const m = CANON_MHZ.exec(t);
-  if (!m) return t;
+  if (!m || m[1] === undefined || m[2] === undefined) return t;
   const whole = parseInt(m[1], 10);
   let frac = m[2];
   while (frac.length > 2 && frac.endsWith("0")) {

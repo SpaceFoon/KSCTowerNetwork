@@ -1,6 +1,6 @@
 # Web SPA
 
-Single-page React 18 app. Vite for dev/build. TypeScript everywhere.
+Single-page React 18 app. Vite for dev/build. TypeScript everywhere. From the dev workspace, `npm run typecheck --prefix web` runs strict TypeScript validation; `npm run build --prefix web` requires it to pass before bundling with Vite.
 
 Source root: `web/src/`
 

@@ -170,12 +170,14 @@ KSP install.
 
 ```powershell
 cd backend && npx tsc --noEmit
-cd ..\web && npx tsc --noEmit
+cd ..\web && npm run typecheck
 cd ..\..\KSCTowerNetwork-voice-bridge\voice-bridge && npx tsc --noEmit
 ```
 
-There's no global lint runner; rely on TS's strict mode + the editor's
-inline diagnostics.
+The web build runs `npm run typecheck` before Vite bundles the app, so TypeScript
+errors fail the build. Run `npm test --prefix web` from the dev workspace for the
+web regression suite. There's no global lint runner; rely on TS's strict mode +
+the editor's inline diagnostics.
 
 ## Mutation testing (tower logic)
 

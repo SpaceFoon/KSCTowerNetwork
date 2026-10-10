@@ -340,7 +340,6 @@ export async function connectVoiceRoom(options: ConnectVoiceRoomOptions): Promis
     }
     const el = track.attach();
     if (el instanceof HTMLAudioElement) {
-      el.playsInline = true;
       el.setAttribute("playsinline", "");
     }
     options.audioContainer.appendChild(el);
@@ -365,7 +364,7 @@ export async function connectVoiceRoom(options: ConnectVoiceRoomOptions): Promis
         };
         const analyser = ar.analyser;
         const ctx = analyser?.context;
-        if (ctx?.state === "suspended") {
+        if (ctx instanceof AudioContext && ctx.state === "suspended") {
           await ctx.resume().catch(() => {});
         }
         const freqVolume = (): number => ar.calculateVolume();
@@ -377,7 +376,7 @@ export async function connectVoiceRoom(options: ConnectVoiceRoomOptions): Promis
           analyser !== undefined
             ? (): void => {
                 const c = analyser.context;
-                if (c.state === "suspended") {
+                if (c instanceof AudioContext && c.state === "suspended") {
                   void c.resume().catch(() => {});
                 }
               }

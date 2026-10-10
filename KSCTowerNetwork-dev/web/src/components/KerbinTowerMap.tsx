@@ -1561,9 +1561,9 @@ const SAMPLER_W = 1024;
 const SAMPLER_H = 512;
 
 function loadRgbSampler(url: string): Promise<RgbSampler | null> {
-  let p = samplerCache.get(url);
-  if (p) return p;
-  p = (async () => {
+  const cached = samplerCache.get(url);
+  if (cached) return cached;
+  const p: Promise<RgbSampler | null> = (async () => {
     try {
       const img = new Image();
       // Same-origin in dev (Vite proxy) and prod (basemaps served by the same host); the explicit
@@ -1599,7 +1599,12 @@ function loadRgbSampler(url: string): Promise<RgbSampler | null> {
         const x = Math.floor(cu * SAMPLER_W);
         const y = Math.floor(cv * SAMPLER_H);
         const i = (y * SAMPLER_W + x) * 4;
-        return { r: data[i], g: data[i + 1], b: data[i + 2], a: data[i + 3] };
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const a = data[i + 3];
+        if (r === undefined || g === undefined || b === undefined || a === undefined) return null;
+        return { r, g, b, a };
       };
     } catch {
       return null;
@@ -1656,22 +1661,22 @@ function nearestBandLabel(
   palette: ReadonlyArray<{ r: number; g: number; b: number; label: string }>
 ): string | null {
   if (!sample || sample.a < 16) return null;
-  let bestIdx = -1;
+  let best: (typeof palette)[number] | undefined;
   let bestD2 = Infinity;
-  for (let i = 0; i < palette.length; i += 1) {
-    const dr = sample.r - palette[i].r;
-    const dg = sample.g - palette[i].g;
-    const db = sample.b - palette[i].b;
+  for (const band of palette) {
+    const dr = sample.r - band.r;
+    const dg = sample.g - band.g;
+    const db = sample.b - band.b;
     const d2 = dr * dr + dg * dg + db * db;
     if (d2 < bestD2) {
       bestD2 = d2;
-      bestIdx = i;
+      best = band;
     }
   }
   // A perfect band fill yields d2 == 0; the cap (~80²) admits anti-aliased band edges but
   // rejects decorative annotation strokes in the Earth hypsometry SVG (#1e293b / pure white / red).
-  if (bestIdx < 0 || bestD2 > 80 * 80) return null;
-  return palette[bestIdx].label;
+  if (!best || bestD2 > 80 * 80) return null;
+  return best.label;
 }
 
 // ─── decimal-degrees → DMS helper ──────────────────────────────────────────────────────────

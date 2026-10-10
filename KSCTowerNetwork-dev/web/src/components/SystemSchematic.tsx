@@ -352,35 +352,6 @@ export function SystemSchematic({
   const MIN_SCALE = 0.5;
   const MAX_SCALE = 40;
 
-  /** Convert a client-pixel point into SVG-userspace coords using the live viewBox. */
-  const clientToSvg = (clientX: number, clientY: number): { x: number; y: number } | null => {
-    const svg = svgRef.current;
-    if (!svg) return null;
-    const rect = svg.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return null;
-    // SVG uses preserveAspectRatio="xMidYMid meet" so we have letterboxing on whichever axis
-    // doesn't match the viewBox aspect ratio. Compute the actually-used pixel rect.
-    const vbAspect = vbW / vbH;
-    const rectAspect = rect.width / rect.height;
-    let drawW = rect.width;
-    let drawH = rect.height;
-    let offsetX = 0;
-    let offsetY = 0;
-    if (rectAspect > vbAspect) {
-      drawW = rect.height * vbAspect;
-      offsetX = (rect.width - drawW) / 2;
-    } else {
-      drawH = rect.width / vbAspect;
-      offsetY = (rect.height - drawH) / 2;
-    }
-    const localX = clientX - rect.left - offsetX;
-    const localY = clientY - rect.top - offsetY;
-    return {
-      x: vbX + (localX / drawW) * vbW,
-      y: vbY + (localY / drawH) * vbH
-    };
-  };
-
   // Wheel listener registered manually with `{ passive: false }` because React's synthetic
   // onWheel is passive in modern browsers — calling preventDefault on the synthetic event is
   // a no-op and the page scrolls behind the schematic. Native non-passive listener fixes that.

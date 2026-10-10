@@ -1585,7 +1585,8 @@ function SanctionsCard(props: SanctionsCardProps): JSX.Element {
   } = props;
 
   type Row =
-    | { rowKey: string; kind: "ban" | "mute"; userId: string; expiresAt?: string; reason?: string; ip?: string }
+    | { rowKey: string; kind: "ban"; userId: string; expiresAt?: string; reason?: string; ip?: string }
+    | { rowKey: string; kind: "mute"; userId: string; expiresAt?: string; reason?: string }
     | { rowKey: string; kind: "cooldown"; userId: string; roomName: string; expiresAt: string };
 
   const rows: Row[] = useMemo(() => {

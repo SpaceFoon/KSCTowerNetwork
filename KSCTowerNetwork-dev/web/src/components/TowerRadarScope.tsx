@@ -583,7 +583,7 @@ export function TowerRadarWallSlot({
     if (!last || Math.hypot(p.x - last.x, p.y - last.y) >= RADAR_TRAIL_MIN_SAMPLE_DIST) {
       arr.push({ x: p.x, y: p.y, t: nowMs });
     }
-    while (arr.length > 0 && nowMs - arr[0].t > RADAR_TRAIL_MAX_AGE_MS) {
+    while (arr[0] && nowMs - arr[0].t > RADAR_TRAIL_MAX_AGE_MS) {
       arr.shift();
     }
     while (arr.length > RADAR_TRAIL_MAX_POINTS) {

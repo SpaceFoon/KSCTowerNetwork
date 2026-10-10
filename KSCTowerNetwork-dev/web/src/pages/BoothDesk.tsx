@@ -539,7 +539,7 @@ export function BoothDesk(): JSX.Element | null {
             {formatApiError(
               messagesQuery.error.status,
               messagesQuery.error.message,
-              "booth messages"
+              "messages"
             )}
           </pre>
         ) : null}
