@@ -480,9 +480,12 @@ npm run dev                 # starts backend + web + bridge concurrently
                             # bridge   127.0.0.1:47372 (PCM) + 47373 (CTL)
 ```
 
-`npm run dev` first calls `dev:clean-ports` which kills anything still
-listening on the four dev ports — protects against orphaned processes from a
-crashed previous run.
+`npm run dev` uses `scripts/run-dev.mjs` to clear listeners on the selected
+Windows dev ports and launch the three services. `scripts/dev-ports.mjs` reads
+ignored `dev-ports.local.json`; without it, the stock ports above apply.
+`dev:clean-ports` and individual `dev:*` commands use the same selection.
+For WSL reservations and matching local plugin settings, see
+[DEVELOPMENT.md](DEVELOPMENT.md#persistent-local-development-ports).
 
 Plugin build (KSP must be **closed**, it locks the DLL):
 

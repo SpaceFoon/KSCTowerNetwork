@@ -99,3 +99,6 @@ KSCTowerNetwork-dev/web/public/maps/_earth_src/world_koppen_classification.svg
 
 # Isolated optional-chart installer dependencies
 KSCTowerNetwork-dev/web/.chart-tools/
+
+# Machine-specific dev ports (for example, WSL mirrored-network reservations).
+KSCTowerNetwork-dev/dev-ports.local.json

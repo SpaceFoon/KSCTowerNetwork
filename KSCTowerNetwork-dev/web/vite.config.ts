@@ -1,5 +1,6 @@
 import { defineConfig, type Plugin } from "vitest/config";
 import react from "@vitejs/plugin-react";
+import { readDevPorts } from "../scripts/dev-ports.mjs";
 
 /**
  * Inject defence-in-depth security headers on every dev/preview response.
@@ -69,7 +70,8 @@ export default defineConfig({
     include: ["src/**/*.test.ts"]
   },
   server: {
-    port: 45173,
+    host: "127.0.0.1",
+    port: readDevPorts().webPort,
     strictPort: true,
     proxy: {
       "/v1": {

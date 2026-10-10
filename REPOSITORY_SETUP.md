@@ -77,10 +77,13 @@ LiveKit credentials passed a read-only room-listing request.
 
 During this check Windows rejected bindings on default web/voice ports
 45173/47372/47373 with EADDRINUSE despite no matching listener in netstat.
-Local verification used web 48800, built preview 48803, and bridge TCP
-48801/48802 instead; backend remained on 48787. These diagnostic overrides
-are not the default configuration. Normal-port startup and a live KSP
-voice/telemetry session must still pass before archiving the legacy repo.
+The cause was WSL mirrored networking reserving Linux ephemeral ports
+44620–48715. An ignored `KSCTowerNetwork-dev/dev-ports.local.json` now selects
+web 48800 and bridge TCP 48801/48802 for ordinary `npm run dev`; backend
+remains on 48787. The checkout plugin settings match these voice ports.
+Normal startup, owner login and lobby navigation passed after this fix,
+with no browser page errors or failed responses; 110 web tests passed.
+A live KSP voice/telemetry session must still pass before archiving the legacy repo.
 The game installation was not overwritten by this source-checkout move.
 
 Backend tests now preload isolated settings before imports and skip personal dotenv files. The standard test run covers 240 tests, with four optional tests skipped. Its cleanup hook releases database/Redis clients in each test child. Production JWT guards remain enforced.

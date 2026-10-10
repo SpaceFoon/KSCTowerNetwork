@@ -229,3 +229,15 @@ Node 22+ install lives).
    into `<KSP>/bridge.log` if redirected).
 4. Open the web SPA's browser console.
 5. Verify `curl https://api.example.com/v1/health` from an external IP.
+
+## EADDRINUSE with no visible listener under WSL
+
+WSL mirrored networking can reserve Linux ephemeral TCP ports without an
+ordinary Windows listener. Check the Linux range with
+`wsl -d Ubuntu -- cat /proc/sys/net/ipv4/ip_local_port_range` (use your distro
+name). Choose available ports outside that range in ignored
+`KSCTowerNetwork-dev/dev-ports.local.json`, then restart `npm run dev`.
+Match the plugin listen/control ports and bridge environment settings. See
+[DEVELOPMENT.md](DEVELOPMENT.md#persistent-local-development-ports) for the
+configuration and [Microsoft WSL issue 40169](https://github.com/microsoft/WSL/issues/40169)
+for the reservation behavior.

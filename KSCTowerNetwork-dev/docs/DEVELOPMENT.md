@@ -64,7 +64,9 @@ LIVEKIT_WS_URL=wss://your-project.livekit.cloud
 
 ## Running everything
 
-This starts three services in parallel via `concurrently` 10 (Node 22+). The launcher uses the CLI with explicit service names and colors; the v10 ESM-only API and removed deprecated options do not require script changes:
+This starts three services in parallel through `scripts/run-dev.mjs` and the
+`concurrently` 10 ESM API (Node 22+). On Windows, the launcher first clears
+listeners on the configured development ports. The stock defaults are:
 
 | Service | Port | URL |
 |---|---|---|
@@ -298,23 +300,39 @@ clears LiveKit credentials. The env loader skips local dotenv files for
 MariaDB/Redis handles on completion. This keeps personal dev configuration
 from overriding fixtures or making tests contact the owner's LiveKit project.
 
-If Windows rejects the default ports with EADDRINUSE while netstat shows no
-listener, diagnose the machine's sockets/reservations. Temporary checks can
-use explicit localhost ports in separate terminals:
+### Persistent local development ports
 
-```powershell
-# From web/, backend running on 48787:
-node .\node_modules\vite\bin\vite.js --host 127.0.0.1 --port 48800
+WSL mirrored networking can reserve Linux's ephemeral TCP range on Windows,
+causing EADDRINUSE without an ordinary listener. On the migrated owner's PC,
+that range is 44620–48715, which includes all three stock web/voice ports.
+Keep WSL and Docker running and choose available ports outside that range.
+See [Microsoft's explanation](https://github.com/microsoft/WSL/issues/40169).
 
-# From KSCTowerNetwork-voice-bridge/voice-bridge/:
-$env:PCM_PORT = '48801'
-$env:CTL_PORT = '48802'
-node .\dist\bridge.js
+Create ignored `KSCTowerNetwork-dev/dev-ports.local.json`:
+
+```json
+{ "webPort": 48800, "pcmPort": 48801, "ctlPort": 48802 }
 ```
 
-These commands do not change the normal ports. In-game checks on alternate
-ports also require matching `voiceListenPort`/`voiceCtlPort` in the game's
-local settings; temporary TCP startup alone does not prove game audio works.
+Restart `npm run dev` after editing it. The launcher prints the selected ports;
+`dev:web`, `dev:bridge` and `dev:clean-ports` use the same configuration.
+Vite also reads it when launched directly from `web/`. Missing keys retain
+stock defaults. Values must be distinct integers from 1024 through 65535,
+excluding backend ports 48787/48788; unknown keys and malformed JSON fail
+startup. The backend URL stays on 48787.
+
+In the local plugin `PluginData/settings.cfg`, match all four settings:
+
+```text
+voiceListenPort = 48801
+voiceCtlPort = 48802
+bridgeEnv_PCM_PORT = 48801
+bridgeEnv_CTL_PORT = 48802
+```
+
+The migrated checkout has these settings and the local JSON installed.
+An existing KSP installation needs the same settings before in-game checks.
+Starting the TCP listeners alone does not prove game audio works.
 
 The migrated owner's chart source is in ignored `.local-assets/`. After a
 web build, install charts again before serving the built app:

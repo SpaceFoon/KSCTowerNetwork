@@ -14,10 +14,10 @@
     "test:mutation": "npm run test:mutation --prefix backend",
     "test:plugin-listen-ui": "powershell -NoProfile -ExecutionPolicy Bypass -File \"./plugin-tests/run-listen-ui-tests.ps1\"",
     "test:plugin-comm-radio-pure": "powershell -NoProfile -ExecutionPolicy Bypass -File \"./plugin-tests/run-comm-radio-pure-tests.ps1\"",
-    "dev:clean-ports": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$ports = 45173,48787,47372,47373; $listeners = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in $ports } | Select-Object -Unique LocalPort,OwningProcess; foreach ($row in $listeners) { try { Stop-Process -Id $row.OwningProcess -Force -ErrorAction Stop } catch {} }\"",
-    "dev": "%npm_node_execpath% %npm_execpath% run dev:clean-ports && concurrently -n backend,web,bridge -c blue,green,magenta \"%npm_node_execpath% %npm_execpath% run dev --prefix backend\" \"%npm_node_execpath% %npm_execpath% run dev --prefix web\" \"%npm_node_execpath% %npm_execpath% run dev --prefix ../KSCTowerNetwork-voice-bridge/voice-bridge\"",
-    "dev:backend": "%npm_node_execpath% %npm_execpath% run dev --prefix backend",
-    "dev:web": "%npm_node_execpath% %npm_execpath% run dev --prefix web",
-    "dev:bridge": "%npm_node_execpath% %npm_execpath% run dev --prefix ../KSCTowerNetwork-voice-bridge/voice-bridge"
+    "dev:clean-ports": "node ./scripts/run-dev.mjs --clean",
+    "dev": "node ./scripts/run-dev.mjs",
+    "dev:backend": "node ./scripts/run-dev.mjs backend",
+    "dev:web": "node ./scripts/run-dev.mjs web",
+    "dev:bridge": "node ./scripts/run-dev.mjs bridge"
   }
 }

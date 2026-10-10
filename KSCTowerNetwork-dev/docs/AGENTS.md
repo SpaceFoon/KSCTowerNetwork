@@ -120,7 +120,7 @@ web clients). Spectator **booth** commentary uses `tower-{sessionId}-booth`
 
 ```powershell
 # All three services with hot reload (from KSCTowerNetwork-dev/):
-npm run dev            # backend 48787, web 45173, bridge 47372/47373
+npm run dev            # stock ports below; local dev-ports.local.json can override web/bridge
 
 # Just one of them:
 npm run dev:backend
@@ -148,6 +148,10 @@ cd KSCTowerNetwork-voice-bridge\voice-bridge
 | `45173` | Vite dev server (proxies `/v1` → 48787) |
 | `47372` | bridge → KSP PCM downlink (TCP, s16le 48 kHz mono) |
 | `47373` | KSP → bridge PTT control (TCP, line-based: `MIC_ON` / `MIC_OFF` / `PING`) |
+
+Local `dev-ports.local.json` overrides web/bridge ports for the dev launcher
+and Vite. Keep plugin listen/control and bridge environment ports aligned;
+see [DEVELOPMENT.md](DEVELOPMENT.md#persistent-local-development-ports).
 
 ## Default dev login presets (local `backend/.env.development`, from `.env.example`)
 
