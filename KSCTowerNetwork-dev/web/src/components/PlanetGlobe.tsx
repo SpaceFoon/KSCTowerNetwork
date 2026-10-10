@@ -226,8 +226,8 @@ export function PlanetGlobe({ body, textureUrl, worldId }: { body: SystemCatalog
       const delta = previousTime ? Math.min((timestamp-previousTime)/1000,.1) : 0;
       previousTime = timestamp;
       if (effects.current.playing && visible && !document.hidden && !pointers.current.size) {
-        view.current.yaw += delta*.2;
-        elapsed.current += delta;
+        view.current.yaw += delta*.025;
+        elapsed.current += delta / 8;
       }
       const rect = element.getBoundingClientRect();
       const dpi = Math.min(window.devicePixelRatio || 1, 2);

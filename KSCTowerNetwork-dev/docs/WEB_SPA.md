@@ -282,7 +282,8 @@ The production `/charts` route requires sign-in and is available through the Cha
 shaded overview markers. Selecting a body opens an inspector with the WebGL
 `PlanetGlobe.tsx` renderer: rotating terrain, separate cloud layers, OPM rings,
 optional illustrative radiation belts, drag/keyboard rotation, zoom, pause,
-and an expanded dialog. Reduced-motion preferences disable automatic rotation.
+and an expanded dialog. Automatic rotation takes about four minutes per turn;
+cloud drift uses the same slower animation pace. Reduced-motion preferences disable automatic rotation.
 The inspector overlays wide scenes and flows below narrow panels.
 
 `data/globeTextures.ts` selects textures from the generated
