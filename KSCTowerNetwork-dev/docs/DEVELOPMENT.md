@@ -1,5 +1,7 @@
 # Development
 
+For **server hosting only**, use [SERVER_HOSTING.md](SERVER_HOSTING.md): the Bash/PowerShell server commands avoid the player bridge and Windows-only plugin build. The development commands below also run player-side components.
+
 ## Prerequisites
 
 - **Node 22+** (matches the bundled bridge runtime).

@@ -674,3 +674,7 @@ Third-party notes for anything else live in [`NOTICE.md`](NOTICE.md).
 ## Optional chart installation
 
 Third-party chart bundles are not included. `web/scripts/install_charts.py` renders and indexes a separately downloaded upstream PDF into `web/dist/charts/` after the web build (or an explicit output folder). `web/scripts/chart-requirements.txt` lists the Python dependencies. `web/scripts/install-charts.ps1` and `web/scripts/install-charts.sh` set up an isolated Python environment and run the installer. The empty Charts page links to the upstream PDF and `web/public/charts/README.md`. See [installation instructions](AEROCHART_REFERENCE.md).
+
+## Server-only hosting entry points
+
+`deploy/server.sh` and `deploy/server.ps1` invoke `deploy/server.mjs` for setup, build and production startup of backend/web only. `deploy/server.env.example` provides private production configuration defaults. `deploy/setup-vps.sh` targets the public repository main branch for fresh Ubuntu provisioning. See [SERVER_HOSTING.md](SERVER_HOSTING.md).

@@ -9,6 +9,8 @@ as the URLs match.
 > checklist and [`../PRODUCTION_DEPLOYMENT_PLAN.md`](../PRODUCTION_DEPLOYMENT_PLAN.md)
 > for per-platform recipes (Railway, Vercel, Render).
 
+For server-only Bash/PowerShell setup, build and production startup, see [SERVER_HOSTING.md](SERVER_HOSTING.md). No Windows or KSP installation is required on a Linux VPS.
+
 ## Topology
 
 ```

@@ -6,6 +6,8 @@ End-to-end guide for taking the project from local dev to a public, hardened, in
 
 ---
 
+For a VPS that already has Node, database/cache and a reverse proxy, use the lighter [server-only Bash/PowerShell commands](../docs/SERVER_HOSTING.md). They also support a Windows server.
+
 ## TL;DR
 
 ```bash
@@ -194,10 +196,10 @@ The script's `require_config` check refuses to run if any of these are still pla
 | `DEPLOY_USER` | `tower` | You want a different unix username |
 | `SSH_PORT` | `22` | You want SSH on a non-standard port (cosmetic — fail2ban + key-only is the real defence) |
 | `BEHIND_CLOUDFLARE` | `1` | You're not using Cloudflare (rare; you should be) |
-| `INSTALL_MARIADB` | `1` | You want in-memory only (state lost on restart) |
-| `INSTALL_REDIS` | `1` | Same — Redis is for the rate-limit store + future BullMQ jobs |
-| `APP_REPO_URL` | github.com/SpaceFoon/ksctower.git | You forked it |
-| `APP_BRANCH` | `master` | You deploy from a release branch |
+| `INSTALL_MARIADB` | `1` | Required by the fresh-VPS production bootstrap; use server-only commands for an external database |
+| `INSTALL_REDIS` | `1` | Required by the fresh-VPS production bootstrap; use server-only commands for an external cache |
+| `APP_REPO_URL` | github.com/SpaceFoon/KSCTowerNetwork.git | You forked it |
+| `APP_BRANCH` | `main` | You deploy from a release branch |
 
 ---
 

@@ -15,3 +15,7 @@ Start with [Development](KSCTowerNetwork-dev/docs/DEVELOPMENT.md), [Project over
 Project code is under the [MIT license](LICENSE). Third-party material has separate terms in [NOTICE.md](NOTICE.md). Optional Kerbin Aeronautical Charts and their generated adaptations retain CC BY-NC-SA 3.0 and are downloaded separately. Chart bundles and font binaries are excluded.
 
 The web app's `/charts` route explains how to install optional charts; once installed it provides full-document search, original PDF access, and downloadable reference data. See [chart download and installation](KSCTowerNetwork-dev/docs/AEROCHART_REFERENCE.md).
+
+## Host the server
+
+The backend and web app can be hosted on a Linux VPS or Windows server, without KSP or the player voice bridge. Use `KSCTowerNetwork-dev/deploy/server.sh` (Bash) or `server.ps1` (PowerShell) for server-only setup/build/start. See [server hosting](KSCTowerNetwork-dev/docs/SERVER_HOSTING.md). The fresh-Ubuntu bootstrap is in `deploy/setup-vps.sh`.

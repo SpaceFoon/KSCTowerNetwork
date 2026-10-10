@@ -95,8 +95,8 @@ DEPLOY_USER="tower"
 SSH_PUBKEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA__REPLACE_ME__ you@laptop"
 
 # --- Repo + paths -------------------------------------------------------------
-APP_REPO_URL="https://github.com/SpaceFoon/ksctower.git"
-APP_BRANCH="master"
+APP_REPO_URL="https://github.com/SpaceFoon/KSCTowerNetwork.git"
+APP_BRANCH="main"
 APP_BASE="/opt/ksctower"                  # repo gets cloned here
 BACKEND_DIR_REL="KSCTowerNetwork-dev/backend"
 WEB_DIR_REL="KSCTowerNetwork-dev/web"
@@ -170,6 +170,8 @@ require_ubuntu() {
 
 require_config() {
     local bad=0
+    [[ "$INSTALL_MARIADB" != "1" ]] && { err "Production requires MariaDB; use the server-only guide for external databases."; bad=1; }
+    [[ "$INSTALL_REDIS" != "1" ]] && { err "Production requires Redis; use the server-only guide for external caches."; bad=1; }
     [[ "$DOMAIN" == "tower.example.com" ]]         && { err "Set DOMAIN";              bad=1; }
     [[ "$LETSENCRYPT_EMAIL" == "you@example.com" ]] && { err "Set LETSENCRYPT_EMAIL";  bad=1; }
     [[ "$SSH_PUBKEY" == *"__REPLACE_ME__"* ]]      && { err "Set SSH_PUBKEY";          bad=1; }
