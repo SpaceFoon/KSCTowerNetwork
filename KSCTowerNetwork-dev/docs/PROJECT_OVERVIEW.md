@@ -222,6 +222,12 @@ under `KSP_x64_Data/Managed`.
 
 ### 3.4 Voice bridge (`KSCTowerNetwork-voice-bridge/voice-bridge/`)
 
+`src/roomLifecycle.ts` preserves the bridge's subscription and disconnect handlers
+when the SDK clears listeners on explicit disconnect, allowing channel retuning
+and subsequent reconnects to reuse the same room. `test/roomLifecycle.test.ts`
+covers successful, no-op, and failed disconnects. The dependency compatibility
+review is recorded in [VOICE_BRIDGE.md](VOICE_BRIDGE.md#upgrade-compatibility-review-2026-10-10).
+
 - Tiny Node app (~390 LOC) that joins LiveKit as a fixed identity (default
   `ksp_bridge`) and bridges audio in two halves:
   - **Downlink** (room → KSP): mixes all subscribed remote audio tracks

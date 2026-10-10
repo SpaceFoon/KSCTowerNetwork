@@ -144,6 +144,38 @@ Run `npm ci`, `npm run postinstall`, `npm exec tsc -- --noEmit`, `npm test`, and
 `npm run build` in the inner package before packaging. If npm blocks lifecycle
 scripts, explicitly run `npm run postinstall` to apply the SDK patch.
 
+## Upgrade compatibility review (2026-10-10)
+
+The review covers RTC 0.13.25 through 1.1.0 and TypeScript 5.9.3 through 7.0.2
+for both bridge packages. It does not upgrade the backend or web compiler.
+
+| Upstream change | Bridge impact and verification |
+|---|---|
+| RTC 1.0 declares stability; 1.1 adds RPC interceptors | No RPC or data-stream API usage in this bridge. Existing Room, AudioFrame, AudioMixer, AudioStream, and reliable publishData signatures remain supported. |
+| RTC 0.13.33 uses shared CJS with an ESM wrapper | Rebased both crash guards onto 1.1.0's room.cjs and source; runtime packager overlays room.cjs and rejects missing guards. |
+| RTC 0.13.32 closes streams on unsubscribe | AudioStream remains a ReadableStream; the existing reader adapter and unsubscribe removal remain valid. SDK teardown is idempotent. |
+| RTC disconnect clears all room listeners | Confirmed in both 0.13.25 and 1.1.0. Added roomLifecycle.ts to restore the bridge's audio and disconnect handlers after every explicit disconnect. This repairs a pre-existing channel-switch/room-reuse bug. |
+| TypeScript 7 removes the old compiler API | Bridge scripts invoke tsc directly. There are no compiler-API consumers, ts-node, TypeScript ESLint, or framework compiler plugins in these packages. tsx executes via esbuild. No TypeScript 6 compatibility alias is needed. |
+| TypeScript 6/7 changes configuration defaults and removes deprecated options | ES2022, NodeNext, strict, and types: [node] are already explicit. The emitting config already sets rootDir: src and outDir: dist. No removed options or import assertions are used. |
+| TypeScript 7 changes JS/JSDoc and template literal type analysis | Only .ts sources are checked; no affected type-level string utilities are used. |
+| PTT publishData previously used an as-never cast | Removed the cast so the reliable options are checked against the installed SDK. |
+
+Sources: [LiveKit RTC changelog](https://github.com/livekit/node-sdks/blob/main/packages/livekit-rtc/CHANGELOG.md),
+[SDK room implementation](https://github.com/livekit/node-sdks/blob/main/packages/livekit-rtc/src/room.ts),
+[TypeScript 7 release notes](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/),
+[TypeScript 6 migration changes](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-6-0.html),
+and [TypeScript native compiler differences](https://github.com/microsoft/typescript-go/blob/main/CHANGES.md).
+The disconnect comparison also used the published 0.13.25 npm archive and the
+installed 1.1.0 source, rather than relying only on the moving main branch.
+
+Validation: both package type checks, TypeScript 7 build, 13 passing bridge tests,
+local runtime packaging, shared ESM/CJS class identity, actual 48 kHz mono audio
+mixing, and packaged bridge startup on ephemeral loopback ports. Three regression
+tests exercise listener restoration
+after successful, no-op, and failed disconnects over repeated room reuse. Native
+SDK loading and patched event guards were checked offline. A live LiveKit/KSP
+session is still needed to verify end-to-end voice and channel retuning.
+
 ## Building the runtime
 
 From `KSCTowerNetwork-voice-bridge/voice-bridge/`:

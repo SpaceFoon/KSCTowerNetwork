@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Voice bridge for KSP: LiveKit room -> TCP PCM downlink, plus a tiny TCP control uplink for PTT.
  *
  * Downlink: TOWER_PCM s16le 48000 mono on PCM_PORT (default 47372).
@@ -26,6 +26,7 @@
  */
 import { execFile } from "node:child_process";
 import net from "node:net";
+import { disconnectRoomPreservingHandlers } from "./roomLifecycle.js";
 import { promisify } from "node:util";
 import {
   AudioFrame,
@@ -360,7 +361,7 @@ async function main(): Promise<void> {
       console.warn("[voice-bridge] LiveKit connect completed after state changed; disconnecting stale room");
       intentionalDisconnect = true;
       try {
-        await room.disconnect();
+        await disconnectRoomPreservingHandlers(room);
       } catch {
         /* ignore */
       }
@@ -422,7 +423,7 @@ async function main(): Promise<void> {
           console.warn("[voice-bridge] retrying join after Participant-already-exists (disconnect + delay)");
           try {
             intentionalDisconnect = true;
-            await room.disconnect();
+            await disconnectRoomPreservingHandlers(room);
           } catch {
             /* ignore */
           }
@@ -454,7 +455,7 @@ async function main(): Promise<void> {
     if (!roomJoined) return;
     intentionalDisconnect = true;
     try {
-      await room.disconnect();
+      await disconnectRoomPreservingHandlers(room);
     } catch {
       /* ignore: we're tearing the room link down anyway */
     }
@@ -581,7 +582,7 @@ async function main(): Promise<void> {
             // Same race from the other direction: treat as "we're effectively in" only if SDK agrees.
             try {
               intentionalDisconnect = true;
-              await room.disconnect();
+              await disconnectRoomPreservingHandlers(room);
             } catch {
               /* ignore */
             }
@@ -647,7 +648,7 @@ async function main(): Promise<void> {
     }
     const payload = pttEncoder.encode(JSON.stringify({ type: "ksp_ptt", on, from: BRIDGE_IDENTITY }));
     // Reliable delivery: PTT toggles must not be dropped under packet loss.
-    await lp.publishData(payload, { reliable: true } as never);
+    await lp.publishData(payload, { reliable: true });
   }
 
   // ----- Control uplink server (KSP sends MIC_ON / MIC_OFF / PING) -----
@@ -761,7 +762,7 @@ async function main(): Promise<void> {
     intentionalDisconnect = true;
     connectionEpoch += 1;
     try {
-      await room.disconnect();
+      await disconnectRoomPreservingHandlers(room);
     } catch {
       /* ignore */
     }
