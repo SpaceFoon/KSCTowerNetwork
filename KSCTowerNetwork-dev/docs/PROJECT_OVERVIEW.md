@@ -145,6 +145,7 @@ Key files:
 | `src/services/guestAuth.ts` | Anonymous lobby viewers → `guest` JWT. |
 | `src/services/scoring.ts` | Detects landing/launch events from telemetry; awards points. |
 | `src/services/hullcamStore.ts` | In-memory ring of recent JPEG frames per `(sessionId, cameraId)`. |
+| `src/services/craftThumbnailStore.ts` | Validated saved craft PNGs: 128 sessions, 256 KiB each, five-minute TTL. Pilot-only POST and controller/member GET `/craft-thumbnail/:sessionId`; see API_REFERENCE. |
 | `src/services/worldInventory.ts` | Per-session record of which planet pack / launch sites the pilot's KSP install has. |
 | `src/services/worldMaps.ts` | Catalog of map basemaps + navaids per body. |
 | `src/lib/db.ts` | MariaDB pool + schema bootstrap. |
@@ -179,6 +180,10 @@ Key files:
 | `src/components/PilotProfile.tsx` | Pilot identity card. |
 | `src/pages/TowerDesk.tsx` | The big one (~90 KB) — controller's full workstation. |
 | `src/components/TowerWall.tsx` | Customizable monitor wall; per-pilot status + telemetry cards (`status` / legacy `telemetry` slot). |
+| `src/components/TowerRadarScope.tsx` + `FlightWallCard.tsx` + `flightWall.css` | Flightwall radar and selected craft photo/details; existing `tower-radar` wall source. |
+| `src/components/TowerRadarScope.test.ts` | Sweep crossing across skipped frames and rotation wrap; phosphor decay and repaint checks. |
+| `src/tower/flightWallGuidance.ts` + `airfieldGeometry.ts` | Freshness-aware directional hints, compass labels and spherical airfield distances. |
+| `flightwall-preview.html` + `src/previews/FlightWallPreview.tsx` | Local sample-telemetry preview of Flightwall selection, stale and empty states. |
 | `src/pages/RoomPage.tsx` | Per-session chat + voice page. |
 | `src/pages/AdminDesk.tsx` | Moderation UI. |
 | `src/voice/livekit.ts` | LiveKit connect/publish/subscribe wrapper (`connectVoiceRoom`, token flavors), remote audio attach, Krisp toggle, `subscribeIncomingLevel` (incoming meter; analyser + time-domain RMS). |
@@ -212,6 +217,7 @@ under `KSP_x64_Data/Managed`.
 | `TowerMainThreadDispatcher.cs` | `Run(action)` for callbacks that must hit the Unity main thread. |
 | `TowerTelemetryPublisher.cs` | `[KSPAddon(Flight)]` coroutine: every 5 s (or 1 s under 15 km AGL), sends telemetry of the active vessel (**UDP** when `useUdpLiveTransport`, else **`POST /v1/telemetry`**); honors the player-toggled "beacon" master switch. Adaptive interval reads `nextTelemetrySeconds` from the **HTTP JSON** or **UDP reply** (see `ParseNextInterval`). |
 | `TowerHullCamRelay.cs` | Polls JRTI HullCam local HTTP at `127.0.0.1:8080`, POSTs JPEGs to backend `/hullcam/{sessionId}/{camId}`. Long back-off if JRTI not installed. |
+| `TowerCraftThumbnailPublisher.cs` + `TowerCraftThumbnailPaths.cs` | Beacon-gated relay of exact local saved-craft PNGs to `/v1/craft-thumbnail/:sessionId`; no craft-file upload. |
 | `TowerCountdownState.cs` | In-memory snapshot of the synced launch countdown. Server epoch translated to local `Time.realtimeSinceStartup`. |
 | `TowerCountdownHud.cs` | IMGUI countdown overlay during flight. |
 | `TowerWorldInventory.cs` | One-shot scan at SpaceCenter entry: reports planet pack, navaids, launch sites, KK/MAS presence to the backend so the web map adjusts. |
@@ -371,6 +377,8 @@ Telemetry / hull cam / world:
 POST /v1/telemetry/:sid               KSP plugin heartbeat (drives map + scoring + countdown + tower hooks; reply includes clearances echo, violations, phase timeline, approach #, landing tier)
 POST /v1/hullcam/:sid/:camId          JPEG frame upload
 GET  /v1/hullcam/:sid                 list + recent frame for each cam
+POST /v1/craft-thumbnail/:sid         pilot's saved editor PNG (matching craft name)
+GET  /v1/craft-thumbnail/:sid          matching saved PNG; craftName query; controller/member read
 POST /v1/world/inventory/:sid         pilot's planet/navaid scan
 GET  /v1/world/maps                   basemap manifest for current body
 ```

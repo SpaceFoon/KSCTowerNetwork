@@ -170,7 +170,7 @@ const SOURCE_LABELS: Record<MonitorSourceKind, string> = {
   schematic: "System schematic",
   "vessel-schematic": "Vessel schematic (parts)",
   "body-map": "Body map (follows vessel)",
-  "tower-radar": "Airfield radar PPI (center = launch pad)",
+  "tower-radar": "Flightwall (radar + craft photo)",
   "dragon-radar-map": "Dragon Radar (map · balls only)",
   "kos-screen": "kOS screen output",
   "acars-chat": "ACARS (pilot text)",

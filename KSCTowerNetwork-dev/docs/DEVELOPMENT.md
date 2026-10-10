@@ -244,3 +244,28 @@ curl http://127.0.0.1:48787/v1/lobby/rooms
 # See every route in api.ts:
 rg "apiRouter\.(get|post|put|patch|delete)" backend/src/routes/api.ts
 ```
+
+## Flightwall validation
+
+From `web/`, run `npm.cmd test -- src/tower/flightWallGuidance.test.ts
+src/tower/towerAircraftTracks.test.ts`, then `npm.cmd run build`. Start Vite
+and open `/flightwall-preview.html` to inspect selectable tracks, zoom/reset,
+Traffic/Stale/No traffic states and the stacked narrow layout.
+
+From `backend/`, run `node --import tsx --test
+src/integration/craftThumbnail.http.integration.test.ts` and
+`npm.cmd run typecheck`. The HTTP test covers pilot-only publication,
+controller/member reading, invalid/oversized images, craft changes, session
+closure and thumbnail expiration.
+
+From the dev root, run `powershell.exe -NoProfile -ExecutionPolicy Bypass
+-File .\plugin-tests\run-craft-thumbnail-tests.ps1` for exact thumbnail lookup,
+save isolation, missing names and traversal rejection. Rebuild the plugin
+with `build-plugin.ps1`; an external game install can provide its assemblies
+through `-KspManagedPath` (output remains in the repository).
+
+In-game acceptance still requires a pilot to fly a saved craft with its
+beacon enabled and the rebuilt DLL, confirm the correct editor thumbnail on
+the web Flightwall, then switch to a differently named craft and confirm the
+old image disappears. Compilation and local HTTP tests do not prove that
+live KSP-to-browser path.

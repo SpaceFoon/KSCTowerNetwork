@@ -9,11 +9,10 @@ import { useApiQuery } from "../query/hooks";
 import { CALLSIGN_DISPLAY_HELP } from "../tower/callsignTooltips";
 import { buildTowerAircraftTracks, trimmedPilotCallsign, type ActiveAircraftWire } from "../tower/towerAircraftTracks";
 import { useTowerLiveSubscriptions } from "../live/useTowerLiveSubscriptions";
+import { FlightWallCard } from "./FlightWallCard";
+import "./flightWall.css";
+import { kerbinDistanceMeters, KERBIN_RADIUS_M, KSC_LAT, KSC_LON } from "../tower/airfieldGeometry";
 import {
-  kerbinDistanceMeters,
-  KERBIN_RADIUS_M,
-  KSC_LAT,
-  KSC_LON,
   type Telemetry,
   type TowerAircraftTrack
 } from "./KerbinTowerMap";
@@ -66,17 +65,14 @@ type RadarLatchedPos = {
   commitMs: number;
 };
 
-/** `blipSweepGlow` at/above this ⇒ commit pending telemetry to the drawn dot (leading edge over the blip). */
-const RADAR_PLOT_LATCH_COMMIT_GLOW = 0.88;
-const RADAR_PLOT_MOVE_EPS_PX = 0.45;
-const RADAR_PLOT_MOVE_EPS_KM = 0.02;
-
-function radarPlotPositionMoved(truth: { x: number; y: number; distKm: number }, lat: RadarLatchedPos): boolean {
-  return (
-    Math.abs(truth.x - lat.x) > RADAR_PLOT_MOVE_EPS_PX ||
-    Math.abs(truth.y - lat.y) > RADAR_PLOT_MOVE_EPS_PX ||
-    Math.abs(truth.distKm - lat.distKm) > RADAR_PLOT_MOVE_EPS_KM
-  );
+/** Detect the leading edge crossing even when a frame skips the narrow beam. */
+export function radarSweepCrossed(phiRad: number, previousMs: number, nowMs: number): boolean {
+  if (![phiRad, previousMs, nowMs].every(Number.isFinite) || nowMs <= previousMs) return false;
+  if (nowMs - previousMs >= SWEEP_PERIOD_MS) return true;
+  const turn = 2 * Math.PI;
+  const edge = sweepEdgeAngles().θ1 + (previousMs % SWEEP_PERIOD_MS) / SWEEP_PERIOD_MS * turn;
+  const distance = ((phiRad - edge) % turn + turn) % turn;
+  return distance > 0 && distance <= (nowMs - previousMs) / SWEEP_PERIOD_MS * turn;
 }
 
 /** PPI dot radius (user space); in-range vs beyond ring. */
@@ -89,16 +85,13 @@ const RADAR_U_FONT_RING_MAX = 10;
 const RADAR_U_FONT_CARDINAL = 15;
 const RADAR_U_FONT_BLIP = 10;
 
-/** Fade painted returns after `commitMs` until the next sweep repaint (~2× sweep period → floor). */
+/** Phosphor decay between beam passes, retaining a faint clickable return. */
 const RADAR_BLIP_AGE_FADE_FLOOR = 0.2;
-const RADAR_BLIP_AGE_FADE_MAX_MS = SWEEP_PERIOD_MS * 2.15;
 
-function radarBlipAgeFade(commitMs: number, nowMs: number): number {
+export function radarBlipAgeFade(commitMs: number, nowMs: number): number {
   if (!Number.isFinite(commitMs) || !Number.isFinite(nowMs)) return 1;
   const age = Math.max(0, nowMs - commitMs);
-  if (age >= RADAR_BLIP_AGE_FADE_MAX_MS) return RADAR_BLIP_AGE_FADE_FLOOR;
-  const t = age / RADAR_BLIP_AGE_FADE_MAX_MS;
-  return RADAR_BLIP_AGE_FADE_FLOOR + (1 - RADAR_BLIP_AGE_FADE_FLOOR) * (1 - t * t);
+  return RADAR_BLIP_AGE_FADE_FLOOR + (1 - RADAR_BLIP_AGE_FADE_FLOOR) * Math.exp(-age / (SWEEP_PERIOD_MS * 0.28));
 }
 
 type RadarTrailPoint = { x: number; y: number; t: number };
@@ -234,23 +227,6 @@ function sweepTailSlices(): Array<{ d: string; opacity: number }> {
   return out;
 }
 
-/** 0 = not in beam, 1 = at leading edge (blip brightens as the sweep passes). */
-function blipSweepGlow(phiRad: number, sweepRad: number): number {
-  if (!Number.isFinite(phiRad) || !Number.isFinite(sweepRad)) return 0;
-  const { θ0, θ1 } = sweepEdgeAngles();
-  const trail = θ0 + sweepRad;
-  const open = θ1 - θ0;
-  const twoPi = 2 * Math.PI;
-  const norm = (a: number) => ((a % twoPi) + twoPi) % twoPi;
-  const p = norm(phiRad);
-  const t0 = norm(trail);
-  let delta = p - t0;
-  if (delta < 0) delta += twoPi;
-  if (delta > open + 0.03) return 0;
-  const u = delta / open;
-  return Math.pow(Math.max(0, u), 1.65);
-}
-
 function chassisRingDonutPath(cx: number, cy: number, rIn: number, rOut: number): string {
   return (
     `M ${cx + rOut} ${cy} A ${rOut} ${rOut} 0 1 1 ${cx - rOut} ${cy} A ${rOut} ${rOut} 0 1 1 ${cx + rOut} ${cy} Z ` +
@@ -258,7 +234,7 @@ function chassisRingDonutPath(cx: number, cy: number, rIn: number, rOut: number)
   );
 }
 
-type ActiveAircraftRes = { ok?: boolean; aircraft?: ActiveAircraftWire[] };
+type ActiveAircraftRes = { ok?: boolean; aircraft?: ActiveAircraftWire[]; freshMs?: number };
 
 /**
  * Blip tag: other aircraft use telemetry callsign when set.
@@ -296,8 +272,54 @@ export function TowerRadarWallSlot({
   radarPpiOriginId,
   onPpiOriginIdChange
 }: TowerRadarWallSlotProps): JSX.Element {
-  const clipId = useId().replace(/:/g, "");
   const liveConnected = useTowerLiveSubscriptions(sessionId);
+  type SessionRes = { ok?: boolean; session?: { callsign?: string; lastTelemetryAt?: string; telemetry?: Telemetry | null }; telemetryHealth?: { state: string; staleThresholdSeconds: number } };
+  const sessionQuery = useApiQuery<SessionRes>({
+    queryKey: queryKeys.session.detail(sessionId),
+    path: `/v1/session/${encodeURIComponent(sessionId)}`,
+    enabled: !!sessionId,
+    refetchInterval: liveConnected ? false : sessionId ? 1_000 : false,
+    placeholderData: (prev) => prev
+  });
+  const aircraftQuery = useApiQuery<ActiveAircraftRes>({
+    queryKey: queryKeys.tower.activeAircraft(),
+    path: "/v1/tower/active-aircraft",
+    refetchInterval: liveConnected ? false : 3_000,
+    refetchIntervalInBackground: false,
+    placeholderData: (prev) => prev
+  });
+  const sessionCallsign = sessionQuery.data?.session?.callsign;
+  const effectiveHome = homeBodyName?.trim() || worldInventory?.home.name || "Kerbin";
+  const tracks = useMemo(() => buildTowerAircraftTracks({
+    homeBodyName: effectiveHome, sessionId: sessionId.trim(),
+    telemetry: sessionQuery.data?.session?.telemetry ? {
+      ...sessionQuery.data.session.telemetry,
+      sampleUnixMs: sessionQuery.isError || (sessionQuery.data.telemetryHealth && sessionQuery.data.telemetryHealth.state !== "live")
+        ? NaN : sessionQuery.data.session.lastTelemetryAt ? Date.parse(sessionQuery.data.session.lastTelemetryAt) : sessionQuery.data.session.telemetry.sampleUnixMs
+    } : null,
+    selfCallsign: sessionCallsign, active: aircraftQuery.data?.aircraft ?? []
+  }).map((tr) => aircraftQuery.isError && !tr.isSelf ? { ...tr, telemetry: { ...tr.telemetry, sampleUnixMs: NaN } } : tr), [effectiveHome, sessionId, sessionQuery.data, aircraftQuery.data, sessionCallsign, sessionQuery.isError, aircraftQuery.isError]);
+  return <TowerRadarScope tracks={tracks} sessionCallsign={sessionCallsign} worldInventory={worldInventory}
+    homeBodyName={effectiveHome} radarPpiOriginId={radarPpiOriginId} onPpiOriginIdChange={onPpiOriginIdChange}
+    dataUnavailable={sessionQuery.isError || aircraftQuery.isError} staleAfterMs={(sessionQuery.data?.telemetryHealth?.staleThresholdSeconds ?? 15) * 1000}
+    otherStaleAfterMs={aircraftQuery.data?.freshMs ?? 30_000} />;
+}
+
+export function TowerRadarScope({ tracks, sessionCallsign, worldInventory, homeBodyName, radarPpiOriginId, onPpiOriginIdChange, dataUnavailable = false, staleAfterMs = 15_000, otherStaleAfterMs = 30_000, previewThumbnail }: Omit<TowerRadarWallSlotProps, "sessionId"> & {
+  tracks: TowerAircraftTrack[]; sessionCallsign?: string; dataUnavailable?: boolean; staleAfterMs?: number; otherStaleAfterMs?: number;
+  previewThumbnail?: { sessionId: string; url: string };
+}): JSX.Element {
+  const clipId = useId().replace(/:/g, "");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReducedMotion(media.matches);
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+  useEffect(() => { if (selectedId && !tracks.some((tr) => tr.id === selectedId)) setSelectedId(null); }, [selectedId, tracks]);
+  const selectedTrack = tracks.find((tr) => tr.id === selectedId) ?? tracks.find((tr) => tr.isSelf) ?? tracks[0] ?? null;
   const refPt = useMemo(
     () => radarPpiOrigin(worldInventory, radarPpiOriginId),
     [worldInventory, radarPpiOriginId]
@@ -327,25 +349,6 @@ export function TowerRadarWallSlot({
     return hit?.value ?? "ksc";
   }, [radarPpiOriginId, ppiHubOptions]);
 
-  type SessionRes = { ok?: boolean; session?: { callsign?: string; telemetry?: Telemetry | null } };
-  const sessionQuery = useApiQuery<SessionRes>({
-    queryKey: queryKeys.session.detail(sessionId),
-    path: `/v1/session/${encodeURIComponent(sessionId)}`,
-    enabled: !!sessionId,
-    refetchInterval: liveConnected ? false : sessionId ? 1_000 : false,
-    placeholderData: (prev) => prev
-  });
-  const telemetry = sessionQuery.data?.session?.telemetry ?? null;
-
-  const aircraftQuery = useApiQuery<ActiveAircraftRes>({
-    queryKey: queryKeys.tower.activeAircraft(),
-    path: "/v1/tower/active-aircraft",
-    refetchInterval: liveConnected ? false : 3_000,
-    refetchIntervalInBackground: false,
-    placeholderData: (prev) => prev
-  });
-  const activeAircraft = aircraftQuery.data?.aircraft ?? [];
-
   /**
    * Wall may pass `""` / whitespace for `homeBodyName` while inventory is loading.
    * `??` does not treat `""` as missing — that made `homeLc` in `buildTowerAircraftTracks` `""`
@@ -357,17 +360,6 @@ export function TowerRadarWallSlot({
       : refPt.bodyName;
 
   const homeLc = effectiveHome.toLowerCase();
-  const tracks = useMemo((): TowerAircraftTrack[] => {
-    return buildTowerAircraftTracks({
-      homeBodyName: effectiveHome,
-      sessionId: sessionId.trim(),
-      telemetry,
-      selfCallsign: sessionQuery.data?.session?.callsign,
-      active: activeAircraft
-    });
-  }, [effectiveHome, sessionId, telemetry, sessionQuery.data?.session?.callsign, activeAircraft]);
-
-  const sessionCallsign = sessionQuery.data?.session?.callsign;
   const truthPlots = useMemo((): RadarPlotTruth[] => {
     const out: RadarPlotTruth[] = [];
     for (const tr of tracks) {
@@ -409,6 +401,7 @@ export function TowerRadarWallSlot({
   const sweepSlices = useMemo(() => sweepTailSlices(), []);
   const [, sweepPulse] = useReducer((n: number) => n + 1, 0);
   useEffect(() => {
+    if (reducedMotion) { const timer = setInterval(sweepPulse, 1000); return () => clearInterval(timer); }
     let id = 0;
     const tick = () => {
       sweepPulse();
@@ -416,7 +409,7 @@ export function TowerRadarWallSlot({
     };
     id = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(id);
-  }, []);
+  }, [reducedMotion]);
 
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -424,6 +417,7 @@ export function TowerRadarWallSlot({
   const dragPanRef = useRef(false);
   /** Drawn PPI positions; truth comes from `truthPlots` but x/y/dist update only on sweep paint. */
   const plotLatchRef = useRef<Map<string, RadarLatchedPos>>(new Map());
+  const previousSweepMsRef = useRef(Date.now());
   /** Past painted positions per track (decayed in render). */
   const trailHistoryRef = useRef<Map<string, RadarTrailPoint[]>>(new Map());
 
@@ -509,8 +503,10 @@ export function TowerRadarWallSlot({
   const zoomInDisabled = zoom >= RADAR_ZOOM_MAX - 0.01;
   const resetDisabled = zoom <= 1.0001 && pan.x === 0 && pan.y === 0;
 
-  const sweepDeg = ((Date.now() % SWEEP_PERIOD_MS) / SWEEP_PERIOD_MS) * 360;
-  const sweepRad = (sweepDeg * Math.PI) / 180;
+  const nowMs = Date.now();
+  const previousSweepMs = previousSweepMsRef.current;
+  previousSweepMsRef.current = nowMs;
+  const sweepDeg = reducedMotion ? 0 : ((nowMs % SWEEP_PERIOD_MS) / SWEEP_PERIOD_MS) * 360;
   const sweepTf = `rotate(${sweepDeg} ${CX} ${CY})`;
   const { θ1 } = sweepEdgeAngles();
   const sparX2 = CX + R_WAVE_OUT * Math.cos(θ1);
@@ -519,7 +515,6 @@ export function TowerRadarWallSlot({
   const latch = plotLatchRef.current;
   const truthIds = new Set<string>();
   const displayPlots: RadarPlotTruth[] = [];
-  const nowMs = Date.now();
   for (const p of truthPlots) {
     truthIds.add(p.id);
     let lat = latch.get(p.id);
@@ -529,7 +524,7 @@ export function TowerRadarWallSlot({
       displayPlots.push({ ...p, paintCommitMs: nowMs });
       continue;
     }
-    if (!radarPlotPositionMoved(p, lat)) {
+    if (reducedMotion || radarSweepCrossed(lat.phiRad, previousSweepMs, nowMs)) {
       lat.x = p.x;
       lat.y = p.y;
       lat.phiRad = p.phiRad;
@@ -537,25 +532,6 @@ export function TowerRadarWallSlot({
       lat.inRange = p.inRange;
       lat.commitMs = nowMs;
       displayPlots.push({ ...p, paintCommitMs: lat.commitMs });
-      continue;
-    }
-    const glow = blipSweepGlow(lat.phiRad, sweepRad);
-    if (glow >= RADAR_PLOT_LATCH_COMMIT_GLOW) {
-      displayPlots.push({
-        ...p,
-        x: lat.x,
-        y: lat.y,
-        phiRad: lat.phiRad,
-        distKm: lat.distKm,
-        inRange: lat.inRange,
-        paintCommitMs: lat.commitMs
-      });
-      lat.x = p.x;
-      lat.y = p.y;
-      lat.phiRad = p.phiRad;
-      lat.distKm = p.distKm;
-      lat.inRange = p.inRange;
-      lat.commitMs = nowMs;
       continue;
     }
     displayPlots.push({
@@ -595,10 +571,11 @@ export function TowerRadarWallSlot({
   }
 
   return (
-    <div className="tower-radar-scope" role="img" aria-label={`Airfield radar PPI, ${TOWER_RADAR_RANGE_KM} km`}>
-      <div className="tower-radar-scope__banner" aria-hidden>
-        <span className="tower-radar-scope__banner-title">Airfield radar · PPI</span>
-        <span className="tower-radar-scope__banner-range">{TOWER_RADAR_RANGE_KM} km range</span>
+    <div className="flight-wall">
+    <section className="tower-radar-scope" aria-label={`Airfield radar PPI, ${TOWER_RADAR_RANGE_KM} km`}>
+      <div className="tower-radar-scope__banner">
+        <span className="tower-radar-scope__banner-title">AREA RADAR <small>({TOWER_RADAR_RANGE_KM} KM RADIUS)</small></span>
+        <span className="tower-radar-scope__banner-range">{truthPlots.filter((p) => p.inRange).length} IN RANGE</span>
       </div>
       <div className="tower-radar-scope__subbar">
         <span className="tower-radar-scope__subbar-origin">{refPt.originLabel}</span>
@@ -633,6 +610,7 @@ export function TowerRadarWallSlot({
         <div className="tower-radar-scope__zoomport" ref={zoomportRef}>
           <div className="tower-radar-scope__svg-well">
             <svg
+              role="group" aria-label="Radar traffic"
               className={
                 "tower-radar-scope__svg" + (zoom > 1.0001 ? " tower-radar-scope__svg--pannable" : "")
               }
@@ -659,7 +637,7 @@ export function TowerRadarWallSlot({
               </g>
             </mask>
           </defs>
-          <g pointerEvents="none" className="tower-radar-scope__sweep-wrap" transform={sweepTf}>
+          <g pointerEvents="none" className="tower-radar-scope__sweep-wrap" transform={sweepTf} style={{ opacity: reducedMotion ? 0 : 1 }}>
             {sweepSlices.map((s, i) => (
               <path key={i} d={s.d} className="tower-radar-scope__sweep-tail" style={{ opacity: s.opacity }} />
             ))}
@@ -687,7 +665,7 @@ export function TowerRadarWallSlot({
                 cy={CY}
                 r={R_MAX * f}
                 fill="none"
-                className="tower-radar-scope__ring"
+                className={"tower-radar-scope__ring" + (f === 1 ? " tower-radar-scope__ring--range" : "")}
               />
             ))}
             <line x1={CX} y1={CY - R_MAX} x2={CX} y2={CY + R_MAX} className="tower-radar-scope__axis-major" />
@@ -742,10 +720,8 @@ export function TowerRadarWallSlot({
               MAX {TOWER_RADAR_RANGE_KM} km
             </text>
             {displayPlots.map((p) => {
-              const sweepGlow = blipSweepGlow(p.phiRad, sweepRad);
-              const hitIn = sweepGlow > 0.12;
-              const hitOor = sweepGlow > 0.1;
-              const ageFade = radarBlipAgeFade(p.paintCommitMs ?? nowMs, nowMs);
+              const hit = !reducedMotion && nowMs - (p.paintCommitMs ?? nowMs) < 160;
+              const ageFade = reducedMotion ? 1 : radarBlipAgeFade(p.paintCommitMs ?? nowMs, nowMs);
               const blipR = p.inRange ? RADAR_BLIP_R_IN : RADAR_BLIP_R_OOR;
               const trailRaw = trailHistoryRef.current.get(p.id) ?? [];
               /* Newest sample is the current painted head; draw older samples only. */
@@ -753,14 +729,19 @@ export function TowerRadarWallSlot({
               return (
               <g
                 key={p.id}
-                className={"tower-radar-scope__track" + (p.isSelf ? " tower-radar-scope__track--self" : "")}
-                style={{ opacity: ageFade }}
+                className={"tower-radar-scope__track" + (p.id === selectedTrack?.id ? " tower-radar-scope__track--selected" : "")}
+                role="button" tabIndex={0} aria-label={`Follow ${p.callsign}`} aria-pressed={p.id === selectedTrack?.id}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => setSelectedId(p.id)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedId(p.id); } }}
               >
                 <title>
                   {`${p.callsign} · ${p.distKm < 10 ? p.distKm.toFixed(2) : p.distKm.toFixed(1)} km${
                     !p.inRange ? " (beyond range)" : ""
                   }\n${CALLSIGN_DISPLAY_HELP}`}
                 </title>
+                <circle cx={p.x} cy={p.y} r={13} fill="transparent" />
+                {p.id === selectedTrack?.id ? <circle cx={p.x} cy={p.y} r={11} className="flight-wall__selected-ring" /> : null}
                 {trailHist.map((pt, ti) => (
                   <circle
                     key={`${p.id}-trail-${pt.t}-${ti}`}
@@ -779,15 +760,22 @@ export function TowerRadarWallSlot({
                   r={blipR}
                   className={
                     (p.inRange ? "tower-radar-scope__blip" : "tower-radar-scope__blip tower-radar-scope__blip--oor") +
-                    (p.inRange && hitIn ? " tower-radar-scope__blip--sweep-hit" : "") +
-                    (!p.inRange && hitOor ? " tower-radar-scope__blip--oor-sweep-hit" : "")
+                    (p.inRange && hit ? " tower-radar-scope__blip--sweep-hit" : "") +
+                    (!p.inRange && hit ? " tower-radar-scope__blip--oor-sweep-hit" : "")
                   }
                   style={{
-                    opacity: p.inRange
-                      ? Math.min(1, 0.88 + sweepGlow * 0.12)
-                      : Math.min(1, 0.55 + sweepGlow * 0.45)
+                    opacity: ageFade
                   }}
                 />
+                <path d={tracks.find((tr) => tr.id === p.id)?.telemetry.craftMapIcon === "rocket"
+                  ? "M0 -9 3 -4 3 3 6 6 6 8 2 6 0 9 -2 6 -6 8 -6 6 -3 3 -3 -4Z"
+                  : tracks.find((tr) => tr.id === p.id)?.telemetry.craftMapIcon === "rover"
+                    ? "M-4 -6H4V6H-4ZM-7 -4H-5V-1H-7ZM5 -4H7V-1H5ZM-7 2H-5V5H-7ZM5 2H7V5H5Z"
+                    : "M0 -7 2 -1 7 2 7 4 2 2 2 5 4 6 4 7 0 6 -4 7 -4 6 -2 5 -2 2 -7 4 -7 2 -2 -1Z"}
+                  transform={`translate(${p.x} ${p.y}) rotate(${tracks.find((tr) => tr.id === p.id)?.telemetry.heading ?? 0})`}
+                  style={{ opacity: ageFade }}
+                  className={"flight-wall__craft-marker" + (hit ? " flight-wall__craft-marker--sweep-hit" : "")} />
+                {p.id === selectedTrack?.id ? <rect x={p.x + 9} y={p.y - 10} width={Math.min(12, p.callsign.length) * 6.5 + 9} height={17} rx={3} fill="var(--accent)" /> : null}
                 <text
                   x={p.x + 7}
                   y={p.y + 2.5}
@@ -878,8 +866,14 @@ export function TowerRadarWallSlot({
         </div>
       </div>
       {truthPlots.length === 0 ? (
-        <p className="tower-radar-scope__empty">No traffic with position on {refPt.bodyName}.</p>
+        <p className="tower-radar-scope__empty">{dataUnavailable ? "Traffic unavailable. Check the tower connection." : `No traffic with position on ${refPt.bodyName}.`}</p>
       ) : null}
+      <div className="flight-wall__traffic" aria-label="Select a craft">{tracks.map((tr) => <button key={tr.id} type="button" aria-pressed={tr.id === selectedTrack?.id} onClick={() => setSelectedId(tr.id)}>{tr.label}</button>)}</div>
+    </section>
+    <FlightWallCard track={selectedTrack} distanceKm={truthPlots.find((p) => p.id === selectedTrack?.id)?.distKm ?? 0}
+      bearing={selectedTrack?.telemetry.lat != null && selectedTrack.telemetry.lon != null ? bearingDeg(refPt.lat, refPt.lon, selectedTrack.telemetry.lat, selectedTrack.telemetry.lon) : 0}
+      originLabel={refPt.originLabel} nowMs={nowMs} staleAfterMs={selectedTrack?.isSelf ? staleAfterMs : otherStaleAfterMs}
+      previewThumbnailUrl={selectedTrack?.id === previewThumbnail?.sessionId ? previewThumbnail?.url : undefined} />
     </div>
   );
 }

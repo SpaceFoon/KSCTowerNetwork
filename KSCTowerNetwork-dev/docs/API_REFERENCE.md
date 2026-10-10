@@ -136,3 +136,16 @@ These also live in `api.ts` near the moderation endpoints:
 > **Update this file** when you add a route. The full source of truth is
 > `backend/src/routes/api.ts`. Run `rg "apiRouter\.(get|post|put|patch|delete)" backend/src/routes/api.ts`
 > to regenerate the list quickly.
+
+## Saved craft thumbnails
+
+All paths below have the `/v1` prefix.
+
+| Method | Path | Gate | Notes |
+|---|---|---|---|
+| `POST` | `/craft-thumbnail/:sessionId` | `[auth]`, session pilot only | Raw `image/png` <=256 KiB; URL-encoded `x-craft-name` must match active telemetry. Open sessions only; heavy-publish limiter; validated and downscaled to <=960 by 540. Returns `{ ok: true }`. Invalid image/name: 400; non-pilot: 403; craft mismatch: 409; oversize: 413. |
+| `GET` | `/craft-thumbnail/:sessionId?craftName=...` | controller+ or session member/admin; bans enforced | PNG of matching current saved craft; `private, no-store`. Missing/expired/mismatched image or closed session: 404. Five-minute TTL, 128-session process-local cap. |
+
+`GET /tower/active-aircraft` also includes optional `targetRunway` and
+`telemetryHealthState` alongside `lastTelemetryAt`; Flightwall uses server
+receipt time and health (including beacon-off/pause) for freshness.

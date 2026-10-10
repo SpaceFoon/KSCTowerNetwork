@@ -31,6 +31,7 @@ backend/src/
 │   ├── scoring.ts           # Telemetry → score event detection
 │   ├── hullcamStore.ts      # In-memory latest-frame-per-camera store
 │   ├── hullcamCompress.ts   # Lazy sharp re-encode (mozjpeg + WebP) cached on the frame
+│   ├── craftThumbnailStore.ts # Validated saved craft PNGs; bounded in-memory store
 │   ├── worldInventory.ts    # Per-session vessel/runway/airfield catalog
 │   └── worldMaps.ts         # Static map layers (basemap, navaids)
 ├── tower/                   # Pure tower rules — see TOWER_LOGIC.md
@@ -359,3 +360,22 @@ plugin obeys it. Backend logic (in `routes/api.ts`):
   `TELEMETRY_CLOSE_SECONDS` (1).
 
 Tweak via env when running on slow links.
+
+## Craft thumbnails
+
+`POST /v1/craft-thumbnail/:sessionId` accepts a pilot-only `image/png` body
+(maximum 256 KiB) with URL-encoded `x-craft-name`. The session must be open
+and the name must match current telemetry. Sharp decodes with a four-million
+pixel limit, bounds the image to 960 by 540 without upscaling, preserves
+transparency, and refuses normalized PNGs over 256 KiB. The craft name is
+checked again after decoding in case the pilot switched craft. The existing
+heavy-publish limiter applies.
+
+`GET /v1/craft-thumbnail/:sessionId?craftName=...` permits controllers to read
+radar craft photos; pilots/spectators need session membership. Banned users
+are rejected. The requested, stored and active telemetry names must match.
+Closed sessions and missing/expired images return 404. Success returns PNG
+with `Cache-Control: private, no-store`. No arbitrary image URL or local
+filesystem path is accepted. Storage is process-local, capped at 128 sessions
+(32 MiB of PNG bytes), with five-minute expiration and oldest-entry eviction.
+The plugin's minute refresh restores images after backend restarts.

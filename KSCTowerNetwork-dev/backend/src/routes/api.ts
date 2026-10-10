@@ -205,6 +205,7 @@ import {
   putFrame as putHullCamFrame
 } from "../services/hullcamStore";
 import { getOptimizedJpeg, getWebp } from "../services/hullcamCompress";
+import { CRAFT_THUMBNAIL_MAX_BYTES, normalizeCraftThumbnail, putCraftThumbnail, getCraftThumbnail } from "../services/craftThumbnailStore";
 import {
   VESSEL_MANIFEST_IDLE_TTL_MS,
   getManifest as getVesselManifest,
@@ -3488,6 +3489,44 @@ apiRouter.get("/world-maps/:sessionId/layer/:layerId", requireAuth, async (req, 
 // the budget we're prepared to spend on a single attacker's stream before the rate
 // limiter kicks in. Do NOT raise this without lowering hullcamLimiter to match.
 const HULLCAM_MAX_BODY_BYTES = 192 * 1024;
+apiRouter.post("/craft-thumbnail/:sessionId", requireAuth, heavyPublishLimiter,
+  express.raw({ type: "image/png", limit: CRAFT_THUMBNAIL_MAX_BYTES }), async (req, res) => {
+    const sessionId = String(req.params.sessionId);
+    const session = await getSessionWithDevSharedBootstrap(sessionId, req.auth!.userId);
+    if (!session || session.status === "closed") { res.status(404).json({ error: "Session not found" }); return; }
+    if (session.pilotUserId !== req.auth!.userId) { res.status(403).json({ error: "Only the pilot can publish a craft thumbnail" }); return; }
+    let craftName: string;
+    try { craftName = decodeURIComponent((req.header("x-craft-name") ?? "").slice(0, 768)); }
+    catch { res.status(400).json({ error: "Invalid craft name" }); return; }
+    if (!craftName || craftName.length > 128 || /[\u0000-\u001f]/u.test(craftName)) { res.status(400).json({ error: "Invalid craft name" }); return; }
+    if (session.telemetry?.craftName !== craftName) { res.status(409).json({ error: "Thumbnail does not match the active craft" }); return; }
+    if (!Buffer.isBuffer(req.body) || !req.body.length) { res.status(400).json({ error: "Body must be a PNG thumbnail" }); return; }
+    let png: Buffer;
+    try { png = await normalizeCraftThumbnail(req.body); }
+    catch { res.status(400).json({ error: "Invalid PNG thumbnail" }); return; }
+    // A vessel switch during image decoding must not replace the new craft's image.
+    const current = await getSessionWithDevSharedBootstrap(sessionId, req.auth!.userId);
+    if (!current || current.status === "closed" || current.telemetry?.craftName !== craftName) { res.status(409).json({ error: "Active craft changed" }); return; }
+    putCraftThumbnail(sessionId, craftName, png);
+    res.json({ ok: true });
+  });
+
+apiRouter.get("/craft-thumbnail/:sessionId", requireAuth, async (req, res) => {
+  const sessionId = String(req.params.sessionId);
+  const access = await getUserAccess(req.auth!.userId);
+  if (access.isBanned) { res.status(403).json({ error: "Banned users cannot view craft thumbnails" }); return; }
+  // Controllers can inspect any radar track; other viewers need session membership.
+  const session = roleAtLeast(access.role, "controller")
+    ? await getSessionWithDevSharedBootstrap(sessionId, req.auth!.userId)
+    : await loadSessionIfAuthorized(req, res, sessionId);
+  if (!session) { if (!res.headersSent) res.status(404).json({ error: "Session not found" }); return; }
+  res.setHeader("Cache-Control", "private, no-store");
+  const name = typeof req.query.craftName === "string" ? req.query.craftName : "";
+  const thumbnail = session.status !== "closed" && name === session.telemetry?.craftName ? getCraftThumbnail(sessionId, name) : null;
+  if (!thumbnail) { res.status(404).json({ error: "No thumbnail for this craft" }); return; }
+  res.type("image/png").send(thumbnail.png);
+});
+
 const HULLCAM_RAW_PARSER = express.raw({
   type: "image/jpeg",
   limit: HULLCAM_MAX_BODY_BYTES

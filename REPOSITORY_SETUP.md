@@ -18,6 +18,18 @@ Prepared on October 4, 2026, from the tracked working files in the previous `Spa
 3. Review the committed snapshot for secrets and personal data. The migration's pattern scan is not a comprehensive secret audit. The old repository/history needs its own review and cleanup if it will be made public.
 4. Verify plugin builds against KSP, bridge builds, and a packaged release. Snapshot hygiene checks are not proof of runtime or production readiness.
 
+## Flightwall source transfer - October 10, 2026
+
+The flightwall feature and its site-color/sweep-decay fixes from old-checkout
+commits `4111ac8`, `005642a` and `530e69b` were transferred into this repository
+as source changes, without importing old Git history or compiled DLLs. The
+public checkout's newer radar TypeScript fix was retained.
+
+Validation: strict web typecheck and production build, 18 focused web tests,
+backend typecheck, two thumbnail HTTP integration tests, C# thumbnail path
+tests, and plugin compilation against installed KSP references passed. This
+does not establish in-game thumbnail relay or deployment readiness.
+
 ## GitHub
 
 Create `SpaceFoon/KSCTowerNetwork` as **private** and connect it as `origin`. Push only this repository's `main` branch, not the old repository's branches or tags. The original checkout still points to its existing remote.

@@ -77,6 +77,8 @@ Nothing else may live at the mod root — `build-plugin.ps1` enforces that.
 | `TowerAcarsKosBridge.cs` | File-based mailbox so kOS scripts can read/write ACARS via the kOS Archive volume. |
 | `TowerKosScreenAutoCapture.cs` | Reflection-based auto-capture: walks every active `kOS.Module.kOSProcessor`, diffs each `IScreenBufferLine` by `LastChangeTick`, and POSTs changed lines to `/v1/session/:id/kos-screen` so kOS terminal output mirrors to the web with no script-side opt-in. |
 | `TowerTelemetryPublisher.cs` | Posts vessel state to the backend. Handles the adaptive next-interval response. |
+| `TowerCraftThumbnailPublisher.cs` | Beacon/auth-gated relay of the active craft's saved PNG to Flightwall; 60 s refresh, 30 s backoff. |
+| `TowerCraftThumbnailPaths.cs` | Exact thumbnail lookup under KSP `thumbs/`; rejects path separators and invalid filenames. |
 | `TowerHullCamRelay.cs` | Polls JRTI HullCam JPEGs and POSTs them to the backend. |
 | `TowerWorldInventory.cs` | Walks the active save to publish vessel/runway/airfield catalog. |
 | `TowerBasemapBaker.cs` | Generates a static map tile from KSP's planet textures + heightmaps so the web tower has a real basemap. |
@@ -381,3 +383,29 @@ The script:
 If you see `MetadataException` on launch, the DLL was built against a
 different KSP version's `Assembly-CSharp.dll`. Rebuild with the correct
 managed-assemblies path.
+
+## Saved craft photo relay
+
+`TowerCraftThumbnailPublisher` runs in Flight. With a pilot session, bearer
+and enabled beacon, it checks the active vessel every five seconds and POSTs
+an existing PNG to `/v1/craft-thumbnail/:sessionId`. It refreshes once per
+minute, retries failures/missing files after 30 seconds, and rechecks on
+session/vessel/name changes. Tower View streamers are excluded. Only image
+bytes and the URL-encoded craft name are sent; no save path or craft file is
+uploaded. Files over 256 KiB are skipped.
+
+Lookup tries exact SPH/VAB names under KSP `thumbs/`:
+`<save>_<facility>_<craft>.png`,
+`saves_<save>_Ships_<facility>_<craft>.png`, and
+`<save>_Ships_<facility>_<craft>.png`. Renamed, unsaved or nested-folder craft
+without one of these exact names have no photo. If both SPH and VAB contain
+the name, SPH is preferred. Staging/docking may change the craft after the
+editor thumbnail was saved. The backend checks the name against current
+telemetry before accepting/serving it. Autosaves, other saves and generic
+aircraft photos are not substituted.
+
+For a source checkout outside KSP, pass `-KspManagedPath` to `build-plugin.ps1`
+with the installed game's `KSP_x64_Data/Managed` directory. Output stays in
+this checkout's `obj/` and `GameData/`. The quoted compiler arguments were
+verified with Windows PowerShell (`powershell.exe -NoProfile -ExecutionPolicy
+Bypass -File .\build-plugin.ps1 -KspManagedPath 'C:\path\to\KSP_x64_Data\Managed'`).

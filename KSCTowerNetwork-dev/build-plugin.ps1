@@ -24,7 +24,9 @@
 # DO NOT ship a -Dev DLL: credentials are hard-coded in the assembly.
 
 param(
-    [switch]$Dev
+    [switch]$Dev,
+    # For source checkouts outside the game install; output still stays in this checkout.
+    [string]$KspManagedPath
 )
 
 $ErrorActionPreference = "Stop"
@@ -32,6 +34,7 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $kspRoot = Resolve-Path (Join-Path $here "..")
 $gameDataMod = Join-Path $kspRoot "GameData\KSCTowerNetwork"
 $managed = Join-Path $kspRoot "KSP_x64_Data\Managed"
+if ($KspManagedPath) { $managed = (Resolve-Path -LiteralPath $KspManagedPath).Path }
 $fx = Join-Path $env:WINDIR "Microsoft.NET\Framework64\v4.0.30319"
 $csc = Join-Path $fx "csc.exe"
 
@@ -84,6 +87,8 @@ $src = @(
     (Join-Path $here "PluginSrc\TowerKosScreenAutoCapture.cs"),
     (Join-Path $here "PluginSrc\TowerHullCamRelay.cs"),
     (Join-Path $here "PluginSrc\TowerVesselManifestPublisher.cs"),
+    (Join-Path $here "PluginSrc\TowerCraftThumbnailPaths.cs"),
+    (Join-Path $here "PluginSrc\TowerCraftThumbnailPublisher.cs"),
     (Join-Path $here "PluginSrc\TowerVesselCallsignGui.cs"),
     (Join-Path $here "PluginSrc\TowerVesselCallsignStore.cs"),
     (Join-Path $here "PluginSrc\TowerVesselCallsignWatcher.cs"),

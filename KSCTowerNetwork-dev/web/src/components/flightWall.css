@@ -1,0 +1,98 @@
+.flight-wall {
+  --fw-ink: var(--bg);
+  --fw-panel: var(--panel);
+  --fw-line: var(--border);
+  --fw-accent: var(--accent);
+  --fw-live: var(--ok);
+  --fw-highlight: var(--accent);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 14px;
+  padding: 12px;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  flex: 1;
+  overflow: auto;
+  container-type: inline-size;
+  background: var(--fw-ink);
+  color: var(--text);
+  font-family: "Segoe UI", sans-serif;
+}
+.flight-wall .tower-radar-scope { border: 1px solid var(--fw-line); border-radius: 15px; background: var(--fw-panel); box-shadow: inset 0 1px 0 #ffffff08; min-height: 340px; }
+.flight-wall .tower-radar-scope__banner { background: transparent; border-bottom: 0; padding: 18px 16px 12px; }
+.flight-wall .tower-radar-scope__banner-title { color: var(--fw-accent); letter-spacing: .1em; font-size: clamp(11px, 1.2cqw, 18px); }
+.flight-wall .tower-radar-scope__banner-title small { font-size: .85em; }
+.flight-wall .tower-radar-scope__banner-range { color: var(--fw-live); border: 0; background: transparent; font-size: 12px; white-space: nowrap; }
+.flight-wall .tower-radar-scope__subbar { color: var(--muted); border-bottom-color: var(--fw-line); font-size: 10px; }
+.flight-wall .tower-radar-scope__subbar-origin, .flight-wall .tower-radar-scope__subbar-body { color: var(--text); }
+.flight-wall .tower-radar-scope__crt { margin: 8px; min-height: 260px; border: 1px solid #17452c; border-radius: 10px; background: #000502; overflow: hidden; }
+.flight-wall .tower-radar-scope__ring { stroke: rgb(0 255 102 / .38); stroke-dasharray: 3 4; }
+.flight-wall .tower-radar-scope__ring--range { stroke: #00ff66; stroke-width: 2; stroke-dasharray: none; }
+.flight-wall .tower-radar-scope__bezel-outer, .flight-wall .tower-radar-scope__bezel-inner { stroke: #205c39; }
+.flight-wall .tower-radar-scope__axis-major, .flight-wall .tower-radar-scope__tick-major, .flight-wall .tower-radar-scope__tick-minor { stroke: rgb(0 255 102 / .22); }
+.flight-wall .tower-radar-scope__chassis-ring { fill: #000502; }
+.flight-wall .tower-radar-scope__cardinal, .flight-wall .tower-radar-scope__ring-label { fill: rgb(128 255 170 / .65); }
+.flight-wall .tower-radar-scope__sweep-tail { fill: #00ff66; }
+.flight-wall .tower-radar-scope__sweep-spar { stroke: #00ff66; }
+.flight-wall .tower-radar-scope__blip, .flight-wall .tower-radar-scope__trail-dot, .flight-wall .tower-radar-scope__tower { fill: #00ff66; }
+.flight-wall .tower-radar-scope__blip-label { fill: #c6fbd4; font-weight: 600; }
+.flight-wall .tower-radar-scope__track { cursor: pointer; }
+.flight-wall .tower-radar-scope__track--selected .tower-radar-scope__blip-label { fill: var(--bg); font-weight: 900; transform: translateX(6px); }
+.flight-wall .tower-radar-scope__zoombar--overlay { border-color: var(--border); }
+.flight-wall .tower-radar-scope__zoombtn, .flight-wall .tower-radar-scope__zoompct { color: var(--text); }
+.flight-wall__selected-ring { stroke: var(--accent); stroke-width: 1.5; fill: var(--accent-soft); }
+.flight-wall__craft-marker { fill: #00ff66; }
+.tower-radar-scope__track--selected .flight-wall__craft-marker { fill: var(--accent); }
+.flight-wall .tower-radar-scope__blip--sweep-hit, .flight-wall .flight-wall__craft-marker--sweep-hit { fill: #d2ffdc; filter: drop-shadow(0 0 3px #00ff66); }
+.flight-wall .tower-radar-scope__track--selected .flight-wall__craft-marker--sweep-hit { fill: var(--accent-strong); filter: drop-shadow(0 0 3px var(--accent)); }
+.tower-radar-scope__track:focus-visible { outline: none; }
+.tower-radar-scope__track:focus-visible .flight-wall__craft-marker { stroke: white; stroke-width: 2; }
+.flight-wall__traffic { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px 12px; max-height: 90px; overflow: auto; }
+.flight-wall__traffic button { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 5px; padding: 5px 8px; font: 11px "Cascadia Mono", Consolas, monospace; }
+.flight-wall__traffic button[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.flight-wall__traffic button:focus-visible { outline: 2px solid white; outline-offset: 2px; }
+.flight-wall__details { display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--fw-line); border-radius: 15px; padding: 16px; min-width: 0; background: var(--fw-panel); }
+.flight-wall__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.flight-wall__head h2 { margin: 0; color: var(--fw-accent); font-size: clamp(15px, 1.7cqw, 25px); font-weight: 800; }
+.flight-wall__signal { color: var(--fw-live); font: bold 11px "Cascadia Mono", Consolas, monospace; white-space: nowrap; }
+.flight-wall__signal--stale { color: var(--accent); }
+.flight-wall__guidance { background: linear-gradient(145deg, var(--panel-elev), var(--panel)); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.flight-wall__guidance > div { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+.flight-wall__guidance strong { background: var(--accent-soft); padding: 8px 12px; border-radius: 5px; font-size: clamp(12px, 1.3cqw, 18px); }
+.flight-wall__guidance > div > span { color: var(--muted); font: 12px "Cascadia Mono", Consolas, monospace; }
+.flight-wall__guidance p { font-size: clamp(14px, 1.55cqw, 21px); line-height: 1.5; margin: 15px 0 10px; font-weight: 600; }
+.flight-wall__guidance small { color: var(--muted); }
+.flight-wall__craft { position: relative; min-height: 225px; flex: 1; isolation: isolate; overflow: hidden; background: radial-gradient(ellipse at 80% 30%, var(--panel-elev), var(--bg) 75%); border: 1px solid var(--fw-line); border-radius: 12px; }
+.flight-wall__photo { position: absolute; inset: 0; z-index: -1; }
+.flight-wall__photo img { width: 100%; height: 100%; object-fit: contain; object-position: right center; }
+.flight-wall__identity { padding: 18px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; background: linear-gradient(0deg, rgb(10 14 19 / .96), rgb(10 14 19 / .25) 65%, transparent); }
+.flight-wall__identity > small { letter-spacing: .16em; color: var(--muted); font: 10px "Cascadia Mono", Consolas, monospace; }
+.flight-wall__identity h3 { color: var(--fw-accent); margin: 5px 0; font-size: clamp(28px, 4.2cqw, 60px); font-weight: 900; line-height: 1.05; overflow-wrap: anywhere; }
+.flight-wall__identity p { margin: 5px 0 15px; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.flight-wall__identity p span { color: var(--muted); }
+.flight-wall__no-photo { display: flex; flex-direction: column; align-items: flex-end; padding: 20px; gap: 4px; height: 100%; color: var(--muted); text-align: right; }
+.flight-wall__no-photo svg { width: 48%; height: 80px; fill: var(--accent-soft); stroke: var(--muted); stroke-width: .6; }
+.flight-wall__no-photo span { font-size: 12px; }
+.flight-wall__no-photo small { font-size: 10px; max-width: 180px; }
+.flight-wall__facts { display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; padding: 18px; border: 1px solid var(--fw-line); border-radius: 12px; background: var(--panel); }
+.flight-wall__destination { display: flex; flex-direction: column; flex: 1 1 140px; gap: 9px; overflow-wrap: anywhere; }
+.flight-wall__destination > small { color: var(--fw-accent); font-weight: 700; letter-spacing: .07em; font-size: 10px; }
+.flight-wall__destination > strong { font-size: 17px; }
+.flight-wall__destination > span { color: var(--muted); font-size: 12px; }
+.flight-wall__facts dl { margin: 0; display: grid; gap: 8px; flex: 1 1 160px; }
+.flight-wall__facts dl > div { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.flight-wall__facts dt { color: var(--muted); font-size: 10px; text-transform: uppercase; }
+.flight-wall__facts dd { margin: 0; font: bold 18px "Cascadia Mono", Consolas, monospace; white-space: nowrap; }
+.flight-wall__facts dd small { font-size: 11px; color: var(--fw-accent); }
+.flight-wall__details--empty { justify-content: center; color: var(--muted); }
+@container (max-width: 650px) {
+  .flight-wall__head { flex-wrap: wrap; }
+  .flight-wall__details { padding: 10px; }
+  .flight-wall__guidance, .flight-wall__facts { padding: 12px; }
+}
+@media (max-width: 700px) {
+  .flight-wall { grid-template-columns: 1fr; height: auto; min-height: 100%; }
+  .flight-wall .tower-radar-scope { min-height: 440px; }
+  .flight-wall__craft { min-height: 260px; }
+}

@@ -16,6 +16,9 @@ export type ActiveAircraftWire = {
   radarAlt?: number;
   heading?: number;
   surfaceSpeed?: number;
+  lastTelemetryAt?: string;
+  telemetryHealthState?: string;
+  targetRunway?: string;
   verticalSpeed?: number;
   apoapsis?: number;
   periapsis?: number;
@@ -67,6 +70,8 @@ export function activeRowToTelemetry(a: ActiveAircraftWire): Telemetry {
     radarAlt: a.radarAlt,
     heading: a.heading,
     surfaceSpeed: a.surfaceSpeed,
+    sampleUnixMs: a.telemetryHealthState && a.telemetryHealthState !== "live" ? NaN : a.lastTelemetryAt ? Date.parse(a.lastTelemetryAt) : undefined,
+    targetRunway: a.targetRunway,
     verticalSpeed: a.verticalSpeed,
     apoapsis: a.apoapsis,
     periapsis: a.periapsis,

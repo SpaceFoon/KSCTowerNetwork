@@ -161,6 +161,49 @@ not a second pilot roster. It combines `/v1/site/info` radio presets with
 `ATIS`, `EMRG`) with its MHz, any pilot sessions currently on that frequency,
 and whether a controller is assigned.
 
+### Flightwall radar and craft photo
+
+The existing `tower-radar` source is labeled **Flightwall (radar + craft photo)**.
+Saved slots retain their session bindings and airfield origin. `TowerRadarScope.tsx`
+pairs the 100 km PPI with `FlightWallCard.tsx`: green heading-oriented
+plane/rocket/rover markers and range boundary, with an amber selected track.
+The radar uses a green phosphor face; surrounding panels, text and accents use
+the shared site theme (slate panels, muted text and amber highlights).
+Select a marker with click/Enter/Space or use the craft buttons under the radar.
+The tracked pilot is selected initially; when a selected track disappears, it
+falls back to the tracked pilot or first track. Zoom, pan, sweep-painted trails
+and the airfield picker remain available. Every return, including stationary
+and selected craft, flashes when the leading sweep line crosses it and fades
+between passes. Labels and the selection ring stay readable. Beam crossings
+are detected across skipped frames so slow rendering does not miss a repaint.
+Narrow cells stack and scroll.
+Reduced motion disables the sweep, paints positions directly and retains a
+one-second freshness check.
+
+The card shows pilot/craft identity, airfield-relative direction/distance,
+reported runway, altitude ASL (m), surface/vertical speed (m/s), and heading.
+Guidance compares heading with the radial bearing from the selected airfield;
+it is a directional hint, not proof of closest approach or visual visibility.
+Unknown destinations stay explicit. Self-track freshness uses server session
+health and its threshold; other tracks use server receipt time and the
+active-aircraft snapshot's freshness window and health state (including paused
+or beacon-off pilots). Failed queries show stale details.
+
+The image is a **saved craft thumbnail**, not a live HullCam frame. The card
+polls `/v1/craft-thumbnail/:sessionId?craftName=...` with `apiFetchResponse`
+every 15 seconds and releases object URLs on replacement/unmount. Changing
+session or craft immediately removes the previous image. Missing images show
+a neutral silhouette and a save-in-editor hint. Staging/docking can change the
+craft after its editor thumbnail was saved.
+
+`/flightwall-preview.html` uses the real radar/card components with labeled
+sample telemetry and Traffic/Stale/No traffic controls. Its thumbnail requests
+use the real API, so an unseeded preview shows the missing-photo state. This is
+a Vite review entry, not a production route or real pilot session. Its
+**Preview saved thumbnail** file picker can display a local PNG on the sample
+KERBAL-7 card without uploading it; that state is labeled **Local thumbnail
+preview** and does not prove the authenticated relay.
+
 ### `RoomPage.tsx`
 
 The pilot-side equivalent: chat with the assigned controller, voice room

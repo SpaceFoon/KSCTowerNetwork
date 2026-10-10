@@ -63,6 +63,7 @@ type ActiveAircraftRow = {
   apoapsis?: number;
   periapsis?: number;
   lastTelemetryAt: string;
+  telemetryHealthState?: TelemetryHealthState;
   smoothedPositionValid?: boolean;
   smoothedLat?: number;
   smoothedLon?: number;
@@ -71,6 +72,7 @@ type ActiveAircraftRow = {
   bearingKSC?: number;
   alignErr?: number;
   activeRunway?: string;
+  targetRunway?: string;
   kscAerodrome?: string;
   onApproach?: boolean;
   landing?: boolean;
@@ -229,6 +231,7 @@ async function buildActiveAircraftBase(): Promise<ActiveAircraftBaseSnapshot> {
         apoapsis: t.apoapsis,
         periapsis: t.periapsis,
         lastTelemetryAt: s.lastTelemetryAt!,
+        telemetryHealthState: deriveTelemetryHealth(s).state,
         smoothedPositionValid: t.smoothedPositionValid,
         smoothedLat: t.smoothedLat,
         smoothedLon: t.smoothedLon,
@@ -237,6 +240,7 @@ async function buildActiveAircraftBase(): Promise<ActiveAircraftBaseSnapshot> {
         bearingKSC: t.bearingKSC,
         alignErr: t.alignErr,
         activeRunway: t.activeRunway,
+        targetRunway: t.targetRunway,
         kscAerodrome: t.kscAerodrome,
         onApproach: t.onApproach,
         landing: t.landing,
