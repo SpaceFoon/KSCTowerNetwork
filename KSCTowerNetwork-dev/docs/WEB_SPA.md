@@ -299,10 +299,12 @@ The production build uses the normal authenticated Tower Desk route.
 
 ## Wall-map sizing and session terrain
 
-Wall-slot maps stretch the complete terrain and overlays to the available
-width and height without cropping; unusually shaped slots distort the
-projection. Desk maps retain 2:1 aspect and `xMidYMid meet`. The SVG patch
-accepts an optional aspect mode; wall terrain and overlay both use `none`.
+Wall-slot Kerbin and off-home body maps stretch the basemap and overlays to the
+available width and height without cropping; unusually shaped slots distort
+the projection. Desk maps retain 2:1 aspect and `xMidYMid meet`. The Kerbin SVG
+patch changes only the outer root `<svg>` aspect setting, leaving nested SVGs
+unchanged. Wall terrain, off-home map roots, and their basemap images use
+`preserveAspectRatio="none"` together.
 
 Tower Desk and Tower Wall pass their active session ID to the system schematic,
 allowing its globe inspector to use the connected KSP session's PNG terrain.

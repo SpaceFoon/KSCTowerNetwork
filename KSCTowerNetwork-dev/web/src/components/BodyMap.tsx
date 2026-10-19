@@ -73,6 +73,8 @@ type Props = {
   launchSites: BodyMapLaunchSite[];
   /** Body color used for the stub disc fill when the basemap fails to load. */
   stubFill?: string;
+  /** Stretch the map and basemap to fill a Tower Wall slot. */
+  wallSlot?: boolean;
   /** Click on a vessel dot. */
   onVesselClick?: (id: string) => void;
 };
@@ -114,12 +116,13 @@ export function BodyMap({
   navaids,
   launchSites,
   stubFill = "#1f2937",
+  wallSlot = false,
   onVesselClick
 }: Props): JSX.Element {
   const display = bodyDisplayName || bodyName;
 
   return (
-    <div className="body-map">
+    <div className={`body-map${wallSlot ? " body-map--wall-fill" : ""}`}>
       <div className="body-map-header">
         <div className="body-map-title">
           <strong>{display}</strong>
@@ -135,13 +138,18 @@ export function BodyMap({
       </div>
 
       <svg
-        className="body-map-svg"
+        className={`body-map-svg${wallSlot ? " body-map-svg--wall-fill" : ""}`}
         viewBox={`0 0 ${VB_W} ${VB_H}`}
-        preserveAspectRatio={PRESERVE_ASPECT}
+        preserveAspectRatio={wallSlot ? "none" : PRESERVE_ASPECT}
         role="img"
         aria-label={`Equirectangular map of ${display}`}
       >
-        <BodyMapBackground basemapUrl={basemapUrl} stubFill={stubFill} bodyName={bodyName} />
+        <BodyMapBackground
+          basemapUrl={basemapUrl}
+          stubFill={stubFill}
+          bodyName={bodyName}
+          wallSlot={wallSlot}
+        />
 
         <g className="body-map-graticule" stroke="rgba(148, 163, 184, 0.35)" strokeWidth={0.4} fill="none">
           {MERIDIANS.map((lon) => {
@@ -216,11 +224,13 @@ export function BodyMap({
 function BodyMapBackground({
   basemapUrl,
   stubFill,
-  bodyName
+  bodyName,
+  wallSlot
 }: {
   basemapUrl: string;
   stubFill: string;
   bodyName: string;
+  wallSlot: boolean;
 }): JSX.Element {
   return (
     <g>
@@ -231,7 +241,7 @@ function BodyMapBackground({
         y={0}
         width={VB_W}
         height={VB_H}
-        preserveAspectRatio={PRESERVE_ASPECT}
+        preserveAspectRatio={wallSlot ? "none" : PRESERVE_ASPECT}
         aria-label={`${bodyName} basemap`}
       />
     </g>

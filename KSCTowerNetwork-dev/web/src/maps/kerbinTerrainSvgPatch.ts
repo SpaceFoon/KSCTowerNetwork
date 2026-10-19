@@ -26,30 +26,44 @@ function legacyCropPlateToOverlayMatrix(): string {
   return `matrix(${sx} 0 0 ${sy} ${e} ${f})`;
 }
 
-export function patchKerbinTerrainSvgRoot(svg: string, preserveAspectRatio: string = KERBIN_MAP_PRESERVE_ASPECT): string {
+export function patchKerbinTerrainSvgRoot(
+  svg: string,
+  preserveAspectRatio: string = KERBIN_MAP_PRESERVE_ASPECT
+): string {
   // XML declaration is not valid in HTML fragment parsing; some browsers drop
   // the whole subtree when `innerHTML` starts with `<?xml …?>`.
   let out = svg.replace(/^\s*<\?xml\b[^?]*\?>\s*/i, "");
-  if (LEGACY_CROP_VIEWBOX_RE.test(out)) {
-    const matrix = legacyCropPlateToOverlayMatrix();
-    out = out.replace(
+  const rootMatch = /<svg\b[^>]*>/i.exec(out);
+  if (!rootMatch || rootMatch.index == null) return out;
+
+  const rootTag = rootMatch[0];
+  let patchedRootTag = rootTag;
+  let legacyCropMatrix: string | null = null;
+  if (LEGACY_CROP_VIEWBOX_RE.test(rootTag)) {
+    legacyCropMatrix = legacyCropPlateToOverlayMatrix();
+    patchedRootTag = patchedRootTag.replace(
       LEGACY_CROP_VIEWBOX_RE,
       `viewBox="0 0 ${KERBIN_MAP_VB_W} ${KERBIN_MAP_VB_H}"`
     );
+  }
+
+  const aspectAttribute = /\s+preserveAspectRatio\s*=\s*["'][^"']*["']/i;
+  patchedRootTag = aspectAttribute.test(patchedRootTag)
+    ? patchedRootTag.replace(aspectAttribute, ` preserveAspectRatio="${preserveAspectRatio}"`)
+    : patchedRootTag.replace(/(\/?>)$/, ` preserveAspectRatio="${preserveAspectRatio}"$1`);
+
+  const rootOpenExtra = legacyCropMatrix ? `<g transform="${legacyCropMatrix}">` : "";
+  out = `${out.slice(0, rootMatch.index)}${patchedRootTag}${rootOpenExtra}${out.slice(
+    rootMatch.index + rootTag.length
+  )}`;
+  if (legacyCropMatrix) {
     // A `transform` on the root `<svg>` is not reliably composed with `viewBox`
     // the same way as an inner `<g>` — root transform was shifting the plate to
     // the wrong hemisphere. Wrap all plate geometry instead.
-    out = out.replace(/<svg\b[^>]*>/i, (open) => `${open}<g transform="${matrix}">`);
     const end = out.lastIndexOf("</svg>");
     if (end >= 0) {
       out = `${out.slice(0, end)}</g>${out.slice(end)}`;
     }
   }
-  if (/preserveAspectRatio\s*=/i.test(out)) {
-    return out.replace(
-      /\bpreserveAspectRatio\s*=\s*["'][^"']*["']/i,
-      `preserveAspectRatio="${preserveAspectRatio}"`
-    );
-  }
-  return out.replace(/<svg\b/i, `<svg preserveAspectRatio="${preserveAspectRatio}" `);
+  return out;
 }

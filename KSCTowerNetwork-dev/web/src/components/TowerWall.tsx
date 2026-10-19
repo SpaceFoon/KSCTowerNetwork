@@ -2623,6 +2623,7 @@ function BodyMapSlot({
       vessels={vessels}
       navaids={navaids}
       launchSites={launchSites}
+      wallSlot
     />
   );
 }
