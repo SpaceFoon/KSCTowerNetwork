@@ -11,6 +11,14 @@ describe("patchKerbinTerrainSvgRoot", () => {
     assert.ok(patchKerbinTerrainSvgRoot(input, "none").includes('preserveAspectRatio="none"'));
     assert.ok(patchKerbinTerrainSvgRoot(input).includes('preserveAspectRatio="xMidYMid meet"'));
   });
+  it("sets a missing outer aspect attribute without changing a nested SVG", () => {
+    const nested = '<svg viewBox="50 106.5 702.25 351.5" preserveAspectRatio="xMidYMid meet"></svg>';
+    const input = `<svg viewBox="0 0 596 298">${nested}</svg>`;
+    const out = patchKerbinTerrainSvgRoot(input, "none");
+    assert.match(out, /^<svg viewBox="0 0 596 298" preserveAspectRatio="none">/);
+    assert.ok(out.includes(nested));
+    assert.ok(!out.includes('<g transform='));
+  });
   it("remaps legacy cropped-plate root viewBox to overlay coordinates and preserves aspect", () => {
     const input =
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="50 106.5 702.25 351.5" preserveAspectRatio="none"><path d="M0 0"/></svg>';

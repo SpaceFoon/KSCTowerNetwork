@@ -50,16 +50,20 @@ off-home maps are intentionally excluded, narrow the wall-map documentation to s
 ## Review notes
 
 - The current default Kerbin map and ordinary desk-map path retain their intended aspect behavior.
-- Helper tests exercise the override when the root already has a `preserveAspectRatio` attribute,
-  but do not cover a nested attribute or a root with no such attribute.
+- Helper tests cover a root with a missing `preserveAspectRatio` attribute and a nested SVG that
+  keeps its own aspect and legacy viewBox settings.
 - Kerbin raster basemaps still use CSS `object-fit: fill`; its new aspect setting affects the vector terrain path.
 - Zoom anchoring and map picking use the overlay SVG's screen transform, so their coordinate
   conversion follows the stretched viewport.
 - Both current wall-map call sites pass `wallSlot` as a fixed prop; no active prop-toggle refetch issue was found.
-- This review was static. No tests or browser rendering checks were run.
+- Focused verification ran `npm.cmd run test -- src/maps/kerbinTerrainSvgPatch.test.ts` (5 passing
+  tests) and `npm.cmd run typecheck` (passing). A local Edge rendering fixture displayed the actual
+  `BodyMap` component in tall and wide Tower Wall slot CSS, with a sample SVG basemap, grid, and
+  vessel marker. Those layers filled both slots; the desk example retained its 2:1 map.
 
 ## Pre-release disposition
 
-**Both P2 findings are resolved in source and documented.** The TypeScript typecheck passed with
-`npm.cmd run typecheck`. The test suite and browser/runtime validation were not run, so visual
-release behavior remains unverified.
+**Both P2 findings are resolved in source and documented.** The focused helper test and TypeScript
+typecheck pass. The off-home `BodyMap` fill behavior was visually checked in a local browser fixture
+at two non-2:1 slot sizes. A full authenticated Tower Wall session and the remaining web test suite
+have not been exercised in this pass.
