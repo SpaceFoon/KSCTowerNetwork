@@ -25,10 +25,13 @@ to `backend.origin` in the config below and `package-release.ps1` will leave
 
 ## 2. Fill out `release-config.json`
 
+The tracked template lives in `KSCTowerNetwork-dev/`; create your deployment
+config under `GameData/KSCTowerNetwork/`. Run these commands from the repository
+root:
+
 ```bash
-cd GameData/KSCTowerNetwork
-cp release-config.example.json release-config.json
-$EDITOR release-config.json
+cp KSCTowerNetwork-dev/release-config.example.json GameData/KSCTowerNetwork/release-config.json
+$EDITOR GameData/KSCTowerNetwork/release-config.json
 ```
 
 This file is read by `package-release.ps1` and bakes its values into:

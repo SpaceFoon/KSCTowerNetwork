@@ -33,7 +33,8 @@
 
 .PARAMETER ConfigPath
   Path to release-config.json. Defaults to GameData/KSCTowerNetwork/release-config.json.
-  Falls back to release-config.example.json with a warning if the real file is missing.
+  If missing, falls back to the checked-in
+  KSCTowerNetwork-dev/release-config.example.json with a warning.
 
 .PARAMETER Version
   Release version. If unset, taken from release-config.json's "version" field.
@@ -76,14 +77,14 @@ if (-not $ConfigPath) {
 }
 $usingExample = $false
 if (-not (Test-Path -LiteralPath $ConfigPath)) {
-    $exampleConfig = Join-Path $gameDataMod "release-config.example.json"
+    $exampleConfig = Join-Path $kspRoot "KSCTowerNetwork-dev\release-config.example.json"
     if (Test-Path -LiteralPath $exampleConfig) {
         Write-Warning "release-config.json not found; using release-config.example.json (placeholders will leak into the ZIP)."
-        Write-Warning "Copy $exampleConfig to release-config.json and edit it before publishing."
+        Write-Warning "Copy the example to $($gameDataMod)\release-config.json and edit it before publishing."
         $ConfigPath = $exampleConfig
         $usingExample = $true
     } else {
-        throw "Neither release-config.json nor release-config.example.json was found in $gameDataMod."
+        throw "Release config not found. Runtime config: $ConfigPath. Checked-in example: $exampleConfig."
     }
 }
 
