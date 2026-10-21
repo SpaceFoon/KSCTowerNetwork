@@ -7,7 +7,44 @@ Severity: **Critical** must be fixed; **High** can compromise reliability/UX; **
 > **Status legend.** Items marked **[FIXED]** have been verified against current
 > source. Items marked **[OPEN]** still apply (or have not been re-verified).
 > Re-confirm line numbers before relying on a specific fix — this file drifts
-> faster than the code does. Last status sweep: 2026-04-22.
+> faster than the code does. Previous full status sweep: 2026-04-22; the scoped
+> public-readiness findings below were checked on 2026-10-21.
+
+## 2026-10-21 scoped public-readiness audit — fixed
+
+The security scan of the current worktree reported seven findings. These
+fixes were applied and rechecked in source:
+
+- **Ban enforcement:** role/capability middleware rejects banned accounts;
+  WebSocket delivery rechecks access and closes banned clients; local UDP
+  checks the development identity.
+- **Cookie CSRF:** mutation requests carrying the session cookie require the
+  CSRF token even before authentication middleware has populated `req.auth`.
+- **Session access:** `GET /session/:sessionId` checks membership for every
+  token type.
+- **Pilot claim:** `/session/claim-pilot` requires a `plugin_session` token.
+- **UDP token exposure:** authenticated app tokens are never sent over UDP.
+  The listener is disabled by default, binds to loopback, and accepts only
+  empty-token local-development packets.
+- **UDP resource limits:** telemetry is limited to 15 packets per second per
+  user and the side-effect queue is capped at 256 jobs.
+- **Voice bridge bind:** PCM/CTL sockets refuse non-loopback hosts unless
+  `ALLOW_NON_LOOPBACK_BIND=1` is explicitly set.
+
+### Dependency audit follow-up
+
+Updating packages within their declared ranges exposed an advisory in
+Stryker's `typed-rest-client`, which pinned `qs@6.15.1`. A scoped npm override
+now requires `qs ^6.16.0`; all three package audits report zero vulnerabilities.
+
+Other entries in this file remain separate known issues and were not part of
+this scoped scan.
+
+Verification on 2026-10-21 with Node 24.22.1: backend build/typecheck/tests
+passed (238 passed, 4 skipped); web build/tests passed (121 tests); voice-bridge
+build/tests passed (16 tests); KSP plugin build succeeded; `npm audit` reported
+zero vulnerabilities in each package. The plugin build emitted 14 CS0649
+warnings in `TowerAcarsGui` deserialization fields.
 
 ---
 

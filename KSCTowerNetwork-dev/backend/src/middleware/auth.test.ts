@@ -21,7 +21,13 @@ import assert from "node:assert/strict";
 import jwt from "jsonwebtoken";
 
 import { env } from "../config/env";
-import { requireAuth, __resetPluginIdentityBridgeForTests } from "./auth";
+import {
+  requireAuth,
+  requireRole,
+  requireCapability,
+  __resetPluginIdentityBridgeForTests
+} from "./auth";
+import { banUser, ensureLocalRoleSeeded, unbanUser } from "../services/repository";
 
 // Auth fixtures explicitly enable the dev identity bridge; personal dotenv files stay unloaded.
 env.DEV_OPEN_AUTH = true;
@@ -83,6 +89,29 @@ async function runRequireAuth(req: FakeReq): Promise<{
   return { status, body, nexted };
 }
 
+async function runGate(
+  gate: (req: never, res: never, next: () => void) => Promise<void>,
+  req: FakeReq
+): Promise<{ status: number; body: unknown; nexted: boolean }> {
+  let status = 200;
+  let body: unknown = undefined;
+  let nexted = false;
+  const res = {
+    status(code: number) {
+      status = code;
+      return this;
+    },
+    json(payload: unknown) {
+      body = payload;
+      return this;
+    }
+  };
+  await gate(req as never, res as never, () => {
+    nexted = true;
+  });
+  return { status, body, nexted };
+}
+
 function makePluginJwt(sub: string): string {
   return jwt.sign({ sub, token_type: "plugin_session" }, SIGNING_SECRET, { expiresIn: "1h" });
 }
@@ -135,4 +164,26 @@ test("identity bridge does NOT cross IPs", async () => {
   await runRequireAuth(otherIpReq);
   assert.equal(otherIpReq.auth?.userId, DEV_USER_ID);
   assert.equal(otherIpReq.auth?.authSource, "dev-open");
+});
+
+test("banned mod cannot pass role or capability gates", async () => {
+  const userId = "banned-moderator-test";
+  ensureLocalRoleSeeded(userId, "mod");
+  await banUser(userId, "test-owner");
+  const req = makeReq({ ip: "10.0.0.50" });
+  req.auth = { userId, tokenType: "clerk", authSource: "bearer", ip: req.ip };
+
+  try {
+    const roleResult = await runGate(requireRole("mod"), req);
+    assert.equal(roleResult.status, 403);
+    assert.deepEqual(roleResult.body, { error: "Banned", reason: "banned" });
+    assert.equal(roleResult.nexted, false);
+
+    const capabilityResult = await runGate(requireCapability("mod:ban_temp"), req);
+    assert.equal(capabilityResult.status, 403);
+    assert.deepEqual(capabilityResult.body, { error: "Banned", reason: "banned" });
+    assert.equal(capabilityResult.nexted, false);
+  } finally {
+    await unbanUser(userId, "test-owner");
+  }
 });

@@ -13,7 +13,7 @@ This document is a **planning-only** blueprint for managing **operator-facing se
 - **Compute**: Linux VPS (or similar) hardened for running the **Express/TypeScript backend** from `KSCTowerNetwork-dev/backend/`.
 - **Data**: **MariaDB** and **Redis** (on the same host, or separate hosts, or replaced by managed services via connection strings only).
 - **Edge**: **TLS termination** and reverse proxy (**nginx** or **Caddy**); WebSocket proxying for live browser transport.
-- **Network**: Host firewall rules aligned with [ARCHITECTURE.md](ARCHITECTURE.md) (TCP API, UDP live telemetry when pilots are remote).
+- **Network**: Host firewall rules aligned with [ARCHITECTURE.md](ARCHITECTURE.md) (public HTTPS API; no public UDP telemetry port).
 - **Process supervision**: **systemd** units for the backend (restart policies, logging to journald).
 - **Static web (optional)**: Build `KSCTowerNetwork-dev/web/` with Vite and serve `dist/` from the same proxy or a dedicated static host (Ansible can own the nginx `root` + SPA fallback pattern).
 
@@ -35,10 +35,11 @@ End-state topology (operator infra):
 KSP + plugin ──HTTPS /v1────────► Node backend (:PORT behind proxy)
        │                              ├── MariaDB
        │                              └── Redis
-       ├── UDP LIVE_UDP_PORT ───────► same Node process (udpWorker)
-       │
 Voice bridge (local) ──wss──────► LiveKit Cloud ◄── Tower browser (HTTPS)
 ```
+
+The optional UDP listener is local-development only, disabled by default, and
+must not be exposed on the public host firewall.
 
 **URL consistency** (from [DEPLOYMENT.md](DEPLOYMENT.md)):
 
@@ -117,7 +118,7 @@ Examples of what belongs in `host_vars/`:
 
 - Public **`api_hostname`** (e.g. `api.tower.example.com`).
 - Public **`web_hostname`** if SPA is same machine (e.g. `tower.example.com`) or different.
-- Whether **UDP** should be opened on this host’s public interface (`live_udp_public: true|false`).
+- Public UDP exposure is disabled; authenticated plugin telemetry uses HTTPS.
 - **`backend_listen`**: typically `127.0.0.1:PORT` when nginx is on-box (backend not exposed except via proxy).
 
 ---
@@ -128,7 +129,7 @@ Place **non-sensitive** defaults in `group_vars/tower_api.yml`:
 
 - `NODE_ENV=production`
 - `PORT` (default in code: **48787** — may stay internal if nginx fronts 443)
-- `LIVE_UDP_HOST`, `LIVE_UDP_PORT` (defaults **0.0.0.0** / **48788**) — document firewall implications
+- `LIVE_UDP_ENABLED`, `LIVE_UDP_HOST`, `LIVE_UDP_PORT` (defaults **false**, **127.0.0.1**, **48788**) — local development only; keep disabled in production
 - `TRUST_PROXY` — **must** match proxy topology (see `backend/src/config/env.ts` comments: too much trust breaks IP bans / rate limits; too little collapses clients to one IP)
 - Telemetry and idle-sweep tuning (`TELEMETRY_*`, `PILOT_IDLE_*`) if you want environment-specific values
 - Paths: install root, env file path, systemd unit names
@@ -178,7 +179,7 @@ Per [ARCHITECTURE.md](ARCHITECTURE.md):
 |-----------|------|
 | Inbound TCP | **443** (and **80** only if needed for ACME HTTP-01). |
 | Inbound TCP | **Backend `PORT`** only if something hits Node directly (prefer **not** — keep Node on loopback). |
-| Inbound UDP | **`LIVE_UDP_PORT`** (default **48788**) from `0.0.0.0/0` **only** if remote pilots send UDP to this host. |
+| Inbound UDP | None. Keep `LIVE_UDP_ENABLED=false`; do not expose **48788/UDP** publicly. |
 | Inbound | **Deny** MariaDB (**3306**) and Redis (**6379**) from the public internet; bind to loopback or private interface. |
 
 Document **source IP restrictions** if the tower is private (e.g. VPN-only): Ansible can template allowlists.
@@ -265,7 +266,7 @@ Authoritative schema: `backend/src/config/env.ts`. Operator-oriented list: `back
 
 **Networking / live transport:**
 
-- `LIVE_UDP_ENABLED`, `LIVE_UDP_HOST`, `LIVE_UDP_PORT` — firewall must match
+- `LIVE_UDP_ENABLED=false` in production; no public firewall rule for `LIVE_UDP_PORT`
 - `LIVE_WS_ENABLED`, `LIVE_WS_PATH` — nginx must allow WS upgrade on that path
 
 **Operational / branding (optional):**
@@ -304,7 +305,7 @@ The voice bridge (`KSCTowerNetwork-voice-bridge/voice-bridge/`) connects **KSP o
 After a playbook run:
 
 1. `curl -fsS https://<api>/v1/health` — expect 200 and JSON indicating DB/Redis reachability as configured.
-2. From a **remote** test client (if UDP is in use): send a minimal UDP probe to `LIVE_UDP_PORT` only if you have a test harness; otherwise validate firewall with `nc -u` / cloud security group docs.
+2. Confirm the public firewall has no inbound rule for **48788/UDP**.
 3. Open tower **web** origin in browser; confirm API calls succeed (no CORS errors).
 4. **WebSocket**: open devtools → Network → WS on `LIVE_WS_PATH` during a session (tower desk).
 
@@ -317,7 +318,7 @@ After a playbook run:
 | Inventory | `inventories/staging/` | `inventories/production/` |
 | Secrets | Separate Vault password / file | Stricter access control |
 | `DEV_*` | Avoid mirroring “open auth”; use test users in DB or JSON | All `DEV_*` off |
-| Firewall | Can restrict source IPs to team VPN | Public HTTPS + UDP as required |
+| Firewall | Can restrict source IPs to team VPN | Public HTTPS only; no UDP telemetry port |
 | Domain | `staging-api…` | Production hostnames |
 
 ---
@@ -339,7 +340,7 @@ After a playbook run:
 1. **Same host vs split**: MariaDB/Redis on API box vs managed cloud DB/Redis (Ansible shrinks to app + proxy only).
 2. **Deploy mechanism**: git pull on server vs CI artifact (affects `ksc_backend` role design).
 3. **Web hosting**: same nginx vhost vs Cloudflare Pages / Vercel (if separate, `CORS_ORIGINS` and cookie behavior need explicit testing).
-4. **UDP exposure**: confirm all remote pilots need UDP or HTTP fallback only ([ARCHITECTURE.md](ARCHITECTURE.md)).
+4. **UDP**: keep public UDP disabled; authenticated pilot traffic uses HTTPS ([ARCHITECTURE.md](ARCHITECTURE.md)).
 5. **Backup and restore**: who runs `mysqldump` cron, retention, off-site copy.
 
 ---

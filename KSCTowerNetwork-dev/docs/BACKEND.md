@@ -76,8 +76,9 @@ from `KSCTowerNetwork-dev/`.
      limit: 192 KB })` — see [HullCam pipeline](#hullcam-pipeline) below.
 5. Mounts `apiRouter` at `/v1`.
 6. `await runMigrations()` (no-op when `DEV_IN_MEMORY` is on).
-7. `app.listen(env.PORT)` — the same Node process also runs **UDP** live ingest
-   (`live/udpWorker.ts`), **WebSocket** live push (`live/wsTransport.ts`), and
+7. `app.listen(env.PORT)` — the same Node process also runs optional
+   local-development **UDP** ingest (`live/udpWorker.ts`, disabled by default),
+   **WebSocket** live push (`live/wsTransport.ts`), and
    (unless `PILOT_IDLE_CLOSE_SECONDS=0`) a **`pilotIdleSessionSweep`** timer that
    soft-closes tower sessions when `lastTelemetryAt` is older than that threshold
    (same outcome as lobby **Close**; skips `dev-shared`, `ksc-radio-*`,

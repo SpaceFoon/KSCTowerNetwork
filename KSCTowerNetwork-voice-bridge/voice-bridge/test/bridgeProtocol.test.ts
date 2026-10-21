@@ -2,10 +2,36 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  assertSafeBridgeBindHosts,
   buildLiveKitTokenRequestUrl,
   parseSessionTuneCommand,
   readLiveKitTokenFromJsonBody
 } from "../src/bridgeProtocol.js";
+
+test("bridge bind guard accepts loopback hosts", () => {
+  assert.deepStrictEqual(
+    assertSafeBridgeBindHosts({ pcmHost: "127.0.0.2", ctlHost: "::1" }, false),
+    []
+  );
+  assert.deepStrictEqual(
+    assertSafeBridgeBindHosts({ pcmHost: "localhost", ctlHost: "::ffff:127.0.0.1" }, false),
+    []
+  );
+});
+
+test("bridge bind guard refuses non-loopback hosts by default", () => {
+  assert.throws(
+    () => assertSafeBridgeBindHosts({ pcmHost: "0.0.0.0", ctlHost: "127.0.0.1" }, false),
+    /ALLOW_NON_LOOPBACK_BIND=1/
+  );
+});
+
+test("bridge bind guard returns exposed hosts when the override is enabled", () => {
+  assert.deepStrictEqual(
+    assertSafeBridgeBindHosts({ pcmHost: "0.0.0.0", ctlHost: "192.168.1.4" }, true),
+    ["PCM_HOST=0.0.0.0", "CTL_HOST=192.168.1.4"]
+  );
+});
 
 test("buildLiveKitTokenRequestUrl encodes session id and trims trailing slashes on api base", () => {
   assert.equal(

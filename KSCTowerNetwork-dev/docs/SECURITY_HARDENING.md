@@ -320,27 +320,45 @@ node -e "import('argon2').then(a=>a.hash('YOUR_PASSWORD',{type:a.argon2id}).then
 
 ## Verification commands
 
+Run npm audit in every directory with a committed lockfile, starting from the repository root:
+
+```powershell
+cd KSCTowerNetwork-dev
+npm audit           # development tools
+cd backend
+npm audit
+cd ../web
+npm audit
+cd ../../KSCTowerNetwork-voice-bridge
+npm audit           # production bridge package
+cd voice-bridge
+npm audit           # bridge source and build tools
+```
+
+Starting again from the repository root, run the component checks:
+
 ```powershell
 # Backend
-cd backend
+cd KSCTowerNetwork-dev/backend
 npm run typecheck   # must exit 0
-npm audit           # must report 0 vulnerabilities
+npm test
 
 # Web
-cd web
+cd ../web
 npm run build       # must exit 0; CSP meta visible in dist/index.html
+npm test
 
 # Voice bridge
-cd KSCTowerNetwork-voice-bridge
-npx tsc --noEmit    # must exit 0
+cd ../../KSCTowerNetwork-voice-bridge/voice-bridge
+npm run build
+npm test
 
-# KSP plugin (unchanged, but verify rebuild still succeeds)
-cd KSCTowerNetwork-dev
+# KSP plugin
+cd ../../KSCTowerNetwork-dev
 powershell -ExecutionPolicy Bypass -File .\build-plugin.ps1
 ```
 
 ---
-
 ## Smoke-test checklist for a deploy
 
 1. `POST /v1/auth/login` with a known email → response sets two
@@ -359,6 +377,6 @@ powershell -ExecutionPolicy Bypass -File .\build-plugin.ps1
 8. Stop the backend, `kill -9` a guest's row in the DB / restart
    in-memory, then re-issue an old guest token → `401 guest_revoked`.
 9. Try to start the voice bridge with `PCM_HOST=0.0.0.0` (no
-   `ALLOW_NON_LOOPBACK_BIND`) → exits with code 2 and a clear error.
+   `ALLOW_NON_LOOPBACK_BIND`) → exits nonzero with a clear error.
 10. Start backend with `NODE_ENV=production CORS_ORIGINS='*'` →
     refuses to start.

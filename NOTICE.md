@@ -12,8 +12,15 @@ The flat-color body placeholders and `kerbin-base-schematic.svg` are project-cre
 
 ## LiveKit patch and dependencies
 
-The bridge patch in `KSCTowerNetwork-voice-bridge/voice-bridge/patches/` modifies `@livekit/rtc-node` 1.1.0, distributed by LiveKit under Apache-2.0. The license is preserved in [licenses/LiveKit-Apache-2.0.txt](licenses/LiveKit-Apache-2.0.txt). The upstream archive and extracted staging tree are not included. Dependency manifests and lockfiles remain; retain dependencies' own licenses and notices when packaging installed dependencies.
-
+The voice bridge postinstall script in
+KSCTowerNetwork-voice-bridge/voice-bridge/scripts/apply-livekit-patch.cjs applies local
+guards to the pinned @livekit/rtc-node 1.1.0 package, which LiveKit distributes under
+Apache-2.0. The guards dispose incoming handles for duplicate participant events,
+ignore the repeated events, and log failures while disposing participant and
+data-packet FFI handles. The license remains in
+[licenses/LiveKit-Apache-2.0.txt](licenses/LiveKit-Apache-2.0.txt). The upstream archive
+and extracted staging tree are not included. Dependency manifests and lockfiles remain;
+retain dependencies' own licenses and notices when packaging installed dependencies.
 ## Optional Kerbin chart reference
 
 Third-party chart PDFs, page images, transcripts and the extracted terrain SVG are excluded from this repository. Server owners may download the November 25, 2017 Kerbin Aeronautical Charts from the ASET upstream repository and generate a local installation. The charts and generated adaptations retain CC BY-NC-SA 3.0, separate from MIT code. See [download, installation and attribution](KSCTowerNetwork-dev/docs/AEROCHART_REFERENCE.md). Chart-derived navigation tables retained in source also retain their existing source attribution and license notices.

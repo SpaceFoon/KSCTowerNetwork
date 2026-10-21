@@ -53,12 +53,14 @@ export function csrfGuard(req: Request, res: Response, next: NextFunction): void
     next();
     return;
   }
-  if (req.auth?.authSource !== "cookie") {
+  const cookies = (req as Request & { cookies?: Record<string, string> }).cookies;
+  const hasSessionCookie = Boolean(cookies?.[SESSION_COOKIE_NAME]);
+  if (req.auth?.authSource !== "cookie" && !hasSessionCookie) {
     next();
     return;
   }
   const headerToken = req.header(CSRF_HEADER_NAME);
-  const cookieToken = (req as Request & { cookies?: Record<string, string> }).cookies?.[CSRF_COOKIE_NAME];
+  const cookieToken = cookies?.[CSRF_COOKIE_NAME];
   if (!headerToken || !cookieToken) {
     res.status(403).json({ error: "Missing CSRF token", reason: "csrf_missing" });
     return;

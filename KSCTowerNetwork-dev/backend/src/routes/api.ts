@@ -1668,6 +1668,10 @@ apiRouter.post(
   requireAuth,
   requireCapability("plugin:use"),
   async (req, res) => {
+    if (req.auth?.tokenType !== "plugin") {
+      res.status(403).json({ error: "Plugin session required" });
+      return;
+    }
     const parsed = claimPilotSchema.safeParse(req.body);
     if (!parsed.success) {
       res
@@ -1972,8 +1976,7 @@ apiRouter.get("/session/:sessionId", requireAuth, async (req, res) => {
   }
 
   const isMod = roleAtLeast(access.role, "mod");
-  const canView =
-    isSessionMemberOrAdmin(req.auth!.userId, session, isMod) || req.auth!.tokenType === "clerk";
+  const canView = isSessionMemberOrAdmin(req.auth!.userId, session, isMod);
 
   if (!canView) {
     res.status(403).json({ error: "Not authorized for this session" });

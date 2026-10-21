@@ -1,8 +1,8 @@
 # Performance and hot paths
 
 Audience: **operators** sizing a host and **developers** profiling load. This
-doc describes **which routes fire often**, how **UDP + WebSocket** reduce HTTP
-volume, and **practical ways to measure** the backend. It is not a published
+doc describes **which routes fire often**, how WebSocket reduces browser HTTP
+traffic, and **practical ways to measure** the backend. It is not a published
 benchmark sheet — numbers are **order-of-magnitude** from code defaults unless
 you measure your own fleet.
 
@@ -20,8 +20,8 @@ Pair with:
 
 | Traffic | Default cadence | HTTP path or transport | Notes |
 |---|---|---|---|
-| Telemetry | **1–5 s** per vessel (`nextTelemetrySeconds` from **HTTP JSON** or **UDP reply**; faster near runway / low AGL) | `POST /v1/telemetry/:sessionId`, or **UDP** binary frame when `useUdpLiveTransport=True` and UDP succeeds | UDP avoids repeated HTTP POST overhead on the same machine or LAN. |
-| Ghost fleet roster | **`ghostFleetPollSeconds`** (default **2 s**, clamped 1–10 in settings) | `GET /v1/tower/active-aircraft`, or **UDP** query when UDP path is used | Same auth model as HTTP; plugin prefers UDP when enabled. |
+| Telemetry | **1–5 s** per vessel (`nextTelemetrySeconds` from HTTP JSON; faster near runway / low AGL) | `POST /v1/telemetry/:sessionId` over HTTPS | Authenticated production traffic uses HTTPS. Local development can opt into empty-token UDP. |
+| Ghost fleet roster | **`ghostFleetPollSeconds`** (default **2 s**, clamped 1–10 in settings) | `GET /v1/tower/active-aircraft` over HTTPS | Local-development UDP query is optional; it is not an authenticated production path. |
 | HullCam | **1–2 fps** per camera when relay on | **HTTP only** — `POST /v1/hullcam/...` | See [BACKEND.md → HullCam pipeline](BACKEND.md#hullcam-pipeline). |
 | Lobby / session / messages | On demand + UI timers | Various `GET /v1/session/...`, `/lobby/rooms`, etc. | Lower rate than telemetry when not on Tower Desk. |
 | Session chat (callouts) | **Rare** — only when `onApproach` and crossing 30/20/10 km KSC distance rings (debounced ~4 s) | `POST /v1/session/:id/messages` from `TowerTelemetryPublisher` | Optional auto-callouts; same auth as ACARS; negligible vs telemetry unless misconfigured. |
@@ -43,21 +43,18 @@ Express process. The backend only mints tokens and handles control APIs.
 
 ## 2. UDP and HTTP fallback (plugin ↔ backend)
 
-When **`useUdpLiveTransport=True`** in `settings.cfg`, the plugin sends
-telemetry (and related live queries) as **UDP datagrams** to
-`liveUdpHost:liveUdpPort` (default `127.0.0.1:48788`). The Node process runs a
-**separate UDP socket** (`backend/src/live/udpWorker.ts`) bound to
-`LIVE_UDP_HOST:LIVE_UDP_PORT` (defaults `0.0.0.0:48788`).
+The normal authenticated path sends telemetry and live queries over HTTPS.
+For local development only, **`useUdpLiveTransport=True`** can send empty-token
+datagrams to `liveUdpHost:liveUdpPort` (`127.0.0.1:48788`). The Node process
+keeps this optional listener disabled by default and bound to loopback.
 
-- **`liveUdpFallbackHttp=True`** (default): if UDP send fails or times out
-  (`liveUdpTimeoutMs`), the plugin retries the same operation over **HTTP** so
-  gameplay degrades gracefully on strict firewalls or broken UDP paths.
+- **`liveUdpFallbackHttp=True`** (default): if a local development UDP send
+  fails or times out (`liveUdpTimeoutMs`), the plugin retries over HTTP.
 - **`liveUdpFallbackHttp=False`**: failures stay on UDP only; useful for
-  debugging “why am I not seeing telemetry” without silent HTTP fallback.
+  local debugging. Keep it enabled for normal use.
 
-**Firewall:** for pilots on **other machines** than the API host, open the
-same **UDP port** you configure (`LIVE_UDP_PORT` / `liveUdpPort`) toward the
-backend, in addition to **TCP** for HTTPS (`towerApiPort` / `PORT`).
+**Firewall:** do not expose the UDP port publicly. Production clients need the
+API's HTTPS endpoint only.
 
 ---
 
@@ -95,7 +92,8 @@ the admin HTTP route.
 
 1. **Establish baseline** with one pilot + one controller, `GET /v1/live/metrics` before/after.
 2. **Scale pilots** (or scripted `plugin_session` JWT + `POST /telemetry`) and watch **CPU**, **RSS**, and **network out** on the API host.
-3. **Compare UDP on vs off** (`useUdpLiveTransport` / `LIVE_UDP_ENABLED`) on the same scenario — HTTP telemetry POST rate should drop when UDP is healthy.
+3. For local development, compare the HTTPS path with the optional loopback
+   UDP path (`useUdpLiveTransport` / `LIVE_UDP_ENABLED`) on the same scenario.
 4. **CPU profiling**: run Node with `--cpu-prof` or attach a profiler during a
    soak; expect time in JSON parse, repository methods, and (if HullCam is
    heavy) `sharp` in the hullcam snapshot path.

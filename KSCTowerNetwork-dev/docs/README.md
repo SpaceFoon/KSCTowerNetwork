@@ -53,8 +53,9 @@ yet shipped — don't treat them as current behavior.
   means `KSCTowerNetwork-dev/backend/src/index.ts`).
 - "Tower" and "controller" are interchangeable in UI copy. Internally the
   role identifier is `controller`.
-- Default ports: backend **`48787`**, web dev server **`45173`**, live UDP
-  **`48788`**, bridge PCM **`47372`**, bridge control **`47373`**.
+- Default ports: backend **`48787`**, web dev server **`45173`**, optional
+  local-development UDP **`48788`** (disabled by default), bridge PCM
+  **`47372`**, bridge control **`47373`**.
 - "Bridge" without qualification means the **voice bridge** Node process,
   not any other kind of bridge.
 

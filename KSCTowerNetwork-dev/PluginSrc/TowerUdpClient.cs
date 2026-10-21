@@ -41,6 +41,11 @@ namespace KSCTowerNetwork
 
             var sid = sessionId ?? string.Empty;
             var token = TowerModSettings.SkipTowerLogin ? string.Empty : (TowerModSettings.TowerAuthToken ?? string.Empty);
+            if (!string.IsNullOrEmpty(token))
+            {
+                error = "authenticated UDP is disabled; use the HTTPS fallback";
+                return false;
+            }
             var payload = Encoding.UTF8.GetBytes(payloadJson ?? "{}");
             var frame = EncodeFrame(messageType, sid, token, payload);
             var seq = ReadSequence(frame);

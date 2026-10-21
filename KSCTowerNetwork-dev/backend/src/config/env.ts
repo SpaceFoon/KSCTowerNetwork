@@ -147,10 +147,10 @@ const envSchema = z.object({
     }
     return Boolean(v);
   }, z.boolean()),
-  LIVE_UDP_HOST: z.string().default("0.0.0.0"),
+  LIVE_UDP_HOST: z.string().default("127.0.0.1"),
   LIVE_UDP_PORT: z.coerce.number().int().min(1).max(65535).default(48788),
   LIVE_UDP_ENABLED: z.preprocess((v) => {
-    if (v === undefined || v === "") return true;
+    if (v === undefined || v === "") return false;
     if (typeof v === "string") {
       const n = v.trim().toLowerCase();
       return n === "1" || n === "true" || n === "yes" || n === "on";

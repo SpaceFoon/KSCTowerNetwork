@@ -1,7 +1,7 @@
 # Architecture
 
-Four processes, three networks (HTTP, WebRTC, loopback TCP), one shared
-session id.
+Four processes, three production networks (HTTP, WebRTC, loopback TCP), one
+shared session id. Optional UDP is reserved for local development.
 
 ```
                                    Internet
@@ -52,7 +52,7 @@ session id.
 
 ## Ports, firewall, and live transport
 
-Default **TCP/HTTP** ports (change via `.env` / `settings.cfg` / release bake):
+Default ports (change via `.env` / `settings.cfg` / release bake):
 
 | Port | Direction | Process | Purpose |
 |---:|---|---|---|
@@ -60,21 +60,21 @@ Default **TCP/HTTP** ports (change via `.env` / `settings.cfg` / release bake):
 | **45173** | Dev only | Vite | Web dev server; proxies `/v1` to backend (see `web/vite.config.ts`). |
 | **47372** | Bridge → KSP | Voice bridge → plugin | PCM downlink (s16le mono). **Loopback only** in normal installs. |
 | **47373** | KSP → bridge | Plugin → voice bridge | Control lines (`MIC_ON` / `MIC_OFF` / `PING`). **Loopback only**. |
-| **48788** | Plugin → host | Plugin → backend | **`LIVE_UDP_PORT`** / `liveUdpPort` — binary live frames (telemetry + related queries). UDP **must** reach the same Node host that runs `udpWorker.ts`. |
+| **48788** | Local development only | Plugin → backend | **`LIVE_UDP_PORT`** / `liveUdpPort` — optional empty-token UDP frames for local `DEV_OPEN_AUTH` development. Disabled by default and bound to loopback. |
 
 **Firewall checklist (self-hosted):**
 
 - **TCP** inbound: HTTPS (or HTTP) on the API port your pilots use (`towerApiPort` / `PORT`).
-- **UDP** inbound: same numeric port as **`LIVE_UDP_PORT`** if pilots use
-  **`useUdpLiveTransport=True`** from **remote** PCs. Loopback-only installs
-  (`127.0.0.1`) do not need a firewall pinhole for UDP.
+- **UDP** inbound: no public rule is needed. Authenticated plugin traffic uses
+  HTTPS; the optional development UDP listener is disabled by default and
+  binds to loopback.
 - **Outbound** from backend: MariaDB, Redis, LiveKit control APIs — follow your provider docs.
 - **LiveKit / WebRTC**: browsers and the voice bridge need outbound **UDP and TCP** to your LiveKit region (not the Express port).
 
-**HTTP fallback:** Plugin `settings.cfg` **`liveUdpFallbackHttp`** (default
-`True`) reverts high-frequency paths to normal **`POST /v1/telemetry`** and
-**`GET /v1/tower/active-aircraft`** when UDP is blocked or down — same auth
-headers as today, higher HTTP QPS. See
+**Authenticated plugin traffic:** live telemetry and roster queries use HTTPS
+through **`POST /v1/telemetry`** and **`GET /v1/tower/active-aircraft`**. The
+optional UDP path is for local development only; it accepts empty tokens and
+is not a production transport. See
 [PERFORMANCE_AND_HOT_PATHS.md](PERFORMANCE_AND_HOT_PATHS.md).
 
 **Live WebSocket:** HTTP server upgrades **`LIVE_WS_PATH`** (default
@@ -135,11 +135,10 @@ Tower UI: **`web/src/session/CountdownPanel.tsx`** surfaces **Start / Scrub**, *
 
 1. `TowerTelemetryPublisher` sends vessel state (lat/lon, alt, speed,
    attitude, flags, biome, etc.) on an adaptive timer. When
-   **`useUdpLiveTransport`** is enabled in `settings.cfg`, it prefers a
-   **binary UDP** frame to `liveUdpHost:liveUdpPort` (handled by
-   `backend/src/live/udpWorker.ts`). If UDP fails or **`liveUdpFallbackHttp`**
-   is true, it falls back to **`POST /v1/telemetry/{sessionId}`** with the
-   same bearer token as today. The same JSON schema applies on both paths.
+   the normal authenticated path is **`POST /v1/telemetry/{sessionId}`** over
+   HTTPS. Optional local-development UDP requires `useUdpLiveTransport=True`,
+   an empty token, `DEV_OPEN_AUTH=1`, and a loopback listener. The same JSON
+   schema applies on both paths.
    The plugin also emits **additive** fields for tower UX: **`sampleUnixMs`**;
    **smoothed** lat/lon/ASL plus **`smoothedPositionValid`** (raw `lat`/`lon`/`aslAlt`
    stay the scoring truth); **ENU surface velocity** (`srfVelNorth` / `srfVelEast` /

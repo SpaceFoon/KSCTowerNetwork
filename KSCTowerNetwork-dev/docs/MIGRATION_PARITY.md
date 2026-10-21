@@ -24,8 +24,9 @@ rotation. No further missing feature code was found in this comparison.
 ## Intentional exclusions and local files
 
 Legacy Git history, scratch LiveKit package extraction, obsolete SDK patches,
-crash logs, generated binaries and dependency trees are excluded. The current
-SDK patch remains tracked. Private settings, dotenv files, invite stores, fonts,
+crash logs, generated binaries and dependency trees are excluded. The active
+LiveKit guards are maintained in the voice-bridge postinstall script. Private
+settings, dotenv files, invite stores, fonts,
 game map caches and optional chart/globe images remain ignored local files.
 The migration retained the owner's local configuration and assets separately.
 

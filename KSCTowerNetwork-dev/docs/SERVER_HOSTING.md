@@ -171,7 +171,7 @@ Replace `tower.example.com` with your hostname and confirm the static root point
 
 For direct-origin Caddy HTTPS, DNS and inbound TCP 80/443 must reach this VPS so certificate issuance can succeed. Production session cookies require HTTPS. The backend listens behind the proxy; protect 48787 with the firewall. No Windows or player software is installed by this recipe.
 
-Optional live telemetry UDP uses **48788/UDP**. Open it explicitly in both provider and OS firewalls if you want that transport; otherwise use the player's documented HTTP fallback. LiveKit may need its own network setup if you self-host it; that is a separate service from this app.
+Do not open **48788/UDP** on a public production host. The UDP listener is disabled by default, binds to loopback, and accepts only empty-token local-development traffic. Authenticated plugin telemetry uses HTTPS. LiveKit may need its own network setup if you self-host it; that is a separate service from this app.
 
 ## 8. First login and first users
 

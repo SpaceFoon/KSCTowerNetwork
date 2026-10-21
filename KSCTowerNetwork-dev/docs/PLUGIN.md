@@ -233,13 +233,13 @@ plugin clears the cache and reopens the login GUI.
    While **`onApproach`**, it may post debounced **`[CALL] … km from KSC`** lines
    to **`POST /v1/session/{sessionId}/messages`** (same bearer as ACARS; can fail
    if session chat is blocked — callouts are optional).
-2. Send that JSON over **UDP** (`TowerUdpClient`, when `useUdpLiveTransport=True`
-   and the path works) or **`POST /v1/telemetry/{sessionId}`** when falling back
-   or when UDP is disabled (`liveUdpFallbackHttp`, etc.).
+2. Send that JSON over **`POST /v1/telemetry/{sessionId}`** using HTTPS.
+   Optional UDP is only for local development with an empty token and the
+   loopback backend listener enabled.
 3. Backend response includes `nextTelemetrySeconds` and (optionally)
    `assignedSquawk`/`assignedCallsign`/`countdown`, plus tower echo fields
    when present: `clearances`, `recentViolations`, `phaseTimeline`,
-   `approachSequence`, `lastLandingQuality` (same shape as HTTP and UDP;
+   `approachSequence`, `lastLandingQuality` (same shape as HTTP and local UDP;
    `TowerTelemetryPublisher.ParseClearances` feeds `TowerClearanceState` for
    the in-cockpit HUD).
 4. Re-arm the timer with the returned interval.

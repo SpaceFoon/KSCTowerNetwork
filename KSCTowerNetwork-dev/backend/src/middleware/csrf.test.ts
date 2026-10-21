@@ -42,6 +42,32 @@ describe("csrfGuard", () => {
     assert.equal(nextCalled, true);
   });
 
+  it("checks a session cookie before route authentication has populated req.auth", () => {
+    let status = 0;
+    let body: unknown;
+    const req = {
+      method: "POST",
+      header: () => undefined,
+      cookies: { ksc_tower_session: "signed-session" }
+    } as unknown as Request;
+    const res = {
+      status(code: number) {
+        status = code;
+        return this;
+      },
+      json(payload: unknown) {
+        body = payload;
+      }
+    } as unknown as Response;
+    let nextCalled = false;
+    csrfGuard(req, res, () => {
+      nextCalled = true;
+    });
+    assert.equal(nextCalled, false);
+    assert.equal(status, 403);
+    assert.equal((body as { reason?: string }).reason, "csrf_missing");
+  });
+
   it("returns 403 when cookie auth but tokens missing", () => {
     let status = 0;
     let body: unknown;

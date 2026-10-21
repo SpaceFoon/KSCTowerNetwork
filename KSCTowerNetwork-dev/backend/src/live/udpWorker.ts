@@ -1,7 +1,6 @@
 import dgram from "node:dgram";
 import { env } from "../config/env";
 import { logger } from "../lib/logger";
-import { authenticateAppBearerToken } from "../middleware/auth";
 import { emitChecklistEvent } from "../services/checklistEvents";
 import { DEFAULT_CHECKLIST_PHASES } from "../services/defaultChecklist";
 import { isKscTowerSessionId } from "../services/hullcamStore";
@@ -12,6 +11,8 @@ import {
   evaluateAndApplyAutoRules,
   getSession,
   getSessionWithDevSharedBootstrap,
+  getUserAccess,
+  isOwnerImmuneId,
   setTelemetry,
   setTelemetryStatus,
   type TelemetryStatusEvent
@@ -47,9 +48,35 @@ type TelemetryEffectJob = {
 };
 
 const telemetryEffectQueue: TelemetryEffectJob[] = [];
+const MAX_PENDING_TELEMETRY_EFFECTS = 256;
+const TELEMETRY_RATE_WINDOW_MS = 1000;
+const TELEMETRY_RATE_LIMIT_PER_SECOND = 15;
+const telemetryRateByUser = new Map<string, { windowStartMs: number; count: number }>();
 let processingTelemetryEffects = false;
+let lastTelemetryQueueWarningAt = 0;
+
+function allowTelemetryRate(userId: string): boolean {
+  const now = Date.now();
+  const bucket = telemetryRateByUser.get(userId);
+  if (!bucket || now - bucket.windowStartMs >= TELEMETRY_RATE_WINDOW_MS) {
+    telemetryRateByUser.set(userId, { windowStartMs: now, count: 1 });
+    return true;
+  }
+  if (bucket.count >= TELEMETRY_RATE_LIMIT_PER_SECOND) return false;
+  bucket.count += 1;
+  return true;
+}
 
 function enqueueTelemetryEffects(job: TelemetryEffectJob): void {
+  if (telemetryEffectQueue.length >= MAX_PENDING_TELEMETRY_EFFECTS) {
+    incLiveMetric("udp_packets_dropped");
+    const now = Date.now();
+    if (now - lastTelemetryQueueWarningAt >= 30_000) {
+      lastTelemetryQueueWarningAt = now;
+      logger.warn({ queueLength: telemetryEffectQueue.length }, "UDP telemetry side-effect queue is full; dropping work");
+    }
+    return;
+  }
   telemetryEffectQueue.push(job);
   if (processingTelemetryEffects) return;
   processingTelemetryEffects = true;
@@ -136,16 +163,13 @@ function enqueueTelemetryEffects(job: TelemetryEffectJob): void {
   });
 }
 
-async function authorizePacket(sessionId: string, token: string, ip: string): Promise<{ userId: string } | null> {
-  if (!token) {
-    if (env.DEV_OPEN_AUTH) {
-      return { userId: env.DEV_USER_ID };
-    }
-    return null;
-  }
-  const auth = await authenticateAppBearerToken(token, ip);
-  if (!auth?.userId) return null;
-  return { userId: auth.userId };
+async function authorizePacket(token: string): Promise<{ userId: string } | null> {
+  // Reusable app JWTs must never cross the UDP transport. Authenticated
+  // production traffic uses the HTTPS fallback; empty-token UDP is dev-only.
+  if (token || !env.DEV_OPEN_AUTH) return null;
+  const userId = env.DEV_USER_ID;
+  if (!isOwnerImmuneId(userId) && (await getUserAccess(userId)).isBanned) return null;
+  return { userId };
 }
 
 export function startUdpLiveWorker(): () => void {
@@ -179,7 +203,7 @@ export function startUdpLiveWorker(): () => void {
       return;
     }
 
-    const auth = await authorizePacket(packet.sessionId, packet.token, rinfo.address);
+    const auth = await authorizePacket(packet.token);
     if (!auth?.userId) {
       incLiveMetric("udp_auth_errors");
       return;
@@ -235,6 +259,10 @@ export function startUdpLiveWorker(): () => void {
           env.DEV_OPEN_AUTH;
         if (!devSharedOpenTelemetry && auth.userId !== existing.pilotUserId) {
           replyError("Only pilot can submit telemetry for this session");
+          return;
+        }
+        if (!allowTelemetryRate(auth.userId)) {
+          incLiveMetric("udp_packets_dropped");
           return;
         }
 

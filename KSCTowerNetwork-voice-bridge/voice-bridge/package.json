@@ -9,15 +9,14 @@
     "dev": "tsx watch src/bridge.ts",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/bridge.js",
-    "postinstall": "patch-package",
+    "postinstall": "node scripts/apply-livekit-patch.cjs",
     "test": "node --import tsx --test \"test/**/*.test.ts\""
   },
   "dependencies": {
-    "@livekit/rtc-node": "^1.1.0"
+    "@livekit/rtc-node": "1.1.0"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
-    "patch-package": "^8.0.1",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }

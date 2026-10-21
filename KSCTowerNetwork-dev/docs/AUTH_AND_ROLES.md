@@ -69,6 +69,15 @@ outside that file.
 Don't set this in dev. Don't set it for two users. The env var is
 deliberately single-valued.
 
+## Account bans
+
+Role- and capability-gated requests check the current ban state and return
+`403 banned`. The live WebSocket transport checks access during live pushes,
+caches it for up to one second, and closes banned users with code `4003`. The
+optional UDP transport is local-development only, rejects non-empty tokens,
+and checks the development user's ban state. The configured owner remains
+immune.
+
 ## Capabilities
 
 Defined in `backend/src/services/repository.ts`:

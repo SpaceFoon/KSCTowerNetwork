@@ -110,6 +110,7 @@ On non-Windows the watchdog is a no-op (returns true).
 | `DEV_VOICE_IDENTITY_HEADER` | `x-ksc-voice-identity` | Header name for dev identity injection on the token endpoint. |
 | `PCM_HOST` / `PCM_PORT` | `127.0.0.1` / `47372` | Downlink listen socket. |
 | `CTL_HOST` / `CTL_PORT` | `127.0.0.1` / `47373` | Control listen socket. |
+| `ALLOW_NON_LOOPBACK_BIND` | unset | Set to `1` only for intentional trusted-LAN use; otherwise non-loopback PCM/CTL binds are refused. These sockets have no authentication. |
 | `KSP_WATCHDOG` | unset | `1`/`true`/`yes`/`on` enables watchdog. |
 | `KSP_PROCESS_NAME` | `KSP_x64.exe` | Override for non-default builds. |
 | `KSP_WATCH_INTERVAL_MS` | `5000` | Min 2000. |
@@ -137,12 +138,13 @@ uses Node from PATH through tsx rather than a machine-specific Node 18 path.
 LiveKit 1.0 marks the SDK stable; 1.1 adds RPC interceptors. The bridge's audio,
 room, and data APIs remain compatible. TypeScript 7 builds the existing NodeNext
 configuration without source changes. The SDK now shares CJS implementation
-files with an ESM wrapper, so the versioned patch targets `dist/room.cjs` and
-`src/room.ts`. It retains duplicate-participant and data-handle disposal guards.
+files with an ESM wrapper. The postinstall script applies local guards to
+`dist/room.cjs` and `src/room.ts`. It disposes the incoming FFI handle for
+duplicate participant events and retains the data-handle disposal guard.
 
 Run `npm ci`, `npm run postinstall`, `npm exec tsc -- --noEmit`, `npm test`, and
 `npm run build` in the inner package before packaging. If npm blocks lifecycle
-scripts, explicitly run `npm run postinstall` to apply the SDK patch.
+scripts, explicitly run `npm run postinstall` to apply the local SDK guards.
 
 ## Upgrade compatibility review (2026-10-10)
 

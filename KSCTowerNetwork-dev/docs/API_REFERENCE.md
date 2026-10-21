@@ -38,7 +38,8 @@ Base path: `/v1`. All bodies JSON unless noted. Bearer token via the
 | `POST` | `/queue/join` | `[auth]` | Optional `{ kind?: "tower" }`. Pilot joins the wait-for-controller queue. |
 | `POST` | `/queue/leave` | `[auth]` | Removes caller from the queue. |
 | `POST` | `/session/call` | `[cap:plugin:use]` | `{ kind:"tower", craftName? }` → creates a session and returns the assigned controller (if any). |
-| `GET` | `/session/:sessionId` | `[auth]` | Full `SessionRecord`. Returns 404 unless caller is participant or admin. |
+| `GET` | `/session/:sessionId` | `[auth]` | Full `SessionRecord`. Returns 404 unless caller is participant, spectator, or admin, for every token type. |
+| `POST` | `/session/claim-pilot` | `[cap:plugin:use]` | `{ sessionId? or frequencyMhz?, name? }`. Requires a `plugin_session` token; tower web JWTs cannot claim a pilot seat. |
 | `POST` | `/session/:sessionId/next-tower` | `[auth]` | Re-roll controller assignment (skip current). Tower-side. |
 | `POST` | `/session/:sessionId/block` | `[auth]` | Block another user from the caller's future sessions. |
 | `GET` | `/session/:sessionId/scorecard` | `[auth]` | Computed score events for the session. |
@@ -69,7 +70,7 @@ Base path: `/v1`. All bodies JSON unless noted. Bearer token via the
 
 | Method | Path | Gate | Notes |
 |---|---|---|---|
-| `POST` | `/telemetry/:sessionId` | `[auth]` | Body matches `telemetrySchema` (lat/lon/alt/speed/attitude/flags/biome/etc.). Returns `{ ok, nextTelemetrySeconds, serverNowMs, countdown?, takeoffClearanceAtMs?, clearances?, recentViolations?, phaseTimeline?, approachSequence?, lastLandingQuality? }` — `takeoffClearanceAtMs` is epoch ms of the last tower takeoff grant (plugin shows **APPROVED** for 10 s). Same fields on UDP `reply.ok` for telemetry samples. |
+| `POST` | `/telemetry/:sessionId` | `[auth]` | Body matches `telemetrySchema` (lat/lon/alt/speed/attitude/flags/biome/etc.). Returns `{ ok, nextTelemetrySeconds, serverNowMs, countdown?, takeoffClearanceAtMs?, clearances?, recentViolations?, phaseTimeline?, approachSequence?, lastLandingQuality? }` — `takeoffClearanceAtMs` is epoch ms of the last tower takeoff grant (plugin shows **APPROVED** for 10 s). Same fields on local-development UDP `reply.ok`. |
 | `GET` | `/world-inventory/:sessionId` | `[auth]` | Last published inventory for the session. |
 | `POST` | `/world-inventory/:sessionId` | `[auth]` | Plugin pushes vessel/runway/airfield catalog (matches `worldInventorySchema`). |
 | `GET` | `/world-maps/:sessionId` | `[auth]` | Layer index. |
@@ -80,7 +81,7 @@ Base path: `/v1`. All bodies JSON unless noted. Bearer token via the
 
 | Method | Path | Gate | Notes |
 |---|---|---|---|
-| `GET` | `/tower/active-aircraft` | `[auth]` | Ghost-fleet roster (`TowerGhostFleet`); same logical data as the live WebSocket `tower.active-aircraft` snapshot. Adds `separationConflicts`, `runwayOccupancy`, per-row `approachSequence` / `phaseTimeline` / `recentViolations` when available. Plugin prefers **UDP** when `useUdpLiveTransport=True`, falling back to this GET. |
+| `GET` | `/tower/active-aircraft` | `[auth]` | Ghost-fleet roster (`TowerGhostFleet`); same logical data as the live WebSocket `tower.active-aircraft` snapshot. Adds `separationConflicts`, `runwayOccupancy`, per-row `approachSequence` / `phaseTimeline` / `recentViolations` when available. Authenticated plugin clients use this GET over HTTPS. |
 | `GET` | `/tower/view-streams` | `[auth]` | Live `KSC-TOWER-*` hullcam stream ids for the Tower View tile. |
 | `GET` | `/live/metrics` | `[role:mod]` | In-process counters for UDP, WS, snapshot builds, selected HTTP hot paths — see [PERFORMANCE_AND_HOT_PATHS.md](PERFORMANCE_AND_HOT_PATHS.md). |
 

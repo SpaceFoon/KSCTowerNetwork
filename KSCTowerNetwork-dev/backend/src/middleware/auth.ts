@@ -374,15 +374,22 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 }
 
 /**
- * Effective role for an authed request. Guest token type pins `guest` regardless of any
- * stale DB row; otherwise we ask the repository (which knows about owner immunity / dev override).
+ * Effective role and current sanction state for an authenticated request.
+ * Guest tokens stay guest even if a stale role row exists; the configured
+ * owner remains immune to account bans.
  */
-export async function effectiveRole(req: Request): Promise<Role> {
-  if (!req.auth?.userId) return "guest";
-  if (req.auth.tokenType === "guest") return "guest";
-  if (isOwnerImmuneId(req.auth.userId)) return "owner";
+async function effectiveAccess(req: Request): Promise<{ role: Role; isBanned: boolean }> {
+  if (!req.auth?.userId) return { role: "guest", isBanned: false };
+  if (isOwnerImmuneId(req.auth.userId)) return { role: "owner", isBanned: false };
   const access = await getUserAccess(req.auth.userId);
-  return access.role;
+  return {
+    role: req.auth.tokenType === "guest" ? "guest" : access.role,
+    isBanned: access.isBanned
+  };
+}
+
+export async function effectiveRole(req: Request): Promise<Role> {
+  return (await effectiveAccess(req)).role;
 }
 
 export function requireRole(min: Role) {
@@ -391,7 +398,12 @@ export function requireRole(min: Role) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    const role = await effectiveRole(req);
+    const access = await effectiveAccess(req);
+    if (access.isBanned) {
+      res.status(403).json({ error: "Banned", reason: "banned" });
+      return;
+    }
+    const role = access.role;
     if (!roleAtLeast(role, min)) {
       res.status(403).json({ error: `Requires role ${min} or higher`, have: role, need: min });
       return;
@@ -406,7 +418,12 @@ export function requireCapability(cap: Capability) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    const role = await effectiveRole(req);
+    const access = await effectiveAccess(req);
+    if (access.isBanned) {
+      res.status(403).json({ error: "Banned", reason: "banned" });
+      return;
+    }
+    const role = access.role;
     if (!capabilitiesFor(role).has(cap)) {
       res.status(403).json({ error: `Missing capability: ${cap}`, role });
       return;

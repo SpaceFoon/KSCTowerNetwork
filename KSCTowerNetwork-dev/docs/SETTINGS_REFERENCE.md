@@ -64,14 +64,21 @@ Schema: `backend/src/config/env.ts` (Zod). Production guards reject development 
 Used by `backend/src/live/wsTransport.ts` and `backend/src/live/udpWorker.ts`.
 See [ARCHITECTURE.md → Ports, firewall, live transport](ARCHITECTURE.md#ports-firewall-and-live-transport) and [PERFORMANCE_AND_HOT_PATHS.md](PERFORMANCE_AND_HOT_PATHS.md).
 
+Authenticated plugin traffic uses HTTPS. The UDP listener is disabled by
+default and accepts only empty-token packets for local development with
+`DEV_OPEN_AUTH=1`; app JWTs are never sent over UDP.
+
 | Var | Default | Notes |
 |---|---|---|
 | `LIVE_WS_ENABLED` | `true` | `false` disables the WebSocket live transport (browser falls back to HTTP polling where implemented). |
 | `LIVE_WS_PATH` | `/v1/live/ws` | Path on the **same HTTP server** as Express; upgraded by `ws`. |
-| `LIVE_UDP_ENABLED` | `true` | `false` disables the UDP listener (KSP must use HTTP fallback for live frames). |
-| `LIVE_UDP_HOST` | `0.0.0.0` | UDP bind address (`127.0.0.1` if you only want loopback pilots). |
-| `LIVE_UDP_PORT` | `48788` | **Must match** plugin `liveUdpPort` when the pilot aims at this host. |
+| `LIVE_UDP_ENABLED` | `false` | Optional local-development UDP listener. Requires `DEV_OPEN_AUTH=1` and empty-token packets. |
+| `LIVE_UDP_HOST` | `127.0.0.1` | UDP bind address. Keep it on loopback; authenticated traffic uses HTTPS. |
+| `LIVE_UDP_PORT` | `48788` | Local-development UDP port. |
 | `LIVE_UDP_MAX_PACKET_BYTES` | `8192` | Datagrams larger than this are dropped before decode. |
+
+The dev UDP path is limited to 15 telemetry packets per second per user and
+256 queued telemetry side-effect jobs; excess work is dropped.
 
 ### ATIS (Phase 1: text + API; TTS/audio later)
 
@@ -140,14 +147,13 @@ Top-level node: `KSCTOWERNETWORK { … }`. Keys:
 
 ### Live UDP transport (plugin)
 
-Mirrors **`LIVE_UDP_*`** on the backend. Defaults match a **loopback** dev
-machine (`127.0.0.1:48788`). Remote pilots must use a reachable **`liveUdpHost`**
-and open **UDP** to **`liveUdpPort`** on the tower host (see
-[ARCHITECTURE.md → Ports, firewall, live transport](ARCHITECTURE.md#ports-firewall-and-live-transport)).
+These settings support local development only. Authenticated plugin traffic
+uses HTTPS and does not require an inbound UDP firewall rule. See
+[ARCHITECTURE.md → Ports, firewall, live transport](ARCHITECTURE.md#ports-firewall-and-live-transport).
 
 | Key | Default | Notes |
 |---|---|---|
-| `useUdpLiveTransport` | `True` | When `True`, telemetry / ghost-fleet style traffic prefers UDP before HTTP. |
+| `useUdpLiveTransport` | `False` | Keep disabled for normal use. Authenticated UDP is disabled; use HTTPS. |
 | `liveUdpHost` | `127.0.0.1` | Target for UDP datagrams (often same host as `towerApiHost`). |
 | `liveUdpPort` | `48788` | Must match backend `LIVE_UDP_PORT`. |
 | `liveUdpTimeoutMs` | `500` | Send timeout; clamped `100..30000` at load. |

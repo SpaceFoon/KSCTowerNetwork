@@ -123,9 +123,10 @@ check that fails the build if anything other than `Plugins/`, `Patches/`,
   is hard-pinned and immune from bans/role changes. Capabilities derive from
   role rank, e.g. `voice:speak` requires ≥pilot, `mod:ban_perm` requires ≥supermod.
 - Default ports: API on **`48787`** (production), Vite dev web on **`45173`**,
-  **live UDP ingest** on **`48788`** (plugin binary telemetry / queries when
-  enabled), PCM TCP **`47372`** and control TCP **`47373`** between KSP and the
-  local voice bridge. **Firewall and HTTP↔UDP fallback** are spelled out in
+  optional local-development UDP on **`48788`** (disabled by default), PCM TCP
+  **`47372`** and control TCP **`47373`** between KSP and the local voice
+  bridge. Authenticated plugin traffic uses HTTPS. **Firewall and live
+  transport** are spelled out in
   [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#ports-firewall-and-live-transport);
   **hot routes + profiling** in [`docs/PERFORMANCE_AND_HOT_PATHS.md`](docs/PERFORMANCE_AND_HOT_PATHS.md).
 
@@ -133,7 +134,7 @@ Key files:
 
 | Path | Purpose |
 |---|---|
-| `src/index.ts` | HTTP server, live UDP/WS attach, pilot-idle sweep, graceful shutdown. |
+| `src/index.ts` | HTTP server, optional development UDP and live WS attach, pilot-idle sweep, graceful shutdown. |
 | `src/pilotIdleSessionSweep.ts` | Timer-driven soft-close of tower sessions with stale telemetry (`PILOT_IDLE_*` env). |
 | `src/config/env.ts` | Zod schema + production guards (refuses to boot with `DEV_*` flags or default JWT secret in prod). |
 | `src/middleware/auth.ts` | Token verification, role/capability gates, IP-ban gate. |
@@ -216,7 +217,7 @@ under `KSP_x64_Data/Managed`.
 | `TowerVoiceBridgeMenuQuit.cs` | Ensures the child process is killed when KSP quits from the main menu. |
 | `TowerVoiceAutoConnect.cs` | After login, opens the listen socket and (optionally) toggles the mic bridge so the player doesn't have to click Connect. |
 | `TowerMainThreadDispatcher.cs` | `Run(action)` for callbacks that must hit the Unity main thread. |
-| `TowerTelemetryPublisher.cs` | `[KSPAddon(Flight)]` coroutine: every 5 s (or 1 s under 15 km AGL), sends telemetry of the active vessel (**UDP** when `useUdpLiveTransport`, else **`POST /v1/telemetry`**); honors the player-toggled "beacon" master switch. Adaptive interval reads `nextTelemetrySeconds` from the **HTTP JSON** or **UDP reply** (see `ParseNextInterval`). |
+| `TowerTelemetryPublisher.cs` | `[KSPAddon(Flight)]` coroutine: every 5 s (or 1 s under 15 km AGL), sends telemetry of the active vessel over HTTPS; optional loopback UDP is reserved for local development. Honors the player-toggled "beacon" master switch. |
 | `TowerHullCamRelay.cs` | Polls JRTI HullCam local HTTP at `127.0.0.1:8080`, POSTs JPEGs to backend `/hullcam/{sessionId}/{camId}`. Long back-off if JRTI not installed. |
 | `TowerCraftThumbnailPublisher.cs` + `TowerCraftThumbnailPaths.cs` | Beacon-gated relay of exact local saved-craft PNGs to `/v1/craft-thumbnail/:sessionId`; no craft-file upload. |
 | `TowerCountdownState.cs` | In-memory snapshot of the synced launch countdown. Server epoch translated to local `Time.realtimeSinceStartup`. |
@@ -434,6 +435,7 @@ GET  /v1/admin/rooms/chat             chat traffic by sessionId
 | `DEV_OPEN_AUTH` / `DEV_BEARER_SECRET` / `DEV_USER_ID` / `DEV_USER_ROLE` | Dev shortcuts (banned in prod). |
 | `DEV_VOICE_IDENTITY_HEADER` | When `DEV_OPEN_AUTH=1`, lets a request introduce its own identity (used by the bridge and for two-tab tests). |
 | `DEV_IN_MEMORY` | Force in-memory persistence even if MariaDB is reachable. |
+| `LIVE_UDP_ENABLED` / `LIVE_UDP_HOST` / `LIVE_UDP_PORT` | Optional local-development UDP; disabled by default, loopback only, and empty-token only. Authenticated plugin traffic uses HTTPS. |
 | `DEV_DEFAULT_WEB_USER` | Allow the built-in `tower@ksc.local` / `tower12345` login as a fallback. |
 
 ### Web env (see `web/.env.example`, `web/.env.production.example`)

@@ -140,7 +140,7 @@ namespace KSCTowerNetwork
         public static int GhostFleetMaxCount { get; private set; }
 
         /// <summary>
-        /// Enable UDP for live telemetry/status/ghost traffic. HTTP remains as fallback when enabled.
+        /// Optional local-development UDP. Authenticated live traffic uses HTTPS; keep this disabled for normal use.
         /// </summary>
         public static bool UseUdpLiveTransport { get; private set; }
 
@@ -293,7 +293,7 @@ namespace KSCTowerNetwork
             EnableGhostFleet = true;
             GhostFleetPollSeconds = 2f;
             GhostFleetMaxCount = 16;
-            UseUdpLiveTransport = true;
+            UseUdpLiveTransport = false;
             LiveUdpHost = "127.0.0.1";
             LiveUdpPort = 48788;
             LiveUdpTimeoutMs = 500;

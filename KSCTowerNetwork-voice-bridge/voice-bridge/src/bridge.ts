@@ -39,6 +39,7 @@ import {
   type AudioFrame as AudioFrameT
 } from "@livekit/rtc-node";
 import {
+  assertSafeBridgeBindHosts,
   buildLiveKitTokenRequestUrl,
   parseSessionTuneCommand,
   readLiveKitTokenFromJsonBody
@@ -208,6 +209,17 @@ function safeSocketWrite(socket: net.Socket, line: string): void {
 }
 
 async function main(): Promise<void> {
+  const nonLoopbackBindHosts = assertSafeBridgeBindHosts(
+    { pcmHost: PCM_HOST, ctlHost: CTL_HOST },
+    process.env.ALLOW_NON_LOOPBACK_BIND === "1"
+  );
+  if (nonLoopbackBindHosts.length > 0) {
+    console.warn(
+      "[voice-bridge] WARNING: ALLOW_NON_LOOPBACK_BIND=1 exposes unauthenticated PCM/control TCP listeners:",
+      nonLoopbackBindHosts.join(", ")
+    );
+  }
+
   const pcmSockets = new Set<net.Socket>();
   const ctlSockets = new Set<net.Socket>();
 

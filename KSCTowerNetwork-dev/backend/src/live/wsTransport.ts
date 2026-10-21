@@ -4,7 +4,7 @@ import { WebSocketServer, type WebSocket } from "ws";
 import { env } from "../config/env";
 import { logger } from "../lib/logger";
 import { authenticateAppBearerToken } from "../middleware/auth";
-import { getSession, getUserAccess, roleAtLeast, type Role, type SessionRecord } from "../services/repository";
+import { getSession, getUserAccess, isOwnerImmuneId, roleAtLeast, type Role, type SessionRecord } from "../services/repository";
 import { incLiveMetric, setLiveWsSubscribers } from "./metrics";
 import { subscribeLiveSnapshotBus } from "./liveSnapshotBus";
 import {
@@ -24,6 +24,8 @@ type LiveClient = {
   userId: string;
   sessionId: string;
   ip: string;
+  accessCheckedAt: number;
+  access: Awaited<ReturnType<typeof getUserAccess>> | null;
 };
 
 function parseSocketParams(req: IncomingMessage): { token: string; sessionId: string } {
@@ -47,16 +49,34 @@ function sendJson(socket: WebSocket, payload: unknown): void {
   incLiveMetric("ws_messages_out");
 }
 
+async function accessForLiveClient(client: LiveClient): Promise<Awaited<ReturnType<typeof getUserAccess>> | null> {
+  if (!client.access || Date.now() - client.accessCheckedAt >= 1000) {
+    client.access = await getUserAccess(client.userId);
+    client.accessCheckedAt = Date.now();
+  }
+  if (client.access.isBanned && !isOwnerImmuneId(client.userId)) {
+    try {
+      client.socket.close(4003, "banned");
+    } catch {
+      // ignore
+    }
+    return null;
+  }
+  return client.access;
+}
+
 async function pushActiveAircraft(client: LiveClient): Promise<void> {
+  if (!(await accessForLiveClient(client))) return;
   const data = await getActiveAircraftSnapshot(client.userId);
   sendJson(client.socket, { type: "snapshot", topic: "tower.active-aircraft", data });
 }
 
 async function pushSession(client: LiveClient): Promise<void> {
   if (!client.sessionId) return;
+  const access = await accessForLiveClient(client);
+  if (!access) return;
   const snapshot = await getSessionSnapshot(client.sessionId);
   if (!snapshot) return;
-  const access = await getUserAccess(client.userId);
   if (!sessionReadableByUser(snapshot.session, client.userId, access.role)) return;
   sendJson(client.socket, {
     type: "snapshot",
@@ -68,9 +88,10 @@ async function pushSession(client: LiveClient): Promise<void> {
 
 async function pushSessionMessages(client: LiveClient): Promise<void> {
   if (!client.sessionId) return;
+  const access = await accessForLiveClient(client);
+  if (!access) return;
   const session = await getSession(client.sessionId);
   if (!session) return;
-  const access = await getUserAccess(client.userId);
   if (!sessionReadableByUser(session, client.userId, access.role)) return;
   const data = await getSessionMessagesSnapshot(client.sessionId);
   sendJson(client.socket, {
@@ -83,9 +104,10 @@ async function pushSessionMessages(client: LiveClient): Promise<void> {
 
 async function pushHullcamMeta(client: LiveClient): Promise<void> {
   if (!client.sessionId) return;
+  const access = await accessForLiveClient(client);
+  if (!access) return;
   const session = await getSession(client.sessionId);
   if (!session) return;
-  const access = await getUserAccess(client.userId);
   if (!sessionReadableByUser(session, client.userId, access.role)) return;
   const data = getHullcamMetaSnapshot(client.sessionId);
   sendJson(client.socket, {
@@ -96,7 +118,8 @@ async function pushHullcamMeta(client: LiveClient): Promise<void> {
   });
 }
 
-function pushTowerViewStreams(client: LiveClient): void {
+async function pushTowerViewStreams(client: LiveClient): Promise<void> {
+  if (!(await accessForLiveClient(client))) return;
   const data = getTowerViewStreamsSnapshot();
   sendJson(client.socket, {
     type: "snapshot",
@@ -140,7 +163,7 @@ export function startWsLiveTransport(server: HttpServer): () => void {
       } else if (event.topic === "hullcam-meta" && client.sessionId === event.sessionId) {
         void pushHullcamMeta(client);
       } else if (event.topic === "hullcam-meta") {
-        pushTowerViewStreams(client);
+        void pushTowerViewStreams(client);
       }
     }
   });
@@ -164,7 +187,9 @@ export function startWsLiveTransport(server: HttpServer): () => void {
         socket,
         userId: auth.userId,
         sessionId,
-        ip
+        ip,
+        accessCheckedAt: 0,
+        access: null
       };
       clients.add(client);
       setLiveWsSubscribers(clients.size);
@@ -173,7 +198,7 @@ export function startWsLiveTransport(server: HttpServer): () => void {
       void pushSession(client);
       void pushSessionMessages(client);
       void pushHullcamMeta(client);
-      pushTowerViewStreams(client);
+      void pushTowerViewStreams(client);
 
       socket.on("message", (raw) => {
         try {
@@ -183,7 +208,7 @@ export function startWsLiveTransport(server: HttpServer): () => void {
             void pushSession(client);
             void pushSessionMessages(client);
             void pushHullcamMeta(client);
-            pushTowerViewStreams(client);
+            void pushTowerViewStreams(client);
           }
         } catch {
           // Ignore malformed control messages.
@@ -208,7 +233,7 @@ export function startWsLiveTransport(server: HttpServer): () => void {
       void pushSession(client);
       void pushSessionMessages(client);
       void pushHullcamMeta(client);
-      pushTowerViewStreams(client);
+      void pushTowerViewStreams(client);
     }
   }, 5_000);
 

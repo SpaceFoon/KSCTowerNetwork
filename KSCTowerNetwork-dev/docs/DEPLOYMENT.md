@@ -33,10 +33,9 @@ End-user URLs that need to match:
 - Bridge's `LIVEKIT_WS_URL` → LiveKit project URL (set via release config).
 - Backend's `CORS_ORIGINS` → web SPA's exact origin.
 
-**Ports / UDP / WebSocket:** pilots may send **live UDP** to the same host as
-the API (`LIVE_UDP_PORT`, default **48788**). Open **TCP** for HTTPS and **UDP**
-for that port when pilots are remote. HTTP fallback is automatic when
-`liveUdpFallbackHttp=True` in shipped `settings.cfg`. Full matrix:
+**Ports / UDP / WebSocket:** authenticated plugin traffic uses HTTPS through
+the API. The optional local-development UDP listener (`LIVE_UDP_PORT`, default
+**48788**) is disabled by default and must not be opened publicly. Full matrix:
 [ARCHITECTURE.md → Ports, firewall, live transport](ARCHITECTURE.md#ports-firewall-and-live-transport).
 Load expectations: [PERFORMANCE_AND_HOT_PATHS.md](PERFORMANCE_AND_HOT_PATHS.md).
 
