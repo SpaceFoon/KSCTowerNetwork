@@ -4,7 +4,7 @@ param(
     [string]$EnvFile
 )
 $ErrorActionPreference = 'Stop'
-if (!(Get-Command node -ErrorAction SilentlyContinue)) { throw 'Install Node 22+ and npm before running the server scripts.' }
+if (!(Get-Command node -ErrorAction SilentlyContinue)) { throw 'Install Node 24.22.1 LTS and npm before running the server scripts.' }
 if ($EnvFile -and $Command -ne 'start') { throw '-EnvFile is only valid with start.' }
 $serverArguments = @((Join-Path $PSScriptRoot 'server.mjs'))
 if ($Command -eq 'help') { $serverArguments += '--help' } else { $serverArguments += $Command }

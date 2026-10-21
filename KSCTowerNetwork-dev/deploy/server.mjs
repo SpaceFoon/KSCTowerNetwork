@@ -50,11 +50,14 @@ export async function main(args = process.argv.slice(2)) {
   const [command, ...options] = args;
   if (!command || command === '--help' || command === '-h') {
     console.log('Server commands: setup | build | start [--env-file /path/to/server.env]');
-    console.log('Requires Node 22+ and npm. Serves the backend; nginx/Caddy/IIS serves web/dist and proxies /v1 to port 48787.');
+    console.log('Requires Node 24.22.1 LTS and npm. Serves the backend; nginx/Caddy/IIS serves web/dist and proxies /v1 to port 48787.');
     return;
   }
   if (!['setup', 'build', 'start'].includes(command)) throw new Error(`Unknown server command: ${command}`);
-  if (Number(process.versions.node.split('.')[0]) < 22) throw new Error('Node 22 or later is required.');
+  const [major, minor, patch] = process.versions.node.split('.').map(Number);
+  if (major !== 24 || minor < 22 || (minor === 22 && patch < 1)) {
+    throw new Error('Node 24.22.1 LTS or newer Node 24 is required.');
+  }
   if (options.length && !(command === 'start' && options.length === 2 && options[0] === '--env-file')) {
     throw new Error('Only start accepts --env-file followed by a path.');
   }

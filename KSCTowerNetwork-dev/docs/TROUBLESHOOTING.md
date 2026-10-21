@@ -219,7 +219,7 @@ shipped builds.
 ### `build-bridge-runtime.ps1: NodeExePath not found`
 
 Pass `-NodeExePath "C:\Program Files\nodejs\node.exe"` (or wherever your
-Node 22+ install lives).
+Node 24.22.1 LTS install lives).
 
 ## When in doubt
 

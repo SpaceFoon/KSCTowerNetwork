@@ -13,7 +13,7 @@ session id.
 ┌──────────────┐              ┌──────────────┐              ┌────────────────┐
 │  Web SPA     │  HTTPS /v1   │  Backend     │              │  LiveKit Cloud │
 │  (browser)   │◄────────────►│  Express+TS  │              │  (SFU + WS)    │
-│  React + LK  │              │  Node 22     │              └───────▲────────┘
+│  React + LK  │              │  Node 24 LTS │              └───────▲────────┘
 │  Tower /     │              │              │                      │
 │  Pilot UI    │ wss://…      │  MariaDB +   │                      │ wss
 │              │◄───── voice ─┼──Redis  (or  │                      │ media

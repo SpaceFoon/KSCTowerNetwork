@@ -9,7 +9,7 @@ if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) {
     exit 0
 }
 
-$NodeDistVersion = "v24.15.0"
+$NodeDistVersion = "v24.22.1"
 $ZipName = "node-$NodeDistVersion-win-x64.zip"
 $DistUrl = "https://nodejs.org/dist/$NodeDistVersion/$ZipName"
 
@@ -22,10 +22,12 @@ $targetExe = Join-Path $targetDir "node.exe"
 if (Test-Path -LiteralPath $targetExe) {
     $len = (Get-Item -LiteralPath $targetExe).Length
     if ($len -gt 8MB) {
-        Write-Host "[ensure-bridge-node] OK: $targetExe already present ($([math]::Round($len/1MB,1)) MB)."
-        exit 0
+        $installedVersion = & $targetExe --version 2>$null
+        if ($LASTEXITCODE -eq 0 -and $installedVersion -eq $NodeDistVersion) {
+            Write-Host "[ensure-bridge-node] OK: $targetExe already present ($installedVersion)."
+            exit 0
+        }
     }
-    Remove-Item -LiteralPath $targetExe -Force
 }
 
 $gameDataMod = Join-Path $kspRoot "GameData\KSCTowerNetwork"

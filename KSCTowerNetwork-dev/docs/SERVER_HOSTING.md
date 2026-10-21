@@ -14,7 +14,7 @@ Do not mix the nginx bootstrap and the manual Caddy recipe on the same ports. Th
 
 You need an administrator account with sudo, a domain such as `tower.example.com`, and a DNS A record pointing at the VPS. Add an AAAA record only if IPv6 actually reaches this machine. Allow TCP 80/443 in the provider firewall for direct Caddy HTTPS. Keep SSH access and leave backend port 48787, MariaDB 3306 and Redis 6379 closed to the public internet.
 
-Install **Node 22+ with npm**, preferably Node 24, systemwide using the [official Node downloads](https://nodejs.org/en/download). It must be available to the service account, not only through the administrator's shell profile. Install Caddy using its [official Debian/Ubuntu instructions](https://caddyserver.com/docs/install#debian-ubuntu-raspbian).
+Install **Node 24.22.1 LTS with npm** systemwide using the [official Node downloads](https://nodejs.org/en/download). It must be available to the service account, not only through the administrator's shell profile. Install Caddy using its [official Debian/Ubuntu instructions](https://caddyserver.com/docs/install#debian-ubuntu-raspbian).
 
 From your administrator shell, on Ubuntu:
 
@@ -227,7 +227,7 @@ See [Troubleshooting](TROUBLESHOOTING.md) and [Settings reference](SETTINGS_REFE
 
 ## Windows server commands
 
-Install Node 22+ with npm, and make MariaDB/Redis reachable. From `KSCTowerNetwork-dev`:
+Install Node 24.22.1 LTS with npm, and make MariaDB/Redis reachable. From `KSCTowerNetwork-dev`:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File deploy/server.ps1 setup

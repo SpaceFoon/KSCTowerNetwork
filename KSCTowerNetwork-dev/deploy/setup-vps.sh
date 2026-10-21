@@ -595,12 +595,12 @@ step_swap() {
 # 8. Node.js 24 LTS via NodeSource
 # -----------------------------------------------------------------------------
 step_node() {
-    if command -v node >/dev/null 2>&1 && node --version | grep -qE '^v24\.'; then
+    if command -v node >/dev/null 2>&1 && node -e 'const [major,minor,patch]=process.versions.node.split(".").map(Number);process.exit(major===24&&(minor>22||(minor===22&&patch>=1))?0:1)'; then
         ok "node $(node --version) already installed"
         return
     fi
-    if command -v node >/dev/null 2>&1 && ! node --version | grep -qE '^v24\.'; then
-        warn "Node $(node --version) is not v24 — upgrading via NodeSource (repo + bridge tooling expect Node 24)"
+    if command -v node >/dev/null 2>&1; then
+        warn "Node $(node --version) is older than v24.22.1 or outside Node 24 — upgrading via NodeSource"
     fi
     log "Installing Node.js 24 LTS"
     curl -fsSL https://deb.nodesource.com/setup_24.x | bash -

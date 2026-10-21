@@ -4,7 +4,7 @@ For **server hosting only**, use [SERVER_HOSTING.md](SERVER_HOSTING.md): the Bas
 
 ## Prerequisites
 
-- **Node 22+** (matches the bundled bridge runtime).
+- **Node 24.22.1 LTS** for development (matches the bundled bridge runtime).
 - **PowerShell 7+** for the build scripts. Windows-only path: KSP is
   Win32-shaped, the C# build script invokes `csc.exe`/`dotnet`, and the
   bridge ships portable Windows `node.exe`.
@@ -29,14 +29,14 @@ npm run install
 
 That one command installs dependencies for the root workspace, backend, web, and
 voice bridge; copies `.env.example` → `.env.development` when those files are
-missing; and on Windows downloads the pinned **Node v24 win-x64** into
+missing or outdated; on Windows it downloads the pinned **Node v24.22.1 win-x64** into
 `GameData/KSCTowerNetwork/PluginData/bridge-runtime/node/node.exe` (not in Git —
 GitHub size limits / AV).
 
 Plain `npm install` also works — npm runs the same `install` script after root
 deps are fetched.
 
-Prerequisites: **Node 22+** (voice bridge targets 24+), **PowerShell 7+** on
+Prerequisites: **Node 24.22.1 LTS**, **PowerShell 7+** on
 Windows for plugin build scripts.
 
 Then start everything:
@@ -65,7 +65,7 @@ LIVEKIT_WS_URL=wss://your-project.livekit.cloud
 ## Running everything
 
 This starts three services in parallel through `scripts/run-dev.mjs` and the
-`concurrently` 10 ESM API (Node 22+). On Windows, the launcher first clears
+`concurrently` 10 ESM API (Node 24.22.1 LTS). On Windows, the launcher first clears
 listeners on the configured development ports. The stock defaults are:
 
 | Service | Port | URL |

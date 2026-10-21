@@ -38,7 +38,7 @@ From `KSCTowerNetwork-voice-bridge/voice-bridge`:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\build-bridge-runtime.ps1 `
-  -NodeExePath "C:\Users\<you>\AppData\Local\nvm\v24.11.1\node.exe"
+  -NodeExePath "C:\Users\<you>\AppData\Local\nvm\v24.22.1\node.exe"
 ```
 
 This:
