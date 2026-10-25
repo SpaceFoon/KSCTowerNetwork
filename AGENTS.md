@@ -4,6 +4,10 @@
 
 Before each task, read this guide and the documentation relevant to the requested change. Treat documented constraints and the user's explicit requirements as requirements. Do not make a change that contradicts them based on an assumption. If the requirements conflict or cannot be followed, explain the conflict before changing files.
 
+## If you violate a documented constraint
+
+If you realize you have acted contrary to this guide or the relevant project documentation, stop work and archive the current Codex chat. Do not continue the task. If you cannot archive the chat, tell the user and stop.
+
 Read [the full agent guide](KSCTowerNetwork-dev/docs/AGENTS.md), then [PROJECT_OVERVIEW.md](KSCTowerNetwork-dev/docs/PROJECT_OVERVIEW.md), before changing a subsystem.
 
 Update documentation whenever a change would make it inaccurate. This is a source repository: build outputs, dependency installs, caches, credentials, populated invite stores, and deployment-specific configuration must stay outside Git. See [REPOSITORY_SETUP.md](REPOSITORY_SETUP.md) for migration and publication status.
