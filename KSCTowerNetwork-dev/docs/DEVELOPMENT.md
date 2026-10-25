@@ -159,16 +159,11 @@ For a quick TS-only rebuild without re-bundling node:
 npm run build
 ```
 
-## Building a release ZIP
+## Building client and server releases
 
-```powershell
-cd KSCTowerNetwork-voice-bridge\voice-bridge
-.\scripts\package-release.ps1
-```
-
-Reads `release-config.json` for the deployment URLs. Output ZIP contains
-the full `GameData/KSCTowerNetwork/` tree ready to drop into a player's
-KSP install.
+Follow [RELEASING.md](RELEASING.md). The public builder produces both packages
+from clean committed source, runs checks and retains license notices. It does
+not copy private local settings or optional installed chart/game assets.
 
 ## Linting / typecheck
 

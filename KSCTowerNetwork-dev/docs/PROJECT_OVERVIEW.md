@@ -87,7 +87,7 @@ The KSP install root contains **three separate trees** that work together:
         ├── src/bridge.ts                        Node app: LiveKit ↔ TCP PCM/PTT
         └── scripts/
             ├── build-bridge-runtime.ps1         compiles + stages into (1)
-            └── package-release.ps1              builds a player-distributable ZIP
+            └── package-release.ps1              delegates to the two-package release builder
 ```
 
 The dev workspace `KSCTowerNetwork-dev/` and `KSCTowerNetwork-voice-bridge/`
@@ -512,7 +512,7 @@ End-user release ZIP:
 
 ```powershell
 cd KSCTowerNetwork-voice-bridge\voice-bridge
-.\scripts\package-release.ps1     # reads release-config.json
+.\scripts\package-release.ps1 -KspManagedPath "<KSP>/KSP_x64_Data/Managed" # client + server
 ```
 
 ### Test login presets (dev)
@@ -542,9 +542,8 @@ publish.
 Detailed in [`HOSTING.md`](HOSTING.md) and [`PRODUCTION_DEPLOYMENT_PLAN.md`](PRODUCTION_DEPLOYMENT_PLAN.md). Summary:
 
 1. **Pick three URLs**: backend API, web SPA, LiveKit WSS.
-2. **Fill `release-config.json`** (template at `release-config.example.json`)
-   so `package-release.ps1` bakes the hosts into `settings.cfg`,
-   `start-bridge.cmd`, and the SPA build.
+2. **Build client/server ZIPs** using [RELEASING.md](RELEASING.md).
+   Public clients are neutral and configured by each pilot.
 3. **Backend** on Railway / Fly / VPS with: `NODE_ENV=production`,
    `APP_JWT_SECRET`, LiveKit creds, `CORS_ORIGINS=https://your.web.host`,
    MariaDB + Redis, `WEB_LOGIN_USERS_JSON` (or Clerk), `OWNER_USER_ID`.
@@ -552,8 +551,7 @@ Detailed in [`HOSTING.md`](HOSTING.md) and [`PRODUCTION_DEPLOYMENT_PLAN.md`](PRO
    static host (or single-origin behind the backend).
 5. **LiveKit Cloud** project; paste API key/secret/WS URL into backend env.
 6. **Players** download the release ZIP, drop `GameData/KSCTowerNetwork/`
-   into their KSP install, optionally edit `PluginData/settings.cfg` if your
-   hostname differs from the baked default.
+   into their KSP install, edit `PluginData/settings.cfg` to use the operator's server hostname.
 
 Production safety guards (in `env.ts`) prevent the most common foot guns —
 see [`AUDIT.md`](AUDIT.md) for the full security review.
@@ -608,7 +606,7 @@ work into the existing code precisely.
 | [`TELEMETRY_AND_TOWER_TRACKING_PLAN.md`](TELEMETRY_AND_TOWER_TRACKING_PLAN.md) | Aggregate telemetry surface for the controller; superseded in part by the ghost plan. |
 | [`VOICE_IMPLEMENTATION_PLAN.md`](VOICE_IMPLEMENTATION_PLAN.md) | Voice + Kerbalizer DSP workstream breakdown (parallel AI execution playbook). |
 | [`ATIS_PLAN.md`](ATIS_PLAN.md) | Auto-generated ATIS broadcast loop with local Piper TTS, LiveKit injector bot, NATO-letter advancement on material change. |
-| [`HOSTING.md`](HOSTING.md) | Going-live checklist. The single source of truth for hostnames is `release-config.json`. |
+| [`HOSTING.md`](HOSTING.md) | Historical hosting reference; current release workflow is in RELEASING.md. |
 | [`PRODUCTION_DEPLOYMENT_PLAN.md`](PRODUCTION_DEPLOYMENT_PLAN.md) | Older deployment walkthrough; useful for the per-platform recipes (Railway / Vercel / etc.). |
 | [`AUDIT.md`](AUDIT.md) | Repo-wide security/reliability audit. Critical / High / Medium / Low. Don't ship prod without skimming the Critical section. |
 | [`TEST_COVERAGE_PLAN.md`](TEST_COVERAGE_PLAN.md) | Roadmap for automated tests (backend HTTP, auth, web, plugin/bridge, CI). Stub at `KSCTowerNetwork-dev/TEST_COVERAGE_PLAN.md` points here. |
@@ -716,3 +714,11 @@ Git. `web/globe-preview.html` and `src/previews/GlobePreview.tsx` provide the
 development gallery. See [WEB_SPA.md](WEB_SPA.md#solar-system-artwork-and-planet-globes).
 
 For the October 10 legacy comparison, restored map/globe connections and verification evidence, see [MIGRATION_PARITY.md](MIGRATION_PARITY.md).
+
+## Client and server release packaging
+
+See [RELEASING.md](RELEASING.md). scripts/package-release.mjs builds verified
+client/server archives from clean tracked source. scripts/release-validation.mjs
+rejects private runtime configuration and optional assets in the staged outputs.
+The server launcher supports install for production backend dependencies in
+prebuilt archives; setup/build remain source-checkout operations.

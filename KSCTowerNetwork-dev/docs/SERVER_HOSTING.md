@@ -2,6 +2,24 @@
 
 This guide takes an operator from a source checkout to an HTTPS website, an owner login, and a server that survives logout/reboot. The server runs **backend + web**, with **MariaDB + Redis** and **LiveKit**. It does not run KSP or the player's voice bridge.
 
+## Installing the prebuilt server release
+
+Download the Server ZIP from the same GitHub Release as your pilots' Client ZIP.
+Extract into a fresh directory. From KSCTowerNetwork-dev run:
+
+```bash
+bash deploy/server.sh install
+```
+
+On Windows use `powershell -File deploy/server.ps1 install`. This installs only
+production backend dependencies for the host OS and creates backend/.env.production
+if missing. Configure it using step 4 below. The backend and same-origin web/dist
+are already built: skip source checkout/setup/build steps. Follow the database,
+proxy, service and first-login instructions below; adjust paths to your extraction
+directory. Node, MariaDB, Redis, HTTPS and LiveKit remain external prerequisites.
+The archive includes no real credentials or initial owner account. A fresh owner
+password hash must be configured before login. Preserve private config/data on updates.
+
 ## Choose a setup
 
 - **Fresh Ubuntu VPS:** the [Ubuntu bootstrap guide](../deploy/README.md) installs OS packages, database/cache, nginx, TLS, and systemd. It also changes SSH/firewall and can configure Cloudflare. Follow that guide if you want that full provisioning process.

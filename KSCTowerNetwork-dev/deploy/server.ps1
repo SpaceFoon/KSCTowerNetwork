@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('setup', 'build', 'start', 'help')][string]$Command = 'help',
+    [ValidateSet('install', 'setup', 'build', 'start', 'help')][string]$Command = 'help',
     [string]$EnvFile
 )
 $ErrorActionPreference = 'Stop'

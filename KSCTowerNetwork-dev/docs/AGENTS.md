@@ -135,7 +135,7 @@ cd KSCTowerNetwork-dev
 cd KSCTowerNetwork-voice-bridge\voice-bridge
 .\scripts\build-bridge-runtime.ps1 -NodeExePath "<path to node.exe>"
 
-# Build a player-distributable release ZIP (reads release-config.json):
+# Build client/server release ZIPs from clean source (see docs/RELEASING.md):
 cd KSCTowerNetwork-voice-bridge\voice-bridge
 .\scripts\package-release.ps1
 ```

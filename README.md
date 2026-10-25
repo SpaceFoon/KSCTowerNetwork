@@ -23,6 +23,12 @@ Voice, telemetry, ACARS text, and controller tools for Kerbal Space Program. Pil
 
 **Pilot:** install a built player release into KSP, point its settings at the operator's server, and sign in/pair as described in [deployment](KSCTowerNetwork-dev/docs/DEPLOYMENT.md#end-user-release-zip). This source checkout contains runtime templates, not a ready-to-play DLL or bundled bridge runtime. Build/package instructions are in Development; do not tell players to copy this repository into GameData.
 
+## Downloads and releases
+
+A release provides separate **Client** (Windows x64 KSP plugin + voice bridge) and
+**Server** (built backend + website) ZIPs. Controllers use the hosted website.
+See [release build and installation](KSCTowerNetwork-dev/docs/RELEASING.md).
+
 ## Source layout
 
 | Directory | Contents |

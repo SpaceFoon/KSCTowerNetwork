@@ -23,6 +23,7 @@ already exists.
 | Configure a setting or env var | [`SETTINGS_REFERENCE.md`](SETTINGS_REFERENCE.md) |
 | Get a dev environment running | [`DEVELOPMENT.md`](DEVELOPMENT.md) |
 | Run the server on a Linux VPS or Windows host | [`SERVER_HOSTING.md`](SERVER_HOSTING.md) |
+| Build and publish client/server ZIPs | [`RELEASING.md`](RELEASING.md) |
 | Deploy to production / a community server | [`DEPLOYMENT.md`](DEPLOYMENT.md) |
 | Diagnose a specific failure mode | [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) |
 | Roadmap automated tests (HTTP, auth, web, CI) | [`TEST_COVERAGE_PLAN.md`](TEST_COVERAGE_PLAN.md) |

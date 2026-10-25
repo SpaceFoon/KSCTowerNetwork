@@ -1,9 +1,9 @@
 {
     "NAME": "KSCTowerNetwork",
-    "URL": "https://raw.githubusercontent.com/REPLACE_ME_OWNER/KSCTowerNetwork/main/ckan/KSCTowerNetwork.version",
-    "DOWNLOAD": "https://github.com/REPLACE_ME_OWNER/KSCTowerNetwork/releases",
+    "URL": "https://raw.githubusercontent.com/SpaceFoon/KSCTowerNetwork/main/GameData/KSCTowerNetwork/Plugins/KSCTowerNetwork.version",
+    "DOWNLOAD": "https://github.com/SpaceFoon/KSCTowerNetwork/releases",
     "GITHUB": {
-        "USERNAME": "REPLACE_ME_OWNER",
+        "USERNAME": "SpaceFoon",
         "REPOSITORY": "KSCTowerNetwork",
         "ALLOW_PRE_RELEASE": false
     },

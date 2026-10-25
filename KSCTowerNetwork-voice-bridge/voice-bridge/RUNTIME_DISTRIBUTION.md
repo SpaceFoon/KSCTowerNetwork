@@ -1,3 +1,10 @@
+# Public release workflow
+
+Use [RELEASING.md](../../KSCTowerNetwork-dev/docs/RELEASING.md) for the current two-package build.
+The client archive includes GameData plus install/license/manifest files at its root.
+The following bridge layout details are background reference; deployment-specific
+release-config packaging has been replaced by a neutral client configured by its pilot.
+
 # KSCTowerNetwork — End-User Distribution
 
 This document is the authoritative recipe for building a release that an end

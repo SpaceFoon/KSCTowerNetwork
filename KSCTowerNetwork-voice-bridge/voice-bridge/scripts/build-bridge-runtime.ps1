@@ -72,6 +72,9 @@ function Invoke-Npm {
     }
 }
 
+# Validate the absolute recursive-delete target before rebuilding the runtime.
+$expectedRuntime = [IO.Path]::GetFullPath((Join-Path $kspRoot 'GameData/KSCTowerNetwork/PluginData/bridge-runtime'))
+if ([IO.Path]::GetFullPath($runtimeRoot) -ne $expectedRuntime) { throw 'Unsafe runtime output path.' }
 if (Test-Path -LiteralPath $runtimeRoot) {
     Remove-Item -LiteralPath $runtimeRoot -Recurse -Force
 }

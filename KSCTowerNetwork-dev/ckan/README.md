@@ -6,7 +6,7 @@ files plus the in-game version file shipped with the mod itself:
 | File | Lives where | Purpose |
 |---|---|---|
 | `KSCTowerNetwork.netkan` | this folder; **submitted to** [`KSP-CKAN/NetKAN`](https://github.com/KSP-CKAN/NetKAN) | Tells the NetKAN-Inflator bot to auto-track every GitHub Release tag and add it to the CKAN catalog. Submit once; bot does the rest forever. |
-| `KSCTowerNetwork.ckan` | this folder; copy into each release ZIP at the root | Static fallback metadata. Users can drag the `.ckan` onto the CKAN client to install without the catalog. |
+| `KSCTowerNetwork.ckan` | this folder; template for a separate generated release asset | Static fallback metadata. Users can drag the `.ckan` onto the CKAN client to install without the catalog. |
 | `KSCTowerNetwork.version` | `GameData/KSCTowerNetwork/Plugins/KSCTowerNetwork.version` (already in place) | KSP-AVC + NetKAN read this for the version number. Source of truth for the version. |
 | `LICENSE` | repo root (MIT) | Required for CKAN to legally redistribute the ZIP. |
 
@@ -68,19 +68,13 @@ Players who install **KSP Add-on Version Checker (AVC)** read this JSON beside t
 
 ## Cutting a release
 
-For each release `vX.Y.Z`:
-
-1. Bump version in **all** of these together:
-   - `PluginSrc/Properties/AssemblyInfo.cs` (`AssemblyVersion` + `AssemblyFileVersion`)
-   - `GameData/KSCTowerNetwork/Plugins/KSCTowerNetwork.version` (`MAJOR/MINOR/PATCH/BUILD`, and adjust `KSP_VERSION_*` if your supported KSP range changed)
-   - `ckan/KSCTowerNetwork.ckan` (`version` field)
-   - If you duplicated KSP bounds in `KSCTowerNetwork.netkan`, bump `ksp_version_min` / `ksp_version_max` there too so they stay consistent with the `.version` file
-2. Rebuild: `powershell -ExecutionPolicy Bypass -File .\build-plugin.ps1`
-3. Stage + zip via your release script. Inside the ZIP, place a copy of `ckan/KSCTowerNetwork.ckan` next to the `GameData/` folder so users get the drag-to-install fallback.
-4. Compute SHA1 + SHA256 of the final ZIP, paste them into `KSCTowerNetwork.ckan`'s `download_hash` section, re-zip if you want the embedded `.ckan` to also have the correct hashes (CKAN does not require this, but it's tidy).
-5. Tag the commit `v1.0.0` and create a GitHub Release. Attach the ZIP. **The Release tag must match the `VERSION` in `KSCTowerNetwork.version`** or NetKAN will skip it.
-
-That's it. Within ~30 minutes the NetKAN bot polls GitHub, sees the new tag, reads the `.version` file, and publishes the release into the CKAN catalog automatically.
+Use [the two-package release workflow](../docs/RELEASING.md). The builder emits
+KSCTowerNetwork.ckan beside the final Client ZIP and fills its exact download URL,
+size and hashes. Do not embed this metadata inside the archive it hashes.
+The checked-in .ckan is a template; its hash placeholders are filled only in the
+generated release asset. The NetKAN template selects Client ZIPs explicitly.
+Catalog inclusion still needs a NetKAN submission and dependency review; publishing
+a GitHub release alone does not register the mod in CKAN.
 
 ---
 
@@ -95,16 +89,9 @@ If you also want SpaceDock as a mirror: upload the ZIP there manually after each
 
 ---
 
-## Server-side caveat (read this)
+## Server-side requirements
 
-CKAN installs the **client** mod only. The mod is useless without:
-
-- A backend tower server (`backend/`) reachable at the URL baked into `PluginData/settings.cfg` by `package-release.ps1`.
-- A LiveKit project for voice.
-
-The CKAN listing's description warns users about this. The recommended pattern is:
-
-- You (or each community) host one tower instance.
-- You publish a "preset" ZIP per tower with `release-config.json` already filled in for that instance, so users get a working install with no config required.
-
-The CKAN entry can either point at a "default community tower" preset, or stay neutral and require users to edit `settings.cfg` after install. Today this `.netkan` does the neutral version.
+CKAN installs only the client. Players need an operator's backend hostname and
+LiveKit-enabled service; configure PluginData/settings.cfg after installation.
+Public Client ZIPs are neutral. Operators install the separate Server ZIP and
+configure their private production environment using SERVER_HOSTING.md.
