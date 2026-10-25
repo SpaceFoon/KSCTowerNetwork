@@ -11,6 +11,10 @@ Graph/Twitter metadata. Its public share image is
 `web/public/ksc-tower-social-preview.jpg`; keep the image URL, alt text, and
 dimensions in the metadata aligned with that asset when replacing it.
 
+The public home page (/) reuses that same optimized artwork in its top hero,
+beside the introduction and calls to action on desktop and below them on narrow
+screens. LandingPage.tsx owns that placement.
+
 ## Top-level layout
 
 ```
