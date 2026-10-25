@@ -1,64 +1,94 @@
 {
-    "spec_version": "v1.34",
-
-    "identifier": "KSCTowerNetwork",
-    "name": "KSC Tower Network",
-    "abstract": "In-game ATC tower client: voice over LiveKit, structured ATC clearances, multi-aircraft awareness map, ACARS/checklist HUD, RPM/MAS IVA push-to-talk prop. Optional one-way bridges into kOS, Hullcam VDS Continued + JustReadTheInstructions HullCam for tower snapshots, and Kerbalism radiation telemetry.",
-    "description": "KSC Tower Network turns KSP into a multiplayer Air Traffic Control sandbox. The plugin publishes vessel telemetry, exposes a tower toolbar / radio HUD, runs a LiveKit voice bridge so pilots and controllers can talk live, and synchronises a frequency dial that doubles as the room channel.\n\nWorks standalone, but lights up extra features when these mods are present (all integrations are one-way and degrade gracefully if the mod is absent):\n  - ClickThroughBlocker: routes our IMGUI windows (radio dial, checklist, ACARS, countdown HUD) through ClickThruBlocker so a click on a panel doesn't bleed through to the part / staging UI underneath. Strongly recommended in flight scene; mod loads without it but click-through bugs become possible.\n  - RasterPropMonitor + ASET-Props/Avionics: in-IVA push-to-talk prop and a COMM-radio frequency-sync hook (also works with MOARdV AvionicsSystems for MAS cockpits).\n  - DE_IVAExtension: auto-places the PTT prop next to the existing Chatterer PTT in DE Mk1 cockpit IVAs.\n  - Chatterer: defensive only — if you happen to have Chatterer installed, we mute it (and the ASET COMM radio's built-in fake ATC samples) while your PTT is open so its chatter doesn't bleed into your real transmission. The mod replaces Chatterer's role with real human voice over LiveKit, so most ATC players won't want Chatterer at all.\n  - kOS: ACARS file-mailbox bridge (kOS scripts can read tower clearances and write reports under the kOS Archive volume) plus a one-way kOS terminal mirror to the web Tower desk.\n  - JustReadTheInstructions (+ HullcamVDS Continued): polls JRTI's local HTTP snapshot endpoint and forwards HullCam frames to the web Tower for a ground-controller camera feed.\n  - Kerbalism: reflectively reads Kerbalism's per-vessel radiation rad/s and includes it in the telemetry stream so controllers see live radiation exposure on the strip.\n\nFull per-mod breakdown (what each integration does, which are truly required, which are immersion only, which we deliberately do NOT bundle): see INTEGRATIONS.md in the release ZIP, or https://github.com/SpaceFoon/KSCTowerNetwork/blob/main/KSCTowerNetwork-dev/docs/INTEGRATIONS.md\n\nIMPORTANT: this client connects to a backend tower server + a LiveKit project. Without a server URL it will load but will not connect. See the server release ZIP and SERVER_HOSTING.md for hosting instructions, or join an existing community tower whose URL the operator publishes.",
-    "author": "SpaceFoon",
-    "license": "MIT",
-    "release_status": "testing",
-
-    "version": "1.0.0",
-    "ksp_version_min": "1.12.0",
-    "ksp_version_max": "1.12.5",
-
-    "resources": {
-        "homepage":   "https://github.com/SpaceFoon/KSCTowerNetwork",
-        "repository": "https://github.com/SpaceFoon/KSCTowerNetwork",
-        "bugtracker": "https://github.com/SpaceFoon/KSCTowerNetwork/issues"
+  "spec_version": "v1.34",
+  "identifier": "KSCTowerNetwork",
+  "name": "KSC Tower Network",
+  "abstract": "In-game ATC tower client: voice over LiveKit, structured ATC clearances, multi-aircraft awareness map, ACARS/checklist HUD, RPM/MAS IVA push-to-talk prop. Optional one-way bridges into kOS, Hullcam VDS Continued + JustReadTheInstructions HullCam for tower snapshots, and Kerbalism radiation telemetry.",
+  "description": "KSC Tower Network turns KSP into a multiplayer Air Traffic Control sandbox. The plugin publishes vessel telemetry, exposes a tower toolbar / radio HUD, runs a LiveKit voice bridge so pilots and controllers can talk live, and synchronises a frequency dial that doubles as the room channel.\n\nWorks standalone, but lights up extra features when these mods are present (all integrations are one-way and degrade gracefully if the mod is absent):\n  - ClickThroughBlocker: routes our IMGUI windows (radio dial, checklist, ACARS, countdown HUD) through ClickThruBlocker so a click on a panel doesn't bleed through to the part / staging UI underneath. Strongly recommended in flight scene; mod loads without it but click-through bugs become possible.\n  - RasterPropMonitor + ASET-Props/Avionics: in-IVA push-to-talk prop and a COMM-radio frequency-sync hook (also works with MOARdV AvionicsSystems for MAS cockpits).\n  - DE_IVAExtension: auto-places the PTT prop next to the existing Chatterer PTT in DE Mk1 cockpit IVAs.\n  - Chatterer: defensive only — if you happen to have Chatterer installed, we mute it (and the ASET COMM radio's built-in fake ATC samples) while your PTT is open so its chatter doesn't bleed into your real transmission. The mod replaces Chatterer's role with real human voice over LiveKit, so most ATC players won't want Chatterer at all.\n  - kOS: ACARS file-mailbox bridge (kOS scripts can read tower clearances and write reports under the kOS Archive volume) plus a one-way kOS terminal mirror to the web Tower desk.\n  - JustReadTheInstructions (+ HullcamVDS Continued): polls JRTI's local HTTP snapshot endpoint and forwards HullCam frames to the web Tower for a ground-controller camera feed.\n  - Kerbalism: reflectively reads Kerbalism's per-vessel radiation rad/s and includes it in the telemetry stream so controllers see live radiation exposure on the strip.\n\nFull per-mod breakdown (what each integration does, which are truly required, which are immersion only, which we deliberately do NOT bundle): see INTEGRATIONS.md in the release ZIP, or https://github.com/SpaceFoon/KSCTowerNetwork/blob/main/KSCTowerNetwork-dev/docs/INTEGRATIONS.md\n\nIMPORTANT: this client connects to a backend tower server + a LiveKit project. Without a server URL it will load but will not connect. See the server release ZIP and SERVER_HOSTING.md for hosting instructions, or join an existing community tower whose URL the operator publishes.",
+  "author": "SpaceFoon",
+  "license": "MIT",
+  "release_status": "testing",
+  "version": "1.0.1",
+  "ksp_version_min": "1.12.0",
+  "ksp_version_max": "1.12.5",
+  "resources": {
+    "homepage": "https://github.com/SpaceFoon/KSCTowerNetwork",
+    "repository": "https://github.com/SpaceFoon/KSCTowerNetwork",
+    "bugtracker": "https://github.com/SpaceFoon/KSCTowerNetwork/issues"
+  },
+  "tags": [
+    "control",
+    "gameplay",
+    "plugin",
+    "library"
+  ],
+  "depends": [
+    {
+      "name": "ModuleManager"
+    }
+  ],
+  "recommends": [
+    {
+      "name": "ClickThroughBlocker"
     },
-
-    "tags": [ "control", "gameplay", "plugin", "library" ],
-
-    "depends": [
-        { "name": "ModuleManager" }
-    ],
-
-    "recommends": [
-        { "name": "ClickThroughBlocker" },
-        { "name": "RasterPropMonitor" },
-        { "name": "ASETProps" },
-        { "name": "ASETAvionics" },
-        { "name": "AvionicsSystems" },
-        { "name": "kOS" },
-        { "name": "HullcamVDSContinued" },
-        { "name": "JustReadTheInstructions" }
-    ],
-
-    "suggests": [
-        { "name": "KSAIVAUpgrade" },
-        { "name": "Reviva" },
-        { "name": "FreeIva" },
-        { "name": "kOSPropMonitor" },
-        { "name": "VesselView" },
-        { "name": "DE-IVAExtension" },
-        { "name": "Kerbalism" },
-        { "name": "Chatterer" }
-    ],
-
-    "download": "https://github.com/SpaceFoon/KSCTowerNetwork/releases/download/v1.0.0/KSCTowerNetwork-Client-1.0.0-win-x64.zip",
-    "download_size": 47351304,
-    "download_hash": {
-        "sha1":   "0c7a96a166887fc3b4a84c3b0c184483c0618b4a",
-        "sha256": "2f50db1b9acf5b6c4f87719e3b9745329ae0a44e2cf565f84d7653485a6de06f"
+    {
+      "name": "RasterPropMonitor"
     },
-    "download_content_type": "application/zip",
-
-    "install": [
-        {
-            "find": "KSCTowerNetwork",
-            "install_to": "GameData"
-        }
-    ]
+    {
+      "name": "ASETProps"
+    },
+    {
+      "name": "ASETAvionics"
+    },
+    {
+      "name": "AvionicsSystems"
+    },
+    {
+      "name": "kOS"
+    },
+    {
+      "name": "HullcamVDSContinued"
+    },
+    {
+      "name": "JustReadTheInstructions"
+    }
+  ],
+  "suggests": [
+    {
+      "name": "KSAIVAUpgrade"
+    },
+    {
+      "name": "Reviva"
+    },
+    {
+      "name": "FreeIva"
+    },
+    {
+      "name": "kOSPropMonitor"
+    },
+    {
+      "name": "VesselView"
+    },
+    {
+      "name": "DE-IVAExtension"
+    },
+    {
+      "name": "Kerbalism"
+    },
+    {
+      "name": "Chatterer"
+    }
+  ],
+  "download": "https://github.com/SpaceFoon/KSCTowerNetwork/releases/download/v1.0.1/KSCTowerNetwork-Client-1.0.1-win-x64.zip",
+  "download_size": 47359048,
+  "download_hash": {
+    "sha1": "17cc0fbc45a28a191e73fe21413761b09fe40f48",
+    "sha256": "0a7f113a14ed1af79a6ed7123b0e767b64972cbd489cedbf1b6f0ec6186d368c"
+  },
+  "download_content_type": "application/zip",
+  "install": [
+    {
+      "find": "KSCTowerNetwork",
+      "install_to": "GameData"
+    }
+  ]
 }

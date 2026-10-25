@@ -70,9 +70,9 @@ CKAN catalog publication is a separate NetKAN submission and dependency review.
 The NetKAN metadata selects only Client ZIPs via the $kref /asset_match/ suffix; the server ZIP is never a mod install.
 No automatic catalog inclusion is claimed by merely publishing GitHub assets.
 
-The checked-in standalone .ckan now describes the actual v1.0.0 Client ZIP;
-its corrected dependency IDs differ from the immutable release's original .ckan
-asset. Future builds regenerate download fields. See [CKAN validation](../ckan/README.md).
+The checked-in standalone .ckan describes the v1.0.1 Client ZIP with its actual
+size and hashes. The v1.0.0 release remains immutable. Future builds regenerate
+download fields. See [CKAN validation](../ckan/README.md).
 
 ## v1.0.1 client update
 
@@ -84,3 +84,14 @@ server; existing operators do not need a server upgrade solely for this UI.
 The release pipeline includes 37 address checks and 31 checks using the real KSP
 ConfigNode save/load parser. Live KSP pairing, telemetry and two-participant voice
 acceptance remain outstanding, so this version is published as a prerelease.
+
+Release build source: `b745a15aa6e7c0acd9dea95f6926356129a7fbef`.
+Backend tests: 238 passed / 4 skipped; web: 120 passed / 1 skipped; bridge: 16
+passed; server/release checks: 11 passed. Voice/ACARS invariants, production
+builds and plugin tests passed. Both extracted archives matched every manifest
+entry (1,158 client files, 326 server files). The extracted DLL reports
+`1.0.1.0`, contains the Server address UI, and the bundled Node 24.22.1 runtime
+successfully imports the LiveKit Windows native binding.
+
+Client SHA256:
+`0a7f113a14ed1af79a6ed7123b0e767b64972cbd489cedbf1b6f0ec6186d368c`.

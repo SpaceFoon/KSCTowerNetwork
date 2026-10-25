@@ -7,7 +7,7 @@ has not been submitted to the CKAN catalog.
 | File | Purpose |
 | --- | --- |
 | KSCTowerNetwork.netkan | Submission metadata that selects Client ZIPs from GitHub releases and reads the bundled AVC version file. |
-| KSCTowerNetwork.ckan | Standalone metadata for the published v1.0.0 Client ZIP, with its actual URL, byte size, SHA1 and SHA256. The release builder also uses this as a base and regenerates download fields for future releases. |
+| KSCTowerNetwork.ckan | Standalone metadata for the published v1.0.1 Client ZIP, with its actual URL, byte size, SHA1 and SHA256. The release builder also uses this as a base and regenerates download fields for future releases. |
 | ../../GameData/KSCTowerNetwork/Plugins/KSCTowerNetwork.version | Shipped version, KSP compatibility bounds and AVC update URL. |
 
 The GitHub asset regex is part of `$kref` via `/asset_match/<regex>`.
@@ -53,7 +53,7 @@ are needed for this metadata correction.
 The original v1.0.0 GitHub release is immutable. Its uploaded .ckan asset still
 contains the old relationship identifiers; the corrected standalone metadata
 is this repository file. Published ZIPs, their tag and checksums were not changed.
-Include corrected metadata with the next release instead of overwriting v1.0.0.
+The v1.0.1 release includes corrected metadata; the v1.0.0 release is preserved.
 
 Remaining work: review Windows executable/native-library packaging, run NetKAN
 inflation and a clean CKAN installation, verify live KSP/voice behavior, then
