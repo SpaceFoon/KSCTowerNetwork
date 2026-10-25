@@ -76,7 +76,7 @@ type RoomSummary = {
   /**
    * Human label rendered as the card heading — always populated by the backend
    * (auto-derived from the callsign when the operator hasn't chosen one). Never
-   * a raw UUID. Examples: "DARREN-A49 Tower", "Bobcat 7 morning practice".
+   * a raw UUID. Examples: "SKYHAWK-A49 Tower", "Bobcat 7 morning practice".
    */
   roomName: string;
   /** Same value as `roomName`, kept distinct so future endpoints can flag user-chosen vs auto-derived. */

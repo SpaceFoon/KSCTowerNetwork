@@ -1353,7 +1353,7 @@ function sessionIdHash(sessionId: string): number {
 
 /**
  * Default lobby room name when the caller doesn't supply one. Format `<CALLSIGN> Tower`,
- * uppercased — e.g. `DARREN-A49 TOWER`. Built from the same callsign that's already
+ * uppercased — e.g. `SKYHAWK-A49 TOWER`. Built from the same callsign that's already
  * threaded through the rest of the session, so the heading the user sees in the lobby
  * matches the callsign on the strip and on the radio. **Never returns a UUID.**
  */
@@ -1366,7 +1366,7 @@ export function defaultRoomName(callsign: string): string {
 /**
  * Deterministic notional VHF aviation frequency for a session (118.000 - 136.975 MHz,
  * 25 kHz spacing → 760 valid channels). Cosmetic — gives lobby cards a "real radio"
- * feel ("DARREN-A49 Tower · 118.300") instead of `tower-<UUID>`. Stable per sessionId
+ * feel ("SKYHAWK-A49 Tower · 118.300") instead of `tower-<UUID>`. Stable per sessionId
  * because it's derived from a hash of the id, so the same session always shows the
  * same frequency across reloads even if it predates the DB column.
  */
@@ -1615,7 +1615,7 @@ export function disambiguateRoomName(base: string, takenNames: Iterable<string>)
 }
 
 /**
- * Build a short, human-readable, URL-safe session id like `darren-a4f9` from the
+ * Build a short, human-readable, URL-safe session id like `skyhawk-a4f9` from the
  * pilot's display name (or email local-part / userId fallback) plus a 4-char hex
  * tail for collision avoidance. Lower-case + ascii only so it round-trips
  * through KSP `settings.cfg`, the IVA radio LCD, and the lobby card without

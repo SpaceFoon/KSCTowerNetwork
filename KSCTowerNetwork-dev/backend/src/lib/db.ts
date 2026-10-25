@@ -313,7 +313,7 @@ export async function initDbSchema(): Promise<void> {
     await addColumnIfMissing(conn, "sessions", "squawk", "VARCHAR(4) NULL");
     await addColumnIfMissing(conn, "sessions", "callsign", "VARCHAR(64) NULL");
     // Human-set name for the lobby's "Tower room". When unset at create-time, the backend
-    // auto-fills it with a callsign-derived English label (e.g. "DARREN-A49 Tower") so the
+    // auto-fills it with a callsign-derived English label (e.g. "SKYHAWK-A49 Tower") so the
     // lobby NEVER shows a raw `tower-<UUID>` heading. May be PATCHed later via
     // PATCH /v1/session/:id. See docs/GLOSSARY.md "Room name".
     await addColumnIfMissing(conn, "sessions", "name", "VARCHAR(80) NULL");
