@@ -134,6 +134,8 @@ Key files:
 
 | Path | Purpose |
 |---|---|
+| web/src/pages/LandingPage.tsx | Public home page hero, account entry, and plugin setup steps. |
+| web/public/ksc-tower-social-preview.jpg | Share-card artwork reused in the public homepage hero. |
 | `src/index.ts` | HTTP server, optional development UDP and live WS attach, pilot-idle sweep, graceful shutdown. |
 | `src/pilotIdleSessionSweep.ts` | Timer-driven soft-close of tower sessions with stale telemetry (`PILOT_IDLE_*` env). |
 | `src/config/env.ts` | Zod schema + production guards (refuses to boot with `DEV_*` flags or default JWT secret in prod). |

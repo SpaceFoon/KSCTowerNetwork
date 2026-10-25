@@ -165,29 +165,38 @@ export function LandingPage({ onLogin }: Props): JSX.Element {
     <div className="landing">
       <header className="landing-hero">
         <div className="landing-hero-inner">
-          <div className="landing-brand">
-            <span className="landing-brand-mark" aria-hidden>KSC</span>
-            <span className="landing-brand-name">{projectName}</span>
+          <div className="landing-hero-copy">
+            <div className="landing-brand">
+              <span className="landing-brand-mark" aria-hidden>KSC</span>
+              <span className="landing-brand-name">{projectName}</span>
+            </div>
+            <h1 className="landing-hero-title">Real human ATC for Kerbal Space Program.</h1>
+            <p className="landing-hero-tagline">{tagline}</p>
+            <div className="landing-hero-cta">
+              <a href="#get-started" className="landing-cta landing-cta-primary">
+                {signupEnabled ? "Sign up" : "Sign in"}
+              </a>
+              <a href="#download" className="landing-cta landing-cta-secondary">
+                Get the plugin
+              </a>
+              <button
+                type="button"
+                className="landing-cta landing-cta-ghost"
+                onClick={joinAsGuest}
+                disabled={busy}
+                title="Lobby text chat only. No voice, no plugin. Banned by IP if abusive."
+              >
+                {guestMutation.isPending ? "Joining..." : "Try as guest"}
+              </button>
+            </div>
           </div>
-          <h1 className="landing-hero-title">Real human ATC for Kerbal Space Program.</h1>
-          <p className="landing-hero-tagline">{tagline}</p>
-          <div className="landing-hero-cta">
-            <a href="#get-started" className="landing-cta landing-cta-primary">
-              {signupEnabled ? "Sign up" : "Sign in"}
-            </a>
-            <a href="#download" className="landing-cta landing-cta-secondary">
-              Get the plugin
-            </a>
-            <button
-              type="button"
-              className="landing-cta landing-cta-ghost"
-              onClick={joinAsGuest}
-              disabled={busy}
-              title="Lobby text chat only. No voice, no plugin. Banned by IP if abusive."
-            >
-              {guestMutation.isPending ? "Joining..." : "Try as guest"}
-            </button>
-          </div>
+          <figure className="landing-hero-art">
+            <img
+              src="/ksc-tower-social-preview.jpg"
+              alt="KSC Tower overlooking a Kerbal launch complex, with nearby aircraft on radar."
+              decoding="async"
+            />
+          </figure>
         </div>
       </header>
 
