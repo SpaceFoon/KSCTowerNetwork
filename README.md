@@ -1,7 +1,7 @@
 <div align="center">
   <h1>KSCTowerNetwork</h1>
   <p>
-    <a href="https://github.com/SpaceFoon/KSCTowerNetwork/releases"><img src="https://img.shields.io/github/v/release/SpaceFoon/KSCTowerNetwork?include_prereleases=true&label=latest%20release&style=flat-square" alt="Latest release"></a>
+    <a href="https://github.com/SpaceFoon/KSCTowerNetwork/releases"><img src="https://img.shields.io/github/v/release/SpaceFoon/KSCTowerNetwork?include_prereleases&label=latest%20release&style=flat-square" alt="Latest release"></a>
     <a href="https://github.com/SpaceFoon/KSCTowerNetwork/releases"><img src="https://img.shields.io/github/downloads-pre/SpaceFoon/KSCTowerNetwork/total?label=downloads&style=flat-square" alt="Release downloads"></a>
     <a href="https://github.com/SpaceFoon/KSCTowerNetwork/blob/main/LICENSE"><img src="https://img.shields.io/github/license/SpaceFoon/KSCTowerNetwork?style=flat-square" alt="License"></a>
     <a href="https://github.com/SpaceFoon/KSCTowerNetwork/stargazers"><img src="https://img.shields.io/github/stars/SpaceFoon/KSCTowerNetwork?style=flat-square" alt="Stars"></a>
