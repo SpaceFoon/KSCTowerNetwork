@@ -303,21 +303,14 @@ The web side is now public, but the buddy needs the KSP plugin (and bridge runti
 ### Pilot side (anyone running KSP)
 
 Download the **Client** ZIP from the [GitHub releases](https://github.com/SpaceFoon/KSCTowerNetwork/releases).
-Extract its GameData folder into the KSP installation. In
-`GameData/KSCTowerNetwork/PluginData/settings.cfg`, set the server details
-supplied by the operator:
+Extract its GameData folder into the KSP installation. Launch KSP, click the
+Tower toolbar button and enter the operator's **Server address** in the login
+window, for example `tower.example.com`. Sign in with the account supplied by
+the operator and verify telemetry and voice. No config-file edit is needed.
 
-```text
-towerApiHost = tower.example.com
-towerApiPort = 443
-towerApiTls = True
-towerApiPath = /v1
-```
-
-Use the operator's actual hostname. Sign in/pair and verify telemetry and voice.
+The client remembers the server. To switch, log out and reopen Tower login.
 Preserve personal settings.cfg and auth.cfg when updating. Every community uses
-the same neutral Client ZIP; changing a hostname needs a settings change, not a
-new DLL or a repackaged download. Controllers only need the website and account.
+the same neutral Client ZIP; no server-specific rebuild or repackaging is needed. Controllers only need the website and account.
 The [release builder](../docs/RELEASING.md) is for maintainers publishing new
 versions, not a step in hosting a tower.
 

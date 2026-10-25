@@ -20,8 +20,8 @@ namespace KSCTowerNetwork
     /// Without this, opening KSP did nothing on the backend until the player explicitly
     /// requested a launch — meaning a controller who joined the queue from the web
     /// would sit forever with "1 waiting" because no pilot session ever existed for
-    /// the queue to be drained into. <c>FlightAndKSC, once: true</c> mirrors
-    /// <see cref="TowerVoiceAutoConnect"/> so the call fires once per game session.
+    /// the queue to be drained into. The addon persists across scenes; a fresh login
+    /// cancels old requests and restarts room adoption for the selected server.
     ///
     /// <para>
     /// Dev / <see cref="TowerModSettings.SkipTowerLogin"/> mode also runs this addon
@@ -36,9 +36,40 @@ namespace KSCTowerNetwork
     [KSPAddon(KSPAddon.Startup.FlightAndKSC, true)]
     public class TowerSessionAutoCall : MonoBehaviour
     {
-        // Static so a scene change that re-instantiates the addon (shouldn't happen with
-        // once:true, but defensive) can't double-fire the call. Reset only on Application.quit.
         private static bool _done;
+        private static TowerSessionAutoCall _instance;
+        private bool _started;
+
+        private void Awake()
+        {
+            if (_instance != null && _instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            _instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+
+        private void OnDestroy()
+        {
+            if (_instance == this)
+            {
+                _instance = null;
+            }
+        }
+
+        public static void RestartForLogin()
+        {
+            _done = false;
+            if (_instance != null && _instance._started)
+            {
+                // Cancel old-server requests before a new login can claim its room.
+                _instance.StopAllCoroutines();
+                _instance.StartCoroutine(_instance.EnsurePilotSessionRoutine());
+            }
+        }
 
         // How long to wait for a token to appear before giving up. Covers the case where
         // the player loads in, then takes a minute to type their credentials into the
@@ -53,6 +84,7 @@ namespace KSCTowerNetwork
 
         private void Start()
         {
+            _started = true;
             if (_done)
             {
                 return;

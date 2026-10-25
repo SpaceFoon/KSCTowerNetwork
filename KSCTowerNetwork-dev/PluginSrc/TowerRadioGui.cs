@@ -3991,7 +3991,7 @@ namespace KSCTowerNetwork
                     loRect,
                     new GUIContent(
                         "\u23FB  LOG  OUT",
-                        "Log out — clears tower authentication for this install; voice session ends and you must sign in again to use tower features."),
+                        "Log out — ends voice and clears this login. Open the Tower toolbar button again to sign in or change servers."),
                     _utilityBtnStyle))
             {
                 TowerSfx.PlayClick();

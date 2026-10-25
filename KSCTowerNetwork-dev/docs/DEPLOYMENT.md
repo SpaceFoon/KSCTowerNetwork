@@ -31,7 +31,7 @@ Voice bridge ─────── wss ─────────────�
 
 End-user URLs that need to match:
 
-- Plugin's `towerApiHost`/`Port`/`Tls`/`Path` → backend public URL.
+- Plugin's in-game **Server address** → backend public URL (`settings.cfg` supplies initial defaults).
 - Plugin's `webBaseUrl` (in the login GUI) → web SPA public URL.
 - Backend `LIVEKIT_WS_URL` → configured LiveKit service; the bridge obtains its connection details from the backend.
 - Backend's `CORS_ORIGINS` → web SPA's exact origin.
@@ -140,7 +140,27 @@ via the token grant.
 
 See [RELEASING.md](RELEASING.md) for the verified two-package build and publication
 workflow. The Client ZIP contains a Windows x64 KSP plugin and bundled bridge;
-pilots configure their server operator's host in PluginData/settings.cfg.
+pilots select their operator's server in the in-game **Tower login** window.
+
+1. Close KSP and extract the Client ZIP's `GameData` folder into the KSP directory.
+2. Launch KSP and click the **Tower** toolbar button (available on the main menu).
+3. Enter the operator's **Server address**, then email/password, and click **Log in**.
+   A hostname or IP uses HTTPS, for example `tower.example.com`. For a server
+   using HTTP, enter its complete URL, such as `http://192.168.1.12:48787`.
+   Root URLs gain `/v1` automatically; a complete API path is also accepted.
+4. The server is saved automatically. To change it later, **Log out**, open the
+   Tower toolbar button again, and enter the new address.
+
+For a separate API and website deployment, enable **Web desk uses a separate
+address (advanced)** and enter the operator's website URL. Most deployments
+use the same address for both. The client updates the bundled voice bridge
+and live UDP host to follow the selected API; HTTP fallback remains enabled.
+Server choices live in plugin-owned `auth.cfg`; players do not edit config files.
+Preserve `auth.cfg` and personal `settings.cfg` when updating the client.
+
+This flow requires a client built with the Server address field. Existing
+published ZIPs must be updated to gain it; updating only the server is insufficient.
+
 The Server ZIP contains the built backend and same-origin website. Operators
 install production dependencies using deploy/server.sh install (or server.ps1
 install) and follow [SERVER_HOSTING.md](SERVER_HOSTING.md) for private production
@@ -181,7 +201,7 @@ Then in a browser:
 |---|---|
 | Rotating `APP_JWT_SECRET` | All `plugin_session` JWTs invalidated; players re-pair via login GUI. |
 | Changing the LiveKit endpoint/keys | Update the server env and restart it; clients obtain connection details from the backend. Verify reconnection. |
-| Changing the backend hostname | Pilots update towerApiHost/Port/Tls/Path in settings.cfg; no client rebuild is needed. |
+| Changing the backend hostname | Pilots log out and enter the new Server address in Tower login; no server-specific client rebuild is needed. |
 | Tightening `CORS_ORIGINS` to exclude an old web hostname | Browser users on the old hostname get CORS errors. |
 
 ## Things that won't break players

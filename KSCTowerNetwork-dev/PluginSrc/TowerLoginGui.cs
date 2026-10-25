@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 
 namespace KSCTowerNetwork
 {
-    /// <summary>IMGUI login window before the Tower panel when no JWT is stored (unless <see cref="TowerModSettings.SkipTowerLogin"/>).</summary>
+    /// <summary>IMGUI server selection and login window before the Tower panel when no JWT is stored (unless <see cref="TowerModSettings.SkipTowerLogin"/>).</summary>
     /// <remarks>
     /// Intentionally has no <c>[KSPAddon]</c> attribute. The component is created on demand by <see cref="EnsureExists"/>
     /// and marked <c>DontDestroyOnLoad</c>; using <c>[KSPAddon]</c> would also create a per-scene instance that never
@@ -38,6 +38,9 @@ namespace KSCTowerNetwork
         }
 
         private bool _visible;
+        private string _serverAddress = "";
+        private string _webAddress = "";
+        private bool _separateWebAddress;
         private string _email = "";
         private string _password = "";
         private string _loginCallsign = "";
@@ -51,7 +54,7 @@ namespace KSCTowerNetwork
         private Action _onCancel;
 
         private const float LoginWinW = 440f;
-        private const float LoginWinH = 500f;
+        private const float LoginWinH = 560f;
         private Rect _windowRect;
         private int _windowId;
 
@@ -71,9 +74,18 @@ namespace KSCTowerNetwork
         public static void Prompt(Action onSuccess, Action onCancel)
         {
             EnsureExists();
+            if (_instance._busy)
+            {
+                return;
+            }
+
             TowerModSettings.EnsureLoaded();
             _instance._onSuccess = onSuccess;
             _instance._onCancel = onCancel;
+            _instance._serverAddress = TowerModSettings.ApiBaseUrl;
+            _instance._webAddress = TowerModSettings.WebBaseUrl;
+            _instance._separateWebAddress = !string.Equals(TowerModSettings.WebBaseUrl,
+                TowerServerAddress.WebBaseForApi(TowerModSettings.ApiBaseUrl), StringComparison.Ordinal);
             _instance._email = TowerModSettings.SavedTowerEmail ?? "";
             _instance._password = "";
             _instance._loginCallsign = string.IsNullOrEmpty(TowerModSettings.PilotCallsign)
@@ -83,7 +95,7 @@ namespace KSCTowerNetwork
             _instance._stayLoggedIn = TowerModSettings.PersistSessionToken;
             _instance._statusLine = "";
             _instance._busy = false;
-            _instance.            _loginScrollPos = Vector2.zero;
+            _instance._loginScrollPos = Vector2.zero;
             _instance._windowRect = new Rect(
                 (Screen.width - LoginWinW) * 0.5f,
                 (Screen.height - LoginWinH) * 0.5f,
@@ -149,7 +161,7 @@ namespace KSCTowerNetwork
                 GUILayout.MaxWidth(LoginWinW - 20f));
             GUILayout.Space(6);
 
-            const float headerReserve = 118f;
+            const float headerReserve = 154f;
             _loginScrollPos = GUILayout.BeginScrollView(
                 _loginScrollPos,
                 GUIStyle.none,
@@ -158,6 +170,23 @@ namespace KSCTowerNetwork
                 GUILayout.Height(Mathf.Max(140f, LoginWinH - headerReserve)));
 
             GUI.enabled = !_busy;
+            GUILayout.Label("Server address");
+            var address = GUILayout.TextField(_serverAddress ?? "", 2048, GUILayout.MinHeight(22));
+            if (!string.Equals(address, _serverAddress, StringComparison.Ordinal))
+            {
+                _serverAddress = address;
+                _separateWebAddress = false;
+            }
+
+            GUILayout.Label("Enter your operator's hostname or URL. Hostnames/IPs use HTTPS; include http://host:port for an HTTP server.", _hintWrapStyle);
+            _separateWebAddress = GUILayout.Toggle(_separateWebAddress, "Web desk uses a separate address (advanced)");
+            if (_separateWebAddress)
+            {
+                GUILayout.Label("Web desk address");
+                _webAddress = GUILayout.TextField(_webAddress ?? "", 2048, GUILayout.MinHeight(22));
+            }
+
+            GUILayout.Space(6);
             GUILayout.Label("Email");
             _email = GUILayout.TextField(_email ?? "", 200, GUILayout.MinHeight(22));
             GUILayout.Label("Password");
@@ -166,14 +195,15 @@ namespace KSCTowerNetwork
             GUILayout.Label("Callsign (optional)");
             _loginCallsign = GUILayout.TextField(_loginCallsign ?? "", 120, GUILayout.MinHeight(22));
 
-            _rememberEmail = GUILayout.Toggle(_rememberEmail, "Remember email (saved in settings.cfg)");
-            _stayLoggedIn = GUILayout.Toggle(_stayLoggedIn, "Stay logged in (save session token in settings.cfg)");
+            _rememberEmail = GUILayout.Toggle(_rememberEmail, "Remember email");
+            _stayLoggedIn = GUILayout.Toggle(_stayLoggedIn, "Stay logged in");
 
             if (!string.IsNullOrEmpty(_statusLine))
             {
-                GUILayout.Label(_statusLine, HighLogic.Skin.label);
+                GUILayout.Label(_statusLine, _hintWrapStyle);
             }
 
+            GUILayout.EndScrollView();
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Log in", GUILayout.Height(28)))
             {
@@ -193,7 +223,6 @@ namespace KSCTowerNetwork
                 GUILayout.Label("Signing in…");
             }
 
-            GUILayout.EndScrollView();
             GUILayout.EndVertical();
 
             GUI.DragWindow(new Rect(0f, 0f, LoginWinW - 8f, 28f));
@@ -224,6 +253,15 @@ namespace KSCTowerNetwork
                 yield break;
             }
 
+            string error;
+            if (!TowerModSettings.TrySetTowerServer(_serverAddress,
+                _separateWebAddress ? _webAddress : null, out error))
+            {
+                _statusLine = error;
+                yield break;
+            }
+
+            _serverAddress = TowerModSettings.ApiBaseUrl;
             _busy = true;
             _statusLine = "";
             var url = TowerModSettings.ApiBaseUrl + "/auth/login";
@@ -240,81 +278,88 @@ namespace KSCTowerNetwork
                 "\"}";
             var body = Encoding.UTF8.GetBytes(json);
 
-            using (var req = new UnityWebRequest(url, "POST"))
+            try
             {
-                req.uploadHandler = new UploadHandlerRaw(body);
-                req.downloadHandler = new DownloadHandlerBuffer();
-                req.SetRequestHeader("Content-Type", "application/json");
-                req.timeout = 15;
-                yield return req.SendWebRequest();
-
-                _busy = false;
-
-                var text = req.downloadHandler != null ? req.downloadHandler.text : string.Empty;
-                if (req.isNetworkError || req.isHttpError)
+                using (var req = new UnityWebRequest(url, "POST"))
                 {
-                    _statusLine = req.responseCode == 401
-                        ? "Invalid email or password."
-                        : "Login failed (" + req.responseCode + ").";
-                    Debug.LogWarning("[KSCTowerNetwork] login: " + req.error + " " + text);
-                    yield break;
-                }
+                    req.uploadHandler = new UploadHandlerRaw(body);
+                    req.downloadHandler = new DownloadHandlerBuffer();
+                    req.SetRequestHeader("Content-Type", "application/json");
+                    req.timeout = 15;
+                    yield return req.SendWebRequest();
 
-                var token = ExtractToken(text);
-                if (string.IsNullOrEmpty(token))
-                {
-                    _statusLine = "Server response missing token.";
-                    Debug.LogWarning("[KSCTowerNetwork] login body: " + text);
-                    yield break;
-                }
-
-                var userEmail = ExtractAccountEmail(text);
-                if (string.IsNullOrEmpty(userEmail))
-                {
-                    userEmail = email;
-                }
-
-                // The /auth/login JWT is "tower_web" type — server-side that maps to
-                // tokenType:"clerk", which fails the isPluginCaller gate on routes
-                // like POST /v1/session/call. The plugin needs a "plugin_session"
-                // JWT instead, minted via the two-step exchange. We swap to that
-                // token before persisting so every subsequent plugin call (auto-call
-                // for room creation, manual-tune room creation, etc.) goes through
-                // as a true plugin caller. If the exchange fails for any reason we
-                // fall back to the web token so the user is at least logged in.
-                string finalToken = token;
-                yield return TryExchangeForPluginSessionRoutine(token, exchanged =>
-                {
-                    if (!string.IsNullOrEmpty(exchanged))
+                    var text = req.downloadHandler != null ? req.downloadHandler.text : string.Empty;
+                    if (req.isNetworkError || req.isHttpError)
                     {
-                        finalToken = exchanged;
+                        _statusLine = req.responseCode == 401
+                            ? "Invalid email or password."
+                            : req.responseCode == 0
+                                ? "Cannot reach this server. Check the address and your connection."
+                                : "Login failed (" + req.responseCode + "). Check the server address.";
+                        Debug.LogWarning("[KSCTowerNetwork] login: " + req.error + " " + text);
+                        yield break;
                     }
-                });
 
-                TowerModSettings.ApplyTowerLoginSuccess(
-                    finalToken,
-                    userEmail,
-                    email,
-                    _rememberEmail,
-                    _stayLoggedIn,
-                    pilotName);
+                    var token = ExtractToken(text);
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        _statusLine = "Server response missing token.";
+                        Debug.LogWarning("[KSCTowerNetwork] login body: " + text);
+                        yield break;
+                    }
 
-                // Persist the role so role-gated UI (Stream-as-Tower toggle, Park at KSC tower
-                // button) can render without an extra round-trip to /auth/me. Role is best-effort
-                // — empty string just means "treat as a regular pilot" everywhere.
-                TowerModSettings.SetTowerUserRole(ExtractRole(text));
+                    var userEmail = ExtractAccountEmail(text);
+                    if (string.IsNullOrEmpty(userEmail))
+                    {
+                        userEmail = email;
+                    }
 
-                _password = "";
-                _visible = false;
-                _statusLine = "";
+                    // The /auth/login JWT is "tower_web" type — server-side that maps to
+                    // tokenType:"clerk", which fails the isPluginCaller gate on routes
+                    // like POST /v1/session/call. The plugin needs a "plugin_session"
+                    // JWT instead, minted via the two-step exchange. We swap to that
+                    // token before persisting so every subsequent plugin call (auto-call
+                    // for room creation, manual-tune room creation, etc.) goes through
+                    // as a true plugin caller. If the exchange fails for any reason we
+                    // fall back to the web token so the user is at least logged in.
+                    string finalToken = token;
+                    yield return TryExchangeForPluginSessionRoutine(token, exchanged =>
+                    {
+                        if (!string.IsNullOrEmpty(exchanged))
+                        {
+                            finalToken = exchanged;
+                        }
+                    });
 
-                if (_onSuccess != null)
-                {
-                    var ok = _onSuccess;
-                    _onSuccess = null;
-                    _onCancel = null;
-                    ok();
+                    TowerModSettings.ApplyTowerLoginSuccess(
+                        finalToken,
+                        userEmail,
+                        email,
+                        _rememberEmail,
+                        _stayLoggedIn,
+                        pilotName);
+
+                    // Persist the role so role-gated UI (Stream-as-Tower toggle, Park at KSC tower
+                    // button) can render without an extra round-trip to /auth/me. Role is best-effort
+                    // — empty string just means "treat as a regular pilot" everywhere.
+                    TowerModSettings.SetTowerUserRole(ExtractRole(text));
+
+                    _password = "";
+                    _visible = false;
+                    _statusLine = "";
+
+                    if (_onSuccess != null)
+                    {
+                        var ok = _onSuccess;
+                        _onSuccess = null;
+                        _onCancel = null;
+                        ok();
+                    }
                 }
+            }
+            finally
+            {
+                _busy = false;
             }
         }
 

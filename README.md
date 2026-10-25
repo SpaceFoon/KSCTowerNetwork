@@ -45,8 +45,9 @@ Controllers use the hosted website. See [release build and installation](KSCTowe
   </tr>
   <tr>
     <th align="left" valign="top">🧑‍🚀 Pilot:</th>
-    <td><p>install a built player release into KSP, point its settings at the operator's server, and sign in/pair as described in <a href="KSCTowerNetwork-dev/docs/DEPLOYMENT.md#client-and-server-release-zips">deployment</a>. This source checkout contains runtime templates, not a ready-to-play DLL or bundled bridge runtime. Build/package instructions are in Development; do not tell players to copy this repository into GameData.</p>
-<p>Pilots use the same Client ZIP and set their operator's address in <code>GameData/KSCTowerNetwork/PluginData/settings.cfg</code>. Operators do not need to rebuild or repackage the client for each server. </p></td>
+    <td><p>Install the built Client ZIP into KSP, launch the game, and click the Tower toolbar button. Enter your operator's server address in the login window and sign in. The client remembers the address. See <a href="KSCTowerNetwork-dev/docs/DEPLOYMENT.md#client-and-server-release-zips">deployment</a> for installation details.</p>
+<p>Pilots use the same Client ZIP for every server. To change servers, log out, open Tower login again, and enter the new address. Operators share their server address and account instructions; no server-specific client rebuild is needed.</p>
+<p>This source checkout contains runtime templates; use a built player release.</p></td>
   </tr>
   <tr>
     <th align="left" valign="top">🛠️ Server operator:</th>

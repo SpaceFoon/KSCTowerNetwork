@@ -7,6 +7,28 @@ Compiled into `GameData/KSCTowerNetwork/Plugins/KSCTowerNetwork.Client.dll` by
 > ⚠️ **KSP must be closed when running `build-plugin.ps1`.** Unity holds an
 > open file handle on the loaded DLL.
 
+## Server selection and login
+
+The Tower toolbar button opens **Tower login** when signed out, including from
+the main menu. Pilots enter **Server address** and their account credentials.
+Bare hosts/IPs use HTTPS; explicit URLs support HTTP and custom ports. Root URLs
+gain `/v1`, while supplied API paths are preserved. The optional advanced web
+desk address supports separate website/API deployments.
+
+The chosen API and web address are saved in `auth.cfg` and override config-file
+defaults on later launches. Log out and reopen Tower login to change servers.
+Changing the API clears the previous login/role and room, stops its voice bridge,
+and uses the new host for UDP with HTTP fallback. Successful login restarts the
+bundled bridge/listen path and room adoption; `TowerSessionAutoCall` persists
+across scenes and cancels its previous requests when the login changes.
+
+`plugin-tests/run-server-address-tests.ps1` covers the pure URL normalization
+under .NET Framework, including IPv4/IPv6, proxy paths, custom ports, separate
+web origins and invalid addresses. Add `-KspManagedPath "<KSP>/KSP_x64_Data/Managed"`
+after building the plugin to also check the real KSP ConfigNode save/load round
+trip and malformed stored addresses. Release packaging runs both suites.
+Live KSP acceptance is still needed for the window and server switch flow.
+
 ## KSP mod dependencies
 
 The plugin DLL detects every external mod by reflection — none of them are a
@@ -67,7 +89,8 @@ Nothing else may live at the mod root — `build-plugin.ps1` enforces that.
 | File | Role |
 |---|---|
 | `TowerModSettings.cs` | Loads `settings.cfg`/`auth.cfg`. Owns shared static config. Spawns and tracks the voice bridge subprocess. |
-| `TowerLoginGui.cs` | In-game IMGUI window for the email/password login flow + exchange-code redemption. |
+| `TowerLoginGui.cs` | In-game server selection and email/password login + exchange-code redemption. |
+| `TowerServerAddress.cs` | Pure HTTP(S) address validation and default API/web path handling. |
 | `TowerSecureStore.cs` | DPAPI-style per-user encrypted blob for storing the `plugin_session` JWT. |
 | `TowerApiAuth.cs` | Tiny helper: builds the `Authorization: Bearer …` header from the cached JWT. |
 | `TowerToolbar.cs` | Stock-toolbar buttons (radio, ACARS) + clamping/positioning. |

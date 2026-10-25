@@ -93,6 +93,7 @@ npm(['run', 'build'], join(dev, 'backend'));
 npm(['run', 'build'], join(dev, 'web'));
 ps(join(dev, 'build-plugin.ps1'), ['-KspManagedPath', managed]);
 for (const name of ['run-listen-ui-tests.ps1', 'run-comm-radio-pure-tests.ps1', 'run-craft-thumbnail-tests.ps1']) ps(join(dev, 'plugin-tests', name));
+ps(join(dev, 'plugin-tests/run-server-address-tests.ps1'), ['-KspManagedPath', managed]);
 ps(join(bridge, 'scripts/build-bridge-runtime.ps1'), ['-NodeExePath', process.execPath, '-SessionId', 'tower-public']);
 const client = join(output, 'client');
 const mod = join(client, 'GameData/KSCTowerNetwork');
@@ -101,7 +102,7 @@ copy(join(mod, 'PluginData/settings.example.cfg'), join(mod, 'PluginData/setting
 let settings = readFileSync(join(mod, 'PluginData/settings.cfg'), 'utf8').replace('sessionId = dev-shared', 'sessionId = tower-public');
 writeFileSync(join(mod, 'PluginData/settings.cfg'), settings);
 // Neutral clients are configured by the pilot; never bake the maintainer's server or auth into public downloads.
-writeFileSync(join(client, 'INSTALL.txt'), `KSCTowerNetwork ${version} - Windows x64 client\n\nClose KSP. Install ModuleManager separately. Extract GameData into your KSP folder.\nEdit GameData/KSCTowerNetwork/PluginData/settings.cfg with your server operator's\ntowerApiHost, towerApiPort, towerApiTls and towerApiPath. Defaults are local-only.\nSet sessionId as supplied by the operator, then launch KSP and sign in.\nThe bridge bundles Node; you do not need to install Node on the pilot PC.\nWhen updating, back up and preserve your existing settings.cfg and auth.cfg.\nControllers use the operator's website and do not install this client.\nSee INTEGRATIONS.md for optional mods. KSP and other mods are not bundled.\n`);
+writeFileSync(join(client, 'INSTALL.txt'), `KSCTowerNetwork ${version} - Windows x64 client\n\nClose KSP. Install ModuleManager separately. Extract GameData into your KSP folder.\nLaunch KSP, click the Tower toolbar button and enter the operator's server\naddress in Tower login, then sign in. Hostnames/IPs default to HTTPS; an HTTP\nserver needs its full http://host:port URL. The client adds /v1 for a root URL.\nUse the advanced web desk address only when the operator hosts it separately.\nThe client remembers the server. To switch, log out and open Tower login again.\nThe bridge bundles Node; you do not need to install Node on the pilot PC.\nWhen updating, back up and preserve your existing settings.cfg and auth.cfg.\nControllers use the operator's website and do not install this client.\nSee INTEGRATIONS.md for optional mods. KSP and other mods are not bundled.\n`);
 copy(join(dev, 'docs/INTEGRATIONS.md'), join(client, 'INTEGRATIONS.md'));
 const runtimeModules = join(mod, 'PluginData/bridge-runtime/app/node_modules');
 writeFileSync(join(client, 'DEPENDENCY_NOTICES.txt'), dependencyNotices(runtimeModules));

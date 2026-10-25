@@ -144,7 +144,7 @@ warnings in `TowerAcarsGui` deserialization fields.
 - **L-B3.** `services/store.ts` is unused dead code.
 - **L-F1.** `formatApiError` has no `"handoff"` branch but `ChatDesk.tsx:114` passes it.
 - **L-F2.** Admin/chat mutations have no optimistic-concurrency token.
-- **L-P1.** Login UI claims tokens are saved in `settings.cfg` but they go to `auth.cfg`. `PluginSrc/TowerLoginGui.cs:105-106`.
+- **L-P1. [FIXED]** Login checkboxes now say Remember email / Stay logged in; server/login preferences are saved in plugin-owned `auth.cfg`.
 - **L-P2.** Regex JSON extraction is fragile. `PluginSrc/TowerLoginGui.cs:233-257`. `JsonEscape` doesn't handle all control chars.
 - **L-P3.** Ad-hoc JSON parsing for `nextTelemetrySeconds`. `PluginSrc/TowerTelemetryPublisher.cs:87-130`.
 

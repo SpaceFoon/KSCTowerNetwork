@@ -15,6 +15,8 @@ namespace KSCTowerNetwork
         private const string RelPath = "GameData/KSCTowerNetwork/PluginData/settings.cfg";
         private const string AuthRelPath = "GameData/KSCTowerNetwork/PluginData/auth.cfg";
         private static bool _loaded;
+        private static bool _hasServerOverride;
+        private static string _configuredSessionId;
 
         public static string ApiBaseUrl { get; private set; }
 
@@ -22,8 +24,8 @@ namespace KSCTowerNetwork
         /// Base URL of the tower web SPA, used for the toolbar's "open this in the browser"
         /// shortcuts (charts viewer, lobby deep links). Defaults to the Vite dev server on
         /// <c>http://127.0.0.1:45173</c> (see <c>web/vite.config.ts</c> which pins
-        /// <c>strictPort: 45173</c>); override via <c>webBaseUrl = ...</c> in settings.cfg
-        /// for prod deployments where the SPA is hosted alongside the API.
+        /// <c>strictPort: 45173</c>). Tower login saves a player override in auth.cfg;
+        /// <c>webBaseUrl</c> in settings.cfg supplies the initial default.
         /// </summary>
         public static string WebBaseUrl { get; private set; }
         public static string SessionId { get; private set; }
@@ -255,6 +257,7 @@ namespace KSCTowerNetwork
             ApiBaseUrl = "http://127.0.0.1:48787/v1";
             WebBaseUrl = "http://127.0.0.1:45173";
             SessionId = "dev-shared";
+            _configuredSessionId = SessionId;
             SessionCallsign = string.Empty;
             PilotCallsign = string.Empty;
             VoiceListenHost = "127.0.0.1";
@@ -327,6 +330,7 @@ namespace KSCTowerNetwork
             ApiBaseUrl = ResolveTowerApiBaseUrl(node);
             WebBaseUrl = NormalizeUrl(ReadString(node, "webBaseUrl", WebBaseUrl), WebBaseUrl);
             SessionId = ReadString(node, "sessionId", SessionId);
+            _configuredSessionId = SessionId;
             PilotCallsign = ReadString(node, "pilotCallsign", PilotCallsign);
             if (string.IsNullOrEmpty(PilotCallsign))
             {
@@ -664,6 +668,27 @@ namespace KSCTowerNetwork
             }
 
             var node = file.GetNode("KSCTOWERNETWORK_AUTH") ?? file;
+            var server = node.GetNode("SERVER");
+            if (server != null)
+            {
+                string api;
+                string web;
+                if (!TryReadServerUrl(server.GetNode("API"), true, out api)
+                    || !TryReadServerUrl(server.GetNode("WEB"), false, out web))
+                {
+                    // Never send a saved server's token to the fallback endpoint.
+                    TowerAuthToken = string.Empty;
+                    Debug.LogWarning("[KSCTowerNetwork] invalid saved server; select its address in Tower login.");
+                    return;
+                }
+
+                ApiBaseUrl = api;
+                WebBaseUrl = web;
+                LiveUdpHost = new Uri(api).DnsSafeHost;
+                LiveUdpFallbackHttp = true;
+                _hasServerOverride = true;
+            }
+
             var v = node.GetValue("towerAuthToken");
             if (v != null)
             {
@@ -840,6 +865,93 @@ namespace KSCTowerNetwork
             TowerVoicePlayback.RefreshListenVolumeFromSettings();
         }
 
+        public static bool TrySetTowerServer(string address, string webAddress, out string error)
+        {
+            EnsureLoaded();
+            string api;
+            if (!TowerServerAddress.TryNormalize(address, true, out api, out error))
+            {
+                return false;
+            }
+
+            string web;
+            if (string.IsNullOrWhiteSpace(webAddress))
+            {
+                web = TowerServerAddress.WebBaseForApi(api);
+            }
+            else if (!TowerServerAddress.TryNormalize(webAddress, false, out web, out error))
+            {
+                error = "Web desk address: " + error;
+                return false;
+            }
+
+            var changed = !string.Equals(ApiBaseUrl, api, StringComparison.Ordinal);
+            if (!changed && string.Equals(WebBaseUrl, web, StringComparison.Ordinal))
+            {
+                _hasServerOverride = true;
+                SaveSettingsToDisk();
+                return true;
+            }
+
+            ApiBaseUrl = api;
+            WebBaseUrl = web;
+            _hasServerOverride = true;
+            if (changed)
+            {
+                LiveUdpHost = new Uri(api).DnsSafeHost;
+                LiveUdpFallbackHttp = true;
+                SessionId = _configuredSessionId;
+                StreamAsTower = false;
+                ChannelPresets = new[] { SessionId };
+                ClearTowerAuth();
+            }
+            else
+            {
+                SaveSettingsToDisk();
+            }
+
+            return true;
+        }
+
+        private static bool TryReadServerUrl(ConfigNode node, bool api, out string address)
+        {
+            address = null;
+            int port;
+            if (node == null || !int.TryParse(node.GetValue("port"), out port) || port < 1 || port > 65535)
+            {
+                return false;
+            }
+
+            var scheme = node.GetValue("scheme");
+            var host = node.GetValue("host");
+            if ((scheme != Uri.UriSchemeHttp && scheme != Uri.UriSchemeHttps) || string.IsNullOrEmpty(host))
+            {
+                return false;
+            }
+
+            try
+            {
+                var builder = new UriBuilder(scheme, host, port,
+                    Uri.UnescapeDataString(node.GetValue("path") ?? string.Empty));
+                string error;
+                return TowerServerAddress.TryNormalize(builder.Uri.AbsoluteUri, api, out address, out error);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private static void WriteServerUrl(ConfigNode node, string address)
+        {
+            var uri = new Uri(address);
+            node.AddValue("scheme", uri.Scheme);
+            node.AddValue("host", uri.DnsSafeHost);
+            node.AddValue("port", uri.Port.ToString(CultureInfo.InvariantCulture));
+            // ConfigNode treats // as a comment even within URL values.
+            node.AddValue("path", Uri.EscapeDataString(uri.AbsolutePath));
+        }
+
         /// <summary>After successful <c>POST /auth/login</c>: store JWT, optional email prefs, pilot callsign from login or account email.</summary>
         /// <param name="pilotNameFromLogin">Trimmed callsign from the login form; empty uses email local-part when <see cref="PilotCallsign"/> is unset.</param>
         public static void ApplyTowerLoginSuccess(
@@ -884,6 +996,18 @@ namespace KSCTowerNetwork
             }
 
             SaveSettingsToDisk();
+            TrySpawnVoiceBridgeProcess();
+            if (AutoConnectVoiceListen)
+            {
+                TowerVoicePlayback.EnsureExists();
+                var playback = TowerVoicePlayback.Instance;
+                if (playback != null && !playback.IsConnectingOrConnected)
+                {
+                    playback.StartBridgeConnection(VoiceListenHost, VoiceListenPort);
+                }
+            }
+
+            TowerSessionAutoCall.RestartForLogin();
         }
 
         /// <summary>
@@ -1047,7 +1171,15 @@ namespace KSCTowerNetwork
             EnsureLoaded();
             TowerAuthToken = string.Empty;
             TowerAccountEmail = string.Empty;
+            TowerUserRole = string.Empty;
             SessionCallsign = string.Empty;
+            if (TowerVoicePlayback.Instance != null)
+            {
+                TowerVoicePlayback.Instance.StopBridgeConnection();
+            }
+
+            StopSpawnedVoiceBridgeIfAny();
+            TowerSessionAutoCall.RestartForLogin();
             SaveSettingsToDisk();
         }
 
@@ -1068,6 +1200,13 @@ namespace KSCTowerNetwork
 
             var file = new ConfigNode();
             var knode = file.AddNode("KSCTOWERNETWORK_AUTH");
+            if (_hasServerOverride)
+            {
+                var server = knode.AddNode("SERVER");
+                WriteServerUrl(server.AddNode("API"), ApiBaseUrl);
+                WriteServerUrl(server.AddNode("WEB"), WebBaseUrl);
+            }
+
             knode.AddValue("pilotCallsign", PilotCallsign ?? string.Empty);
             knode.AddValue("pilotDisplayName", PilotCallsign ?? string.Empty);
             // Email is mildly identifying PII; encrypt it on Windows alongside the JWT so a

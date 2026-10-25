@@ -41,6 +41,7 @@ $csc = Join-Path $fx "csc.exe"
 $src = @(
     (Join-Path $here "PluginSrc\Properties\AssemblyInfo.cs"),
     (Join-Path $here "PluginSrc\TowerModSettings.cs"),
+    (Join-Path $here "PluginSrc\TowerServerAddress.cs"),
     (Join-Path $here "PluginSrc\TowerSecureStore.cs"),
     (Join-Path $here "PluginSrc\TowerMainThreadDispatcher.cs"),
     (Join-Path $here "PluginSrc\TowerApiAuth.cs"),

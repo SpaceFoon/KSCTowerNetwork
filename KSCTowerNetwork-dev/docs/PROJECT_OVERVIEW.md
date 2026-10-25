@@ -207,7 +207,8 @@ under `KSP_x64_Data/Managed`.
 | `TowerModSettings.cs` | Loads `PluginData/settings.cfg` and `auth.cfg`; spawns and reaps the voice bridge child process; central read-only-ish config holder. |
 | `TowerSecureStore.cs` | DPAPI-ish wrapper for storing the bearer token under Windows. |
 | `TowerApiAuth.cs` | Adds `Authorization: Bearer <jwt>` to outgoing `UnityWebRequest`s. |
-| `TowerLoginGui.cs` | Email/password popup; calls `/auth/login`, stores `tower_web` JWT + role. |
+| `TowerLoginGui.cs` | Server address and email/password popup; exchanges the login JWT for a plugin session and saves the server/login preferences. |
+| `TowerServerAddress.cs` | HTTP(S) address validation, HTTPS default for bare hosts/IPs, root API `/v1`, and same-site web URL derivation; pure .NET logic. |
 | `TowerToolbar.cs` | KSP `ApplicationLauncher` button → shows `TowerRadioGui`. Gates on login. |
 | `TowerRadioGui.cs` | The "tower radio" IMGUI panel (~37 KB): power, channel dial, RX/TX VU meters, hold-to-talk bar, settings popover. Owns PTT keyboard handling. |
 | `TowerMicMeter.cs` | Sample local mic level so the radio can show a TX VU meter without occupying the mic for capture. |
@@ -547,7 +548,9 @@ For a fresh Ubuntu VPS or VM, use the [Ubuntu installer](../deploy/README.md):
    starts the backend systemd service. Cloudflare is optional.
 3. Verify deploy-user SSH, HTTPS health and owner login, then share the website
    with controllers and connection settings with pilots.
-4. Pilots install the standard Client ZIP and configure PluginData/settings.cfg.
+4. Pilots install the standard Client ZIP, click the Tower toolbar button and
+   enter the operator's Server address in Tower login. The address is saved in
+   plugin-owned auth.cfg; changing servers uses Log out and the same login window.
    No server-specific client rebuild is required.
 
 For the prebuilt Server ZIP or existing Linux/Windows hosts, follow the

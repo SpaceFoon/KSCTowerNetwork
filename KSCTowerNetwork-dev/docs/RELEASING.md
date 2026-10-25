@@ -6,14 +6,17 @@ with Node 24.22.1+ (24.x), npm, MariaDB, Redis, an HTTPS proxy and LiveKit.
 
 - **Client ZIP:** compiled KSP plugin, Windows Node runtime, patched LiveKit bridge,
   runtime dependencies, settings template, install guide and license notices.
-  Pilots choose their operator's server in settings.cfg. Defaults are loopback;
-  no community server is implied. Controllers only need the operator's website.
+  Pilots enter their operator's server address in the in-game Tower login
+  window; the client remembers it. No community server is implied. Controllers only need the operator's website.
 - **Server ZIP:** compiled backend and same-origin website, package lockfile,
   deployment templates, docs and optional chart installer. No Windows native
   dependencies are copied to Linux. Run the server install command on the host.
 - **KSCTowerNetwork.ckan:** generated after the client ZIP, with its final size,
   URL and hashes. Keep it beside the ZIP; embedding a hash of an archive inside
   itself creates an impossible circular checksum requirement.
+
+Rebuild and publish a new Client ZIP to distribute the Server address login
+field. Previously published clients do not gain this UI from a backend update.
 
 ## Maintainer build (Windows x64)
 
