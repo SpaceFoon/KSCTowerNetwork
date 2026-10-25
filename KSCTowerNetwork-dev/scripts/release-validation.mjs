@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 export function validateReleaseTree(root, kind) {
-  const required = kind === 'client' ? ['GameData/KSCTowerNetwork/Plugins/KSCTowerNetwork.Client.dll', 'GameData/KSCTowerNetwork/PluginData/settings.cfg', 'GameData/KSCTowerNetwork/PluginData/bridge-runtime/node/node.exe', 'GameData/KSCTowerNetwork/PluginData/bridge-runtime/node/LICENSE', 'GameData/KSCTowerNetwork/PluginData/bridge-runtime/app/dist/bridge.js'] : ['KSCTowerNetwork-dev/backend/dist/index.js', 'KSCTowerNetwork-dev/backend/package-lock.json', 'KSCTowerNetwork-dev/web/dist/index.html', 'KSCTowerNetwork-dev/deploy/server.env.example', 'KSCTowerNetwork-dev/deploy/server.mjs'];
+  const required = kind === 'client' ? ['GameData/KSCTowerNetwork/Plugins/KSCTowerNetwork.Client.dll', 'GameData/KSCTowerNetwork/PluginData/settings.cfg', 'GameData/KSCTowerNetwork/PluginData/bridge-runtime/node/node.exe', 'GameData/KSCTowerNetwork/PluginData/bridge-runtime/node/LICENSE', 'GameData/KSCTowerNetwork/PluginData/bridge-runtime/app/dist/bridge.js'] : ['KSCTowerNetwork-dev/backend/dist/index.js', 'KSCTowerNetwork-dev/backend/package-lock.json', 'KSCTowerNetwork-dev/web/dist/index.html', 'KSCTowerNetwork-dev/deploy/server.env.example', 'KSCTowerNetwork-dev/deploy/server.mjs', 'KSCTowerNetwork-dev/web/scripts/index_aerocharts.py'];
   for (const path of [...required, 'LICENSE', 'NOTICE.md', 'DEPENDENCY_NOTICES.txt', 'INSTALL.txt', 'RELEASE_MANIFEST.json']) if (!existsSync(join(root, path))) throw new Error(`Missing ${kind} release file: ${path}`);
   function walk(folder) {
     for (const entry of readdirSync(folder, { withFileTypes: true })) {

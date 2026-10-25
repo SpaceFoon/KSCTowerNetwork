@@ -7,7 +7,7 @@ import { validateReleaseTree } from './release-validation.mjs';
 function fixture(t) {
   const root = mkdtempSync(join(tmpdir(), 'ksc-release-test-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
-  const names = ['LICENSE', 'NOTICE.md', 'DEPENDENCY_NOTICES.txt', 'INSTALL.txt', 'RELEASE_MANIFEST.json', 'KSCTowerNetwork-dev/backend/dist/index.js', 'KSCTowerNetwork-dev/backend/package-lock.json', 'KSCTowerNetwork-dev/web/dist/index.html', 'KSCTowerNetwork-dev/deploy/server.env.example', 'KSCTowerNetwork-dev/deploy/server.mjs'];
+  const names = ['LICENSE', 'NOTICE.md', 'DEPENDENCY_NOTICES.txt', 'INSTALL.txt', 'RELEASE_MANIFEST.json', 'KSCTowerNetwork-dev/backend/dist/index.js', 'KSCTowerNetwork-dev/backend/package-lock.json', 'KSCTowerNetwork-dev/web/dist/index.html', 'KSCTowerNetwork-dev/deploy/server.env.example', 'KSCTowerNetwork-dev/deploy/server.mjs', 'KSCTowerNetwork-dev/web/scripts/index_aerocharts.py'];
   for (const name of names) { mkdirSync(dirname(join(root, name)), { recursive: true }); writeFileSync(join(root, name), 'fixture'); }
   mkdirSync(join(root, 'KSCTowerNetwork-dev/web/dist/charts'), { recursive: true });
   writeFileSync(join(root, 'KSCTowerNetwork-dev/web/dist/charts/manifest.json'), JSON.stringify({ pageCount: 0, pages: [] }));
