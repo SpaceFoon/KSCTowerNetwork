@@ -10,7 +10,7 @@ Configuration locations are listed below. Each row identifies where settings are
 | `web/.env` (`VITE_*`) | Web SPA build | Devs/operator. |
 | `GameData/KSCTowerNetwork/PluginData/settings.cfg` | KSP plugin | End users (per-install). |
 | `GameData/KSCTowerNetwork/PluginData/auth.cfg` | KSP plugin | Plugin (do not hand-edit). |
-| `KSCTowerNetwork-dev/release-config.json` | Release packager | Distributor (one per release). |
+| `/etc/ksctower.env` | Ubuntu installer/systemd | Installer writes it from CONFIG; operator manages runtime settings. |
 
 ## Backend env
 
@@ -253,18 +253,16 @@ rewriting the user’s commented `settings.cfg`. Relevant to the radio panel:
 
 Full radio UI behavior (procedural MHz LCD, 25 kHz COM snap, VOL): [`TOWER_RADIO_UI.md`](TOWER_RADIO_UI.md).
 
-## Release config (`release-config.json`)
+## Public client configuration
 
-Used by `scripts/package-release.ps1` to bake deployment URLs into the
-end-user ZIP. Template: `release-config.example.json`.
+Public Client ZIPs are neutral. Each pilot configures the operator's address
+in GameData/KSCTowerNetwork/PluginData/settings.cfg:
 
-| Key | Notes |
-|---|---|
-| `towerApiHost` / `towerApiPort` / `towerApiTls` / `towerApiPath` | Baked into the shipped `settings.cfg`. |
-| `sessionId` | Default room. |
-| `livekitUrl` | Bridge runtime env. |
-| `bridgeIdentity` | Defaults to `ksp_bridge`. |
-| `webBaseUrl` | Used in the in-game login GUI's "open browser" button. |
+| Key | Purpose |
+| --- | --- |
+| towerApiHost / towerApiPort / towerApiTls / towerApiPath | Operator's backend hostname, port, TLS setting and API path. |
+| sessionId | Operator-supplied default channel where applicable. |
 
-Never commit a populated `release-config.json` for someone else's
-deployment. Only the example is checked in.
+Voice connection details come from the backend. Hosting a tower does not require
+rebuilding or repackaging the client. The public release builder does not read
+the historical release-config.json template. See [RELEASING.md](RELEASING.md).

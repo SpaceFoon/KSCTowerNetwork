@@ -1,31 +1,44 @@
 # KSCTowerNetwork — Deployment Guide
 
-End-to-end guide for taking the project from local dev to a public, hardened, internet-reachable deployment that your buddy can join from anywhere.
+## Start here: Ubuntu VPS or VM
 
-> If you just want to run a one-off online test session with a remote buddy and you don't need a permanent server, skip this doc and use a Cloudflare Tunnel quick-tunnel against your local `npm run dev`. This guide is for the real thing.
+Configure the installer, run it on a fresh Ubuntu 22.04 or 24.04 LTS server,
+then open your tower website. The same process works on a rented VPS or an
+Ubuntu VM with a reachable address and the required ports forwarded.
 
----
-
-For a VPS that already has Node, database/cache and a reverse proxy, use the lighter [server-only Bash/PowerShell commands](../docs/SERVER_HOSTING.md). They also support a Windows server.
-
-## TL;DR
+The installer installs Node, MariaDB, Redis and nginx, builds the backend and
+website, configures HTTPS and the firewall, and starts the backend as a systemd
+service that starts again after reboot. It writes your production environment
+to `/etc/ksctower.env`. Supply your hostname, SSH public key, owner login,
+signup policy and LiveKit settings in the script's CONFIG block before running.
+After installation, runtime settings live in that env file; restart
+`ksctower-backend` after changing them.
 
 ```bash
-# 1. Provision a fresh Ubuntu 24.04 LTS VPS, point a DNS A record at it, get a
-#    Cloudflare API token (4 scopes — see "Cloudflare API token" below).
-# 2. Edit deploy/setup-vps.sh CONFIG block (~10 fields).
-# 3. scp it to the VPS, run it as root.
-scp deploy/setup-vps.sh root@<vps-ip>:/root/
-ssh root@<vps-ip>
-nano setup-vps.sh
-bash setup-vps.sh
-# 4. In a SECOND terminal, confirm:  ssh -p 22 tower@<your-domain>
-# 5. Visit https://<your-domain>/ and log in.
-# 6. Package a player release configured for your server. Browser-only
-#    controllers need the website URL and an account/invite.
+# On your computer, from KSCTowerNetwork-dev:
+scp deploy/setup-vps.sh root@<server-ip>:/root/setup-vps.sh
+ssh root@<server-ip>
+
+# On the fresh Ubuntu server:
+nano /root/setup-vps.sh   # configure the CONFIG block
+sudo bash /root/setup-vps.sh
 ```
 
-The script handles: hardening, Node/nginx/MariaDB/Redis install, repo clone + build, systemd service, Cloudflare API automation (DNS, SSL settings, Origin Cert generation, Authenticated Origin Pulls), origin lockdown verification.
+Keep the current SSH session open and confirm a second login as the configured
+deploy user before closing it. Then check `https://<your-domain>/v1/health`,
+open the website and sign in as owner.
+
+Choose `BEHIND_CLOUDFLARE=0` for direct HTTPS with Let's Encrypt, or
+`1` for the Cloudflare mode described below. The script configures the voice
+connection using your LiveKit settings; it does not install the voice service.
+
+Share your website URL with controllers and your hostname/port/TLS/API-path
+settings with pilots. Pilots download the standard Client ZIP and configure
+`PluginData/settings.cfg`. No server-specific client build is required.
+
+For an existing host or the prebuilt Server ZIP, use the alternative
+[server-only instructions](../docs/SERVER_HOSTING.md). Those instructions also
+cover Windows; they are not extra steps after this Ubuntu installer.
 
 ---
 
@@ -79,8 +92,8 @@ You need:
 |---|---|---|
 | VPS, Ubuntu Server 24.04 LTS, ≥1 GB RAM | Hetzner CX22, Vultr, DigitalOcean, Linode, etc. | ~$4-6/mo |
 | Domain or subdomain | Namecheap, Porkbun, Cloudflare Registrar | $10-15/yr |
-| Cloudflare account | https://dash.cloudflare.com (free tier is fine) | $0 |
-| Cloudflare API token (4 scopes) | https://dash.cloudflare.com/profile/api-tokens | $0 |
+| Cloudflare account (only for Cloudflare mode) | https://dash.cloudflare.com (free tier is fine) | $0 |
+| Cloudflare API token (only for Cloudflare API automation) | https://dash.cloudflare.com/profile/api-tokens | $0 |
 | LiveKit Cloud account | https://cloud.livekit.io (free tier: 50 users, 100 min/mo voice) | $0 to start |
 | SSH keypair on your laptop | `ssh-keygen -t ed25519` if you don't have one | $0 |
 
@@ -101,11 +114,18 @@ Sizing notes:
 
 ### 2. Point DNS at the VPS
 
+For direct HTTPS, set `BEHIND_CLOUDFLARE=0`, point your DNS A record at the
+server and allow inbound TCP 80/443. Skip the Cloudflare token step below. For
+a VM behind a router, forward those ports to the VM and retain SSH access.
+
+The remaining instructions in this step apply to Cloudflare mode:
+
+
 If your DNS is already on Cloudflare, skip — the script will create the A record via API.
 
 If your DNS is elsewhere, change your nameservers to Cloudflare first (one-time, takes 15 min to propagate). Cloudflare → "Add a Site" walks you through it. Don't add the A record manually; let the script do it.
 
-### 3. Create the Cloudflare API token
+### 3. Create the Cloudflare API token (Cloudflare mode only)
 
 https://dash.cloudflare.com/profile/api-tokens → **Create Token** → **Custom token**.
 
@@ -282,15 +302,24 @@ The web side is now public, but the buddy needs the KSP plugin (and bridge runti
 
 ### Pilot side (anyone running KSP)
 
-The server URLs come from runtime settings, not hardcoded constants in TowerToolbar/TowerTelemetryPublisher. Follow [Development](../docs/DEVELOPMENT.md) to build the plugin and bundled bridge with a local KSP installation; the VPS does not do those builds.
+Download the **Client** ZIP from the [GitHub releases](https://github.com/SpaceFoon/KSCTowerNetwork/releases).
+Extract its GameData folder into the KSP installation. In
+`GameData/KSCTowerNetwork/PluginData/settings.cfg`, set the server details
+supplied by the operator:
 
-Copy `KSCTowerNetwork-dev/release-config.example.json` to the gitignored `KSCTowerNetwork-dev/release-config.json`. Set `backend.origin` and `web.origin` to your public HTTPS hostname, `backend.apiPath` to `/v1`, and `session.id` to the desired default. From `KSCTowerNetwork-voice-bridge/voice-bridge/`, after the plugin and runtime have been built:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/package-release.ps1 -ConfigPath ../../KSCTowerNetwork-dev/release-config.json
+```text
+towerApiHost = tower.example.com
+towerApiPort = 443
+towerApiTls = True
+towerApiPath = /v1
 ```
 
-Use the ZIP reported by the packager. Players extract its `GameData/KSCTowerNetwork/` into their KSP installation, sign in/pair, and verify their bridge/voice and telemetry. Existing installations can edit the server host/port/TLS/path and web URL in their runtime settings; changing a server hostname does not require editing those C# sources.
+Use the operator's actual hostname. Sign in/pair and verify telemetry and voice.
+Preserve personal settings.cfg and auth.cfg when updating. Every community uses
+the same neutral Client ZIP; changing a hostname needs a settings change, not a
+new DLL or a repackaged download. Controllers only need the website and account.
+The [release builder](../docs/RELEASING.md) is for maintainers publishing new
+versions, not a step in hosting a tower.
 
 ### Tower-only side (browser only, no KSP)
 
@@ -511,10 +540,10 @@ So ~$6/mo plus voice usage. A 4-hour session with 4 people talking is 16 person-
 |---|---|
 | `deploy/setup-vps.sh` | The actual provisioning script |
 | `deploy/README.md` | This document |
-| `HOSTING.md` | Older / shorter manual deployment notes (`release-config.json` based player release packaging) |
+| `docs/HOSTING.md` | Short hosting entry point linking this installer and manual alternatives |
 | `PRODUCTION_DEPLOYMENT_PLAN.md` | Original planning doc; superseded by this guide for VPS deployment |
 | `SECURITY_HARDENING.md` | Application-level security audit |
 | `KSCTowerNetwork-dev/backend/.env.development` | Local dev env (do NOT copy to production) |
-| `GameData/KSCTowerNetwork/release-config.example.json` | Player-release packaging template |
+| `GameData/KSCTowerNetwork/PluginData/settings.example.cfg` | Per-install pilot settings template |
 | `KSCTowerNetwork-dev/build-plugin.ps1` | Builds the KSP plugin DLL on Windows |
-| `KSCTowerNetwork-voice-bridge/voice-bridge/scripts/package-release.ps1` | Packages the player ZIP with hostnames baked in |
+| `KSCTowerNetwork-voice-bridge/voice-bridge/scripts/package-release.ps1` | Builds neutral Client and Server release packages |

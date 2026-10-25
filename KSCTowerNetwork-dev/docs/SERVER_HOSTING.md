@@ -2,6 +2,20 @@
 
 This guide takes an operator from a source checkout to an HTTPS website, an owner login, and a server that survives logout/reboot. The server runs **backend + web**, with **MariaDB + Redis** and **LiveKit**. It does not run KSP or the player's voice bridge.
 
+## Recommended: fresh Ubuntu VPS or VM
+
+For a new Ubuntu 22.04 or 24.04 LTS server, use the
+[Ubuntu installer](../deploy/README.md). Configure its hostname, SSH key, owner
+login and voice settings, then run `sudo bash setup-vps.sh`. The script installs
+Node, MariaDB, Redis and nginx, builds the backend and website, configures HTTPS
+and the firewall, writes `/etc/ksctower.env` and starts the systemd service.
+Cloudflare is optional. A VM needs a reachable address and the appropriate
+router/provider port forwarding.
+
+The instructions below are alternatives for a prebuilt Server ZIP or an existing
+Linux/Windows host. You do not need to follow the manual installation steps
+after running the Ubuntu installer.
+
 ## Installing the prebuilt server release
 
 Download the Server ZIP from the same GitHub Release as your pilots' Client ZIP.
@@ -22,7 +36,7 @@ password hash must be configured before login. Preserve private config/data on u
 
 ## Choose a setup
 
-- **Fresh Ubuntu VPS:** the [Ubuntu bootstrap guide](../deploy/README.md) installs OS packages, database/cache, nginx, TLS, and systemd. It also changes SSH/firewall and can configure Cloudflare. Follow that guide if you want that full provisioning process.
+- **Fresh Ubuntu VPS or VM:** the [Ubuntu bootstrap guide](../deploy/README.md) installs OS packages, database/cache, nginx, TLS, and systemd. It also changes SSH/firewall and can configure Cloudflare. Follow that guide if you want that full provisioning process.
 - **Existing Linux VPS:** follow the manual recipe below. It uses Caddy directly on the public hostname; Cloudflare is optional and not assumed.
 - **Windows host:** use the PowerShell commands at the end, with the same production configuration and external database/cache/HTTPS requirements.
 

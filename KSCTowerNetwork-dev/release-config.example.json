@@ -1,5 +1,5 @@
 {
-  "$comment": "Copy this to release-config.json (gitignored) and fill in your hosts. The package-release.ps1 script reads it and bakes the values into the staged release: settings.cfg, the web build, and start-bridge.cmd defaults.",
+  "$comment": "Historical deployment-config example retained for reference. The current public release builder does not read this file. Server operators configure their server env; pilots configure PluginData/settings.cfg.",
 
   "version": "0.1.0",
 
@@ -21,7 +21,7 @@
   },
 
   "session": {
-    "$comment": "Default channel name baked into the shipped settings.cfg. Players can change it in-game.",
+    "$comment": "Historical default channel example. Pilots configure their runtime settings independently of public release builds.",
     "id": "tower-public"
   }
 }

@@ -4,12 +4,29 @@
 
 Voice, telemetry, ACARS text, and controller tools for Kerbal Space Program. Pilots run the game with the plugin; controllers use a browser. Each player keeps their own physics and save.
 
+## Host a tower on Ubuntu
+
+Start with a fresh Ubuntu 22.04 or 24.04 LTS VPS or VM. Configure the installer
+with your hostname, SSH key, owner login and voice settings, then run
+`sudo bash setup-vps.sh`. It installs Node, MariaDB, Redis and nginx, builds
+the backend and website, configures HTTPS and the firewall, and starts the
+backend as a systemd service. It writes the production environment to
+`/etc/ksctower.env`. Cloudflare is optional; direct HTTPS is supported.
+
+Follow the [Ubuntu installer guide](KSCTowerNetwork-dev/deploy/README.md).
+For an Ubuntu VM, give it a reachable address and forward the required ports.
+Voice uses the LiveKit service configured in your server settings.
+
+Pilots use the same Client ZIP and set their operator's address in
+`GameData/KSCTowerNetwork/PluginData/settings.cfg`. Operators do not need
+to rebuild or repackage the client for each server.
+
 ## Start here
 
 | You want to… | Read |
 | --- | --- |
-| Host the backend and web app on a Linux VPS or Windows server | [Server hosting: prerequisites through first login](KSCTowerNetwork-dev/docs/SERVER_HOSTING.md) |
-| Provision a fresh Ubuntu VPS, including its OS, firewall, TLS and services | [Ubuntu bootstrap guide](KSCTowerNetwork-dev/deploy/README.md) |
+| Use the prebuilt server or set up an existing Linux/Windows host manually | [Server hosting: prerequisites through first login](KSCTowerNetwork-dev/docs/SERVER_HOSTING.md) |
+| Install a complete backend and website on a fresh Ubuntu VPS or VM | [Ubuntu bootstrap guide](KSCTowerNetwork-dev/deploy/README.md) |
 | Install optional Kerbin charts on your website | [Chart download and installation](KSCTowerNetwork-dev/docs/AEROCHART_REFERENCE.md) |
 | Build or develop the game plugin, web app or player bridge | [Development](KSCTowerNetwork-dev/docs/DEVELOPMENT.md) |
 | Choose required/optional player mods | [Mod integrations](KSCTowerNetwork-dev/docs/INTEGRATIONS.md) |
@@ -17,11 +34,11 @@ Voice, telemetry, ACARS text, and controller tools for Kerbal Space Program. Pil
 
 ## What runs where
 
-**Server operator:** host the Node backend and static web app, with MariaDB, Redis, HTTPS and a LiveKit service. A Linux VPS works; no KSP installation, player bridge or Windows tooling belongs on this server. Bash and PowerShell entry points provide server-only setup/build/start. Start with the hosting guide above; running the backend alone does not serve the web interface.
+**Server operator:** use the Ubuntu installer above for a fresh VPS or VM. It installs and configures the backend, website, database/cache, HTTPS and service startup. Existing hosts and Windows servers can use the manual hosting guide.
 
 **Controller:** open the operator's HTTPS website, register with an invite or use an account supplied by the operator, and join the controller queue from the Lobby. Voice needs browser microphone permission.
 
-**Pilot:** install a built player release into KSP, point its settings at the operator's server, and sign in/pair as described in [deployment](KSCTowerNetwork-dev/docs/DEPLOYMENT.md#end-user-release-zip). This source checkout contains runtime templates, not a ready-to-play DLL or bundled bridge runtime. Build/package instructions are in Development; do not tell players to copy this repository into GameData.
+**Pilot:** install a built player release into KSP, point its settings at the operator's server, and sign in/pair as described in [deployment](KSCTowerNetwork-dev/docs/DEPLOYMENT.md#client-and-server-release-zips). This source checkout contains runtime templates, not a ready-to-play DLL or bundled bridge runtime. Build/package instructions are in Development; do not tell players to copy this repository into GameData.
 
 ## Downloads and releases
 

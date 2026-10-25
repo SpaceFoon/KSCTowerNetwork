@@ -539,19 +539,21 @@ publish.
 
 ## 9. Production deployment
 
-Detailed in [`HOSTING.md`](HOSTING.md) and [`PRODUCTION_DEPLOYMENT_PLAN.md`](PRODUCTION_DEPLOYMENT_PLAN.md). Summary:
+For a fresh Ubuntu VPS or VM, use the [Ubuntu installer](../deploy/README.md):
 
-1. **Pick three URLs**: backend API, web SPA, LiveKit WSS.
-2. **Build client/server ZIPs** using [RELEASING.md](RELEASING.md).
-   Public clients are neutral and configured by each pilot.
-3. **Backend** on Railway / Fly / VPS with: `NODE_ENV=production`,
-   `APP_JWT_SECRET`, LiveKit creds, `CORS_ORIGINS=https://your.web.host`,
-   MariaDB + Redis, `WEB_LOGIN_USERS_JSON` (or Clerk), `OWNER_USER_ID`.
-4. **Web** built with `VITE_API_BASE=https://api.your.host` and deployed to a
-   static host (or single-origin behind the backend).
-5. **LiveKit Cloud** project; paste API key/secret/WS URL into backend env.
-6. **Players** download the release ZIP, drop `GameData/KSCTowerNetwork/`
-   into their KSP install, edit `PluginData/settings.cfg` to use the operator's server hostname.
+1. Configure the installer's hostname, SSH key, owner login and voice settings.
+2. Run `sudo bash setup-vps.sh`. It installs Node, MariaDB, Redis and nginx,
+   builds backend/web, configures HTTPS/firewall, writes /etc/ksctower.env and
+   starts the backend systemd service. Cloudflare is optional.
+3. Verify deploy-user SSH, HTTPS health and owner login, then share the website
+   with controllers and connection settings with pilots.
+4. Pilots install the standard Client ZIP and configure PluginData/settings.cfg.
+   No server-specific client rebuild is required.
+
+For the prebuilt Server ZIP or existing Linux/Windows hosts, follow the
+alternative [SERVER_HOSTING.md](SERVER_HOSTING.md) path. LiveKit voice is
+configured through the server env. Maintainer release builds are separate:
+[RELEASING.md](RELEASING.md).
 
 Production safety guards (in `env.ts`) prevent the most common foot guns —
 see [`AUDIT.md`](AUDIT.md) for the full security review.

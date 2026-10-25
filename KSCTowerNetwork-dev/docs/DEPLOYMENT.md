@@ -1,15 +1,18 @@
 # Deployment
 
-The system has three deployable parts. Two are operator-managed (backend
-+ web SPA + LiveKit). The third (KSP plugin + bridge runtime) ships to
-end users as a ZIP. They can all live on different infrastructure as long
-as the URLs match.
+## Recommended: Ubuntu installer
 
-> See also [`HOSTING.md`](HOSTING.md) for the original "going live"
-> checklist and [`PRODUCTION_DEPLOYMENT_PLAN.md`](PRODUCTION_DEPLOYMENT_PLAN.md)
-> for per-platform recipes (Railway, Vercel, Render).
+For a fresh Ubuntu 22.04 or 24.04 LTS VPS or VM, configure the installer and run
+`sudo bash setup-vps.sh`. It installs and configures the backend, website,
+MariaDB, Redis, HTTPS, firewall and backend systemd service, and writes the
+production environment to `/etc/ksctower.env`. Follow the
+[Ubuntu installer guide](../deploy/README.md). A VM needs a reachable address
+and the required ports forwarded. Cloudflare is optional; voice uses the
+LiveKit service in your configuration.
 
-For server-only Bash/PowerShell setup, build and production startup, see [SERVER_HOSTING.md](SERVER_HOSTING.md). No Windows or KSP installation is required on a Linux VPS.
+The reference below describes the components and settings. For the prebuilt
+Server ZIP or an already prepared Linux/Windows host, use the alternative
+[manual/server-only guide](SERVER_HOSTING.md).
 
 ## Topology
 
@@ -30,7 +33,7 @@ End-user URLs that need to match:
 
 - Plugin's `towerApiHost`/`Port`/`Tls`/`Path` → backend public URL.
 - Plugin's `webBaseUrl` (in the login GUI) → web SPA public URL.
-- Bridge's `LIVEKIT_WS_URL` → LiveKit project URL (set via release config).
+- Backend `LIVEKIT_WS_URL` → configured LiveKit service; the bridge obtains its connection details from the backend.
 - Backend's `CORS_ORIGINS` → web SPA's exact origin.
 
 **Ports / UDP / WebSocket:** authenticated plugin traffic uses HTTPS through
@@ -177,8 +180,8 @@ Then in a browser:
 | Change | Player impact |
 |---|---|
 | Rotating `APP_JWT_SECRET` | All `plugin_session` JWTs invalidated; players re-pair via login GUI. |
-| Renaming the LiveKit project | Bridge gets `livekit-token HTTP 401`; ship a new release ZIP with the new wsUrl. |
-| Changing the backend hostname | Plugin can't reach API; ship a new release ZIP with the new `towerApiHost`. |
+| Changing the LiveKit endpoint/keys | Update the server env and restart it; clients obtain connection details from the backend. Verify reconnection. |
+| Changing the backend hostname | Pilots update towerApiHost/Port/Tls/Path in settings.cfg; no client rebuild is needed. |
 | Tightening `CORS_ORIGINS` to exclude an old web hostname | Browser users on the old hostname get CORS errors. |
 
 ## Things that won't break players

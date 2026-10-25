@@ -52,7 +52,7 @@ shared session id. Optional UDP is reserved for local development.
 
 ## Ports, firewall, and live transport
 
-Default ports (change via `.env` / `settings.cfg` / release bake):
+Default ports (change via server env / `settings.cfg`):
 
 | Port | Direction | Process | Purpose |
 |---:|---|---|---|
