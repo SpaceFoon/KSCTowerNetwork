@@ -4,8 +4,6 @@
 
 Voice, telemetry, ACARS text, and controller tools for Kerbal Space Program. Pilots run the game with the plugin; controllers use a browser. Each player keeps their own physics and save.
 
-![Voice: realtime](https://img.shields.io/badge/VOICE-REALTIME-38BDF8?style=flat-square) ![Telemetry: live](https://img.shields.io/badge/TELEMETRY-LIVE-34D399?style=flat-square) ![ACARS: text](https://img.shields.io/badge/ACARS-TEXT-FBBF24?style=flat-square) ![Controller: browser](https://img.shields.io/badge/CONTROLLER-BROWSER-A78BFA?style=flat-square)
-
 [![Latest release](https://img.shields.io/github/v/release/SpaceFoon/KSCTowerNetwork?label=latest%20release&style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/releases) [![Release downloads](https://img.shields.io/github/downloads/SpaceFoon/KSCTowerNetwork/total?label=downloads&style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/releases) [![License](https://img.shields.io/github/license/SpaceFoon/KSCTowerNetwork?style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/blob/main/LICENSE) [![Stars](https://img.shields.io/github/stars/SpaceFoon/KSCTowerNetwork?style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/stargazers) [![Forks](https://img.shields.io/github/forks/SpaceFoon/KSCTowerNetwork?style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/network/members)
 
 ## Start here
