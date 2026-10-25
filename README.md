@@ -6,6 +6,7 @@
     <a href="https://github.com/SpaceFoon/KSCTowerNetwork/releases"><img src="https://img.shields.io/github/downloads-pre/SpaceFoon/KSCTowerNetwork/total?label=downloads&style=for-the-badge&labelColor=172B46&logoColor=white&logo=github" alt="Release downloads"></a>
     <a href="https://github.com/SpaceFoon/KSCTowerNetwork/blob/main/LICENSE"><img src="https://img.shields.io/github/license/SpaceFoon/KSCTowerNetwork?style=for-the-badge&labelColor=172B46&logoColor=white" alt="License"></a><br>
     <a href="https://github.com/SpaceFoon/KSCTowerNetwork/actions/workflows/coverage.yml"><img src="https://img.shields.io/github/actions/workflow/status/SpaceFoon/KSCTowerNetwork/coverage.yml?branch=main&label=coverage%20checks&style=for-the-badge&logo=githubactions&labelColor=172B46&logoColor=white" alt="Coverage checks"></a>
+    <a href="https://codecov.io/gh/SpaceFoon/KSCTowerNetwork"><img src="https://codecov.io/gh/SpaceFoon/KSCTowerNetwork/branch/main/graph/badge.svg?flag=js-ts" alt="JavaScript and TypeScript coverage"></a>
     <a href="https://github.com/SpaceFoon/KSCTowerNetwork/issues"><img src="https://img.shields.io/github/issues/SpaceFoon/KSCTowerNetwork?label=open%20issues&style=for-the-badge&labelColor=172B46&logoColor=white&logo=github" alt="Open issues"></a>
     <a href="https://github.com/SpaceFoon/KSCTowerNetwork/commits/main/"><img src="https://img.shields.io/github/last-commit/SpaceFoon/KSCTowerNetwork/main?label=updated&style=for-the-badge&labelColor=172B46&logoColor=white&logo=github" alt="Last updated"></a>
   </p>
