@@ -10,7 +10,7 @@ Today:
 - **Web** (`web/`, `npm test`): tests for data parsers, hooks, small API/auth/voice helpers. **No page or component tests.**
 - **KSP plugin** (`PluginSrc/`): **no** Unity test project; **minimal** `csc` harness for `TowerVoiceListenUiLogic` (helmet ON AIR / BRIDGE rules) under `plugin-tests/`. See [PLUGIN.md → Automated tests](PLUGIN.md#automated-tests-listen-ui-logic).
 - **Voice bridge** (`KSCTowerNetwork-voice-bridge/voice-bridge/`): three tracked `node:test` suites cover bridge protocol, LiveKit token errors, and room lifecycle.
-- **CI and coverage**: [`.github/workflows/coverage.yml`](../../.github/workflows/coverage.yml) runs backend, web, and bridge coverage on pull requests and pushes to `main`. It publishes LCOV reports as workflow artifacts and uploads the combined JavaScript/TypeScript report to Codecov from `main` using GitHub OIDC. The C# plugin is not included.
+- **CI and coverage**: [`.github/workflows/coverage.yml`](../../.github/workflows/coverage.yml) runs backend, web, and bridge coverage on pull requests and pushes to `main`. It publishes LCOV reports as workflow artifacts and attempts the combined JavaScript/TypeScript upload to Codecov from `main` using GitHub OIDC. Codecov currently does not recognize this repository, so that upload is non-blocking until the repository is authorized there. The C# plugin is not included.
 
 ## Principles
 
@@ -133,11 +133,11 @@ Today:
 
 **Goal:** Run the existing backend, web, and voice-bridge tests on every pull request and publish measured JavaScript/TypeScript coverage.
 
-**Implementation:** The root [coverage workflow](../../.github/workflows/coverage.yml) runs each package's `npm ci` and `npm run test:coverage`. Backend and bridge use `c8` with the Node test runner; the web app uses Vitest's V8 provider. Each report is retained as a workflow artifact, and Codecov receives the combined `js-ts` reports on pushes to `main` through GitHub OIDC. No Codecov secret is stored in the repository.
+**Implementation:** The root [coverage workflow](../../.github/workflows/coverage.yml) runs each package's `npm ci` and `npm run test:coverage`. Backend and bridge use `c8` with the Node test runner; the web app uses Vitest's V8 provider. Each report is retained as a workflow artifact. On pushes to `main`, the workflow attempts a combined `js-ts` upload to Codecov through GitHub OIDC. The upload is non-blocking until Codecov recognizes the repository; no Codecov secret is stored in the repository.
 
 **Coverage scope:** Backend, web, and voice-bridge TypeScript source only. The C# plugin and its small custom test harness are not instrumented. No coverage threshold is enforced yet.
 
-**Exit criteria:** The three test jobs pass, their LCOV artifacts are available from the workflow run, and the Codecov badge reports the uploaded `js-ts` coverage.
+**Exit criteria:** The three test jobs pass and their LCOV artifacts are available from the workflow run. Once the repository is authorized in Codecov, its badge can report the uploaded `js-ts` coverage.
 
 ---
 

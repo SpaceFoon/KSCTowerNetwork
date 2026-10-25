@@ -83,6 +83,7 @@ jobs:
           pattern: coverage-*
           path: coverage-artifacts
       - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        continue-on-error: true
         with:
           files: coverage-artifacts/coverage-backend/lcov.info,coverage-artifacts/coverage-web/lcov.info,coverage-artifacts/coverage-bridge/lcov.info
           flags: js-ts

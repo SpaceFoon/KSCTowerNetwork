@@ -187,9 +187,10 @@ Run the existing backend, web, and voice-bridge test suites with coverage from
 npm run test:coverage
 ```
 
-LCOV reports are written under each package's `coverage/` directory. The README
-badge covers these JavaScript and TypeScript packages; the C# plugin harness is
-not instrumented.
+LCOV reports are written under each package's `coverage/` directory and saved
+as GitHub Actions artifacts. The README badge reports whether those coverage
+jobs passed; it does not display a percentage. Backend, web, and voice-bridge
+JavaScript/TypeScript are instrumented; the C# plugin harness is not.
 
 ## Mutation testing (tower logic)
 
