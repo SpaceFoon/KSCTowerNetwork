@@ -1,22 +1,31 @@
-# KSCTowerNetwork
-
-[![Latest release](https://img.shields.io/github/v/release/SpaceFoon/KSCTowerNetwork?label=latest%20release&style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/releases) [![Release downloads](https://img.shields.io/github/downloads/SpaceFoon/KSCTowerNetwork/total?label=downloads&style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/releases) [![License](https://img.shields.io/github/license/SpaceFoon/KSCTowerNetwork?style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/blob/main/LICENSE) [![Stars](https://img.shields.io/github/stars/SpaceFoon/KSCTowerNetwork?style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/stargazers) [![Forks](https://img.shields.io/github/forks/SpaceFoon/KSCTowerNetwork?style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/network/members)
-
-> **Voice, telemetry, ACARS text, and controller tools for Kerbal Space Program.**
->
-> Pilots run the game with the plugin; controllers use a browser. Each player keeps their own physics and save.
-
-<p align="center">
-  <img src="KSCTowerNetwork-dev/web/public/ksc-tower-social-preview.jpg" alt="KSC Tower website preview" width="640">
-</p>
-
-[Start here](#start-here) · [What runs where](#what-runs-where) · [Downloads and releases](#downloads-and-releases) · [Source layout](#source-layout) · [Licenses and optional assets](#licenses-and-optional-assets)
+<div align="center">
+  <h1>KSCTowerNetwork</h1>
+  <p>
+    <a href="https://github.com/SpaceFoon/KSCTowerNetwork/releases"><img src="https://img.shields.io/github/v/release/SpaceFoon/KSCTowerNetwork?label=latest%20release&style=flat-square" alt="Latest release"></a>
+    <a href="https://github.com/SpaceFoon/KSCTowerNetwork/releases"><img src="https://img.shields.io/github/downloads/SpaceFoon/KSCTowerNetwork/total?label=downloads&style=flat-square" alt="Release downloads"></a>
+    <a href="https://github.com/SpaceFoon/KSCTowerNetwork/blob/main/LICENSE"><img src="https://img.shields.io/github/license/SpaceFoon/KSCTowerNetwork?style=flat-square" alt="License"></a>
+    <a href="https://github.com/SpaceFoon/KSCTowerNetwork/stargazers"><img src="https://img.shields.io/github/stars/SpaceFoon/KSCTowerNetwork?style=flat-square" alt="Stars"></a>
+    <a href="https://github.com/SpaceFoon/KSCTowerNetwork/network/members"><img src="https://img.shields.io/github/forks/SpaceFoon/KSCTowerNetwork?style=flat-square" alt="Forks"></a>
+  </p>
+  <p>
+    <strong>Voice, telemetry, ACARS text, and controller tools for Kerbal Space Program.</strong><br>
+    Pilots run the game with the plugin; controllers use a browser. Each player keeps their own physics and save.
+  </p>
+  <p><img src="KSCTowerNetwork-dev/web/public/ksc-tower-social-preview.jpg" alt="KSC Tower website preview" width="640"></p>
+  <p>
+    <a href="#start-here">Start here</a> ·
+    <a href="#what-runs-where">What runs where</a> ·
+    <a href="#downloads-and-releases">Downloads and releases</a> ·
+    <a href="#source-layout">Source layout</a> ·
+    <a href="#licenses-and-optional-assets">Licenses and optional assets</a>
+  </p>
+</div>
 
 ---
 
 ## Start here
 
-| You want to… | Read |
+| **You want to…** | **Read** |
 | --- | --- |
 | Use the prebuilt server or set up an existing Linux/Windows host manually | [Server hosting: prerequisites through first login](KSCTowerNetwork-dev/docs/SERVER_HOSTING.md) |
 | Install a complete backend and website on a fresh Ubuntu VPS or VM | [Ubuntu bootstrap guide](KSCTowerNetwork-dev/deploy/README.md) |
@@ -31,7 +40,7 @@
 
 ### Server operator:
 
-Use the Ubuntu installer above for a fresh VPS or VM. It installs and configures the backend, website, database/cache, HTTPS and service startup. Existing hosts and Windows servers can use the manual hosting guide.
+> Use the Ubuntu installer above for a fresh VPS or VM. It installs and configures the backend, website, database/cache, HTTPS and service startup. Existing hosts and Windows servers can use the manual hosting guide.
 
 #### Host a tower on Ubuntu
 
@@ -48,11 +57,11 @@ Voice uses the LiveKit service configured in your server settings.
 
 ### Controller:
 
-open the operator's HTTPS website, register with an invite or use an account supplied by the operator, and join the controller queue from the Lobby. Voice needs browser microphone permission.
+> open the operator's HTTPS website, register with an invite or use an account supplied by the operator, and join the controller queue from the Lobby. Voice needs browser microphone permission.
 
 ### Pilot:
 
-install a built player release into KSP, point its settings at the operator's server, and sign in/pair as described in [deployment](KSCTowerNetwork-dev/docs/DEPLOYMENT.md#client-and-server-release-zips). This source checkout contains runtime templates, not a ready-to-play DLL or bundled bridge runtime. Build/package instructions are in Development; do not tell players to copy this repository into GameData.
+> install a built player release into KSP, point its settings at the operator's server, and sign in/pair as described in [deployment](KSCTowerNetwork-dev/docs/DEPLOYMENT.md#client-and-server-release-zips). This source checkout contains runtime templates, not a ready-to-play DLL or bundled bridge runtime. Build/package instructions are in Development; do not tell players to copy this repository into GameData.
 
 Pilots use the same Client ZIP and set their operator's address in
 `GameData/KSCTowerNetwork/PluginData/settings.cfg`. Operators do not need
@@ -62,15 +71,16 @@ to rebuild or repackage the client for each server.
 
 ## Downloads and releases
 
-A release provides separate **Client** (Windows x64 KSP plugin + voice bridge) and
-**Server** (built backend + website) ZIPs. Controllers use the hosted website.
-See [release build and installation](KSCTowerNetwork-dev/docs/RELEASING.md).
+> A release provides separate **Client** (Windows x64 KSP plugin + voice bridge) and
+> **Server** (built backend + website) ZIPs.
+
+Controllers use the hosted website. See [release build and installation](KSCTowerNetwork-dev/docs/RELEASING.md).
 
 ---
 
 ## Source layout
 
-| Directory | Contents |
+| **Directory** | **Contents** |
 | --- | --- |
 | `KSCTowerNetwork-dev/` | C# plugin source, backend, web app, build scripts and docs |
 | `KSCTowerNetwork-voice-bridge/voice-bridge/` | Player voice bridge source, tests and release builders |
