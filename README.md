@@ -1,8 +1,12 @@
 # KSCTowerNetwork
 
-![KSC Tower website preview](KSCTowerNetwork-dev/web/public/ksc-tower-social-preview.jpg)
+<p align="center">
+  <img src="KSCTowerNetwork-dev/web/public/ksc-tower-social-preview.jpg" alt="KSC Tower website preview" width="640">
+</p>
 
-Voice, telemetry, ACARS text, and controller tools for Kerbal Space Program. Pilots run the game with the plugin; controllers use a browser. Each player keeps their own physics and save.
+> **Voice, telemetry, ACARS text, and controller tools for Kerbal Space Program.**
+>
+> Pilots run the game with the plugin; controllers use a browser. Each player keeps their own physics and save.
 
 ## Host a tower on Ubuntu
 
@@ -21,6 +25,12 @@ Pilots use the same Client ZIP and set their operator's address in
 `GameData/KSCTowerNetwork/PluginData/settings.cfg`. Operators do not need
 to rebuild or repackage the client for each server.
 
+[![Latest release](https://img.shields.io/github/v/release/SpaceFoon/KSCTowerNetwork?label=latest%20release&style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/releases) [![Release downloads](https://img.shields.io/github/downloads/SpaceFoon/KSCTowerNetwork/total?label=downloads&style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/releases) [![License](https://img.shields.io/github/license/SpaceFoon/KSCTowerNetwork?style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/blob/main/LICENSE) [![Stars](https://img.shields.io/github/stars/SpaceFoon/KSCTowerNetwork?style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/stargazers) [![Forks](https://img.shields.io/github/forks/SpaceFoon/KSCTowerNetwork?style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/network/members)
+
+[Start here](#start-here) · [What runs where](#what-runs-where) · [Downloads and releases](#downloads-and-releases) · [Source layout](#source-layout) · [Licenses and optional assets](#licenses-and-optional-assets)
+
+---
+
 ## Start here
 
 | You want to… | Read |
@@ -32,19 +42,31 @@ to rebuild or repackage the client for each server.
 | Choose required/optional player mods | [Mod integrations](KSCTowerNetwork-dev/docs/INTEGRATIONS.md) |
 | Diagnose a problem or look up a setting | [Troubleshooting](KSCTowerNetwork-dev/docs/TROUBLESHOOTING.md), [settings](KSCTowerNetwork-dev/docs/SETTINGS_REFERENCE.md) |
 
+---
+
 ## What runs where
 
-**Server operator:** use the Ubuntu installer above for a fresh VPS or VM. It installs and configures the backend, website, database/cache, HTTPS and service startup. Existing hosts and Windows servers can use the manual hosting guide.
+### Server operator:
 
-**Controller:** open the operator's HTTPS website, register with an invite or use an account supplied by the operator, and join the controller queue from the Lobby. Voice needs browser microphone permission.
+use the Ubuntu installer above for a fresh VPS or VM. It installs and configures the backend, website, database/cache, HTTPS and service startup. Existing hosts and Windows servers can use the manual hosting guide.
 
-**Pilot:** install a built player release into KSP, point its settings at the operator's server, and sign in/pair as described in [deployment](KSCTowerNetwork-dev/docs/DEPLOYMENT.md#client-and-server-release-zips). This source checkout contains runtime templates, not a ready-to-play DLL or bundled bridge runtime. Build/package instructions are in Development; do not tell players to copy this repository into GameData.
+### Controller:
+
+open the operator's HTTPS website, register with an invite or use an account supplied by the operator, and join the controller queue from the Lobby. Voice needs browser microphone permission.
+
+### Pilot:
+
+install a built player release into KSP, point its settings at the operator's server, and sign in/pair as described in [deployment](KSCTowerNetwork-dev/docs/DEPLOYMENT.md#client-and-server-release-zips). This source checkout contains runtime templates, not a ready-to-play DLL or bundled bridge runtime. Build/package instructions are in Development; do not tell players to copy this repository into GameData.
+
+---
 
 ## Downloads and releases
 
 A release provides separate **Client** (Windows x64 KSP plugin + voice bridge) and
 **Server** (built backend + website) ZIPs. Controllers use the hosted website.
 See [release build and installation](KSCTowerNetwork-dev/docs/RELEASING.md).
+
+---
 
 ## Source layout
 
@@ -55,6 +77,8 @@ See [release build and installation](KSCTowerNetwork-dev/docs/RELEASING.md).
 | `GameData/KSCTowerNetwork/` | Runtime templates, patches, IVA props and kOS scripts |
 
 Architecture and detailed reference: [project overview](KSCTowerNetwork-dev/docs/PROJECT_OVERVIEW.md) and [documentation index](KSCTowerNetwork-dev/docs/README.md). Maintainer publication checks are recorded in [repository setup](REPOSITORY_SETUP.md).
+
+---
 
 ## Licenses and optional assets
 
