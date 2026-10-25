@@ -56,10 +56,7 @@ The new checkout was moved out of `ksctower/.new-repo/KSCTowerNetwork` into
 its sibling folder `KSCTowerNetwork`. The original `ksctower` checkout and
 its history remain available as the legacy repository. Git integrity and
 remaining-file comparison passed before the nested checkout remnants were
-removed. This records a historical local migration, not a required checkout
-location. For future development, use a checkout of
-[SpaceFoon/KSCTowerNetwork](https://github.com/SpaceFoon/KSCTowerNetwork);
-verify its Git remote rather than relying on its local folder name.
+removed. Use `SpaceFoon/KSCTowerNetwork` for future development.
 
 Local backend/web `.env.development` files were copied from the legacy
 checkout; plugin settings were merged with its personal settings, and its
