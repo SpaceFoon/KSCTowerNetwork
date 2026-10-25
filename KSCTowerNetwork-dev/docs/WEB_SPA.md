@@ -4,6 +4,13 @@ Single-page React 18 app. Vite for dev/build. TypeScript everywhere. From the de
 
 Source root: `web/src/`
 
+## Link previews
+
+`web/index.html` defines the page title, description, canonical URL, and Open
+Graph/Twitter metadata. Its public share image is
+`web/public/ksc-tower-social-preview.png`; keep the image URL, alt text, and
+dimensions in the metadata aligned with that asset when replacing it.
+
 ## Top-level layout
 
 ```
