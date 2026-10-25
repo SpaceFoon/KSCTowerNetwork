@@ -1,31 +1,14 @@
 # KSCTowerNetwork
 
-<p align="center">
-  <img src="KSCTowerNetwork-dev/web/public/ksc-tower-social-preview.jpg" alt="KSC Tower website preview" width="640">
-</p>
+[![Latest release](https://img.shields.io/github/v/release/SpaceFoon/KSCTowerNetwork?label=latest%20release&style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/releases) [![Release downloads](https://img.shields.io/github/downloads/SpaceFoon/KSCTowerNetwork/total?label=downloads&style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/releases) [![License](https://img.shields.io/github/license/SpaceFoon/KSCTowerNetwork?style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/blob/main/LICENSE) [![Stars](https://img.shields.io/github/stars/SpaceFoon/KSCTowerNetwork?style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/stargazers) [![Forks](https://img.shields.io/github/forks/SpaceFoon/KSCTowerNetwork?style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/network/members)
 
 > **Voice, telemetry, ACARS text, and controller tools for Kerbal Space Program.**
 >
 > Pilots run the game with the plugin; controllers use a browser. Each player keeps their own physics and save.
 
-## Host a tower on Ubuntu
-
-Start with a fresh Ubuntu 22.04 or 24.04 LTS VPS or VM. Configure the installer
-with your hostname, SSH key, owner login and voice settings, then run
-`sudo bash setup-vps.sh`. It installs Node, MariaDB, Redis and nginx, builds
-the backend and website, configures HTTPS and the firewall, and starts the
-backend as a systemd service. It writes the production environment to
-`/etc/ksctower.env`. Cloudflare is optional; direct HTTPS is supported.
-
-Follow the [Ubuntu installer guide](KSCTowerNetwork-dev/deploy/README.md).
-For an Ubuntu VM, give it a reachable address and forward the required ports.
-Voice uses the LiveKit service configured in your server settings.
-
-Pilots use the same Client ZIP and set their operator's address in
-`GameData/KSCTowerNetwork/PluginData/settings.cfg`. Operators do not need
-to rebuild or repackage the client for each server.
-
-[![Latest release](https://img.shields.io/github/v/release/SpaceFoon/KSCTowerNetwork?label=latest%20release&style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/releases) [![Release downloads](https://img.shields.io/github/downloads/SpaceFoon/KSCTowerNetwork/total?label=downloads&style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/releases) [![License](https://img.shields.io/github/license/SpaceFoon/KSCTowerNetwork?style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/blob/main/LICENSE) [![Stars](https://img.shields.io/github/stars/SpaceFoon/KSCTowerNetwork?style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/stargazers) [![Forks](https://img.shields.io/github/forks/SpaceFoon/KSCTowerNetwork?style=flat-square)](https://github.com/SpaceFoon/KSCTowerNetwork/network/members)
+<p align="center">
+  <img src="KSCTowerNetwork-dev/web/public/ksc-tower-social-preview.jpg" alt="KSC Tower website preview" width="640">
+</p>
 
 [Start here](#start-here) · [What runs where](#what-runs-where) · [Downloads and releases](#downloads-and-releases) · [Source layout](#source-layout) · [Licenses and optional assets](#licenses-and-optional-assets)
 
@@ -50,6 +33,19 @@ to rebuild or repackage the client for each server.
 
 use the Ubuntu installer above for a fresh VPS or VM. It installs and configures the backend, website, database/cache, HTTPS and service startup. Existing hosts and Windows servers can use the manual hosting guide.
 
+#### Host a tower on Ubuntu
+
+Start with a fresh Ubuntu 22.04 or 24.04 LTS VPS or VM. Configure the installer
+with your hostname, SSH key, owner login and voice settings, then run
+`sudo bash setup-vps.sh`. It installs Node, MariaDB, Redis and nginx, builds
+the backend and website, configures HTTPS and the firewall, and starts the
+backend as a systemd service. It writes the production environment to
+`/etc/ksctower.env`. Cloudflare is optional; direct HTTPS is supported.
+
+Follow the [Ubuntu installer guide](KSCTowerNetwork-dev/deploy/README.md).
+For an Ubuntu VM, give it a reachable address and forward the required ports.
+Voice uses the LiveKit service configured in your server settings.
+
 ### Controller:
 
 open the operator's HTTPS website, register with an invite or use an account supplied by the operator, and join the controller queue from the Lobby. Voice needs browser microphone permission.
@@ -57,6 +53,10 @@ open the operator's HTTPS website, register with an invite or use an account sup
 ### Pilot:
 
 install a built player release into KSP, point its settings at the operator's server, and sign in/pair as described in [deployment](KSCTowerNetwork-dev/docs/DEPLOYMENT.md#client-and-server-release-zips). This source checkout contains runtime templates, not a ready-to-play DLL or bundled bridge runtime. Build/package instructions are in Development; do not tell players to copy this repository into GameData.
+
+Pilots use the same Client ZIP and set their operator's address in
+`GameData/KSCTowerNetwork/PluginData/settings.cfg`. Operators do not need
+to rebuild or repackage the client for each server.
 
 ---
 
