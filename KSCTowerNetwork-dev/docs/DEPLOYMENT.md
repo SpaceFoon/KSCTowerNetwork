@@ -158,8 +158,8 @@ and live UDP host to follow the selected API; HTTP fallback remains enabled.
 Server choices live in plugin-owned `auth.cfg`; players do not edit config files.
 Preserve `auth.cfg` and personal `settings.cfg` when updating the client.
 
-This flow requires a client built with the Server address field. Existing
-published ZIPs must be updated to gain it; updating only the server is insufficient.
+The Server address field is included from Client v1.0.1. Players on v1.0.0
+must update the Client ZIP to gain it; updating only the server is insufficient.
 
 The Server ZIP contains the built backend and same-origin website. Operators
 install production dependencies using deploy/server.sh install (or server.ps1

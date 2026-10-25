@@ -4,5 +4,5 @@ using System.Reflection;
 // and the load can stall on "Loading Part Upgrades". AssemblyFileVersion populates the PE version resource.
 [assembly: AssemblyTitle("KSCTowerNetwork")]
 [assembly: AssemblyDescription("KSC Tower Network client")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.0.1.0")]
+[assembly: AssemblyFileVersion("1.0.1.0")]

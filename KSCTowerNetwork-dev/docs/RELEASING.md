@@ -21,9 +21,9 @@ field. Previously published clients do not gain this UI from a backend update.
 ## Maintainer build (Windows x64)
 
 Use the canonical SpaceFoon/KSCTowerNetwork checkout and a clean committed main.
-Close KSP. Set matching versions in PluginSrc/Properties/AssemblyInfo.cs,
-GameData/KSCTowerNetwork/Plugins/KSCTowerNetwork.version and ckan metadata.
-The initial release uses 1.0.0, matching the existing assembly version.
+Close KSP. Set matching versions in PluginSrc/Properties/AssemblyInfo.cs and
+GameData/KSCTowerNetwork/Plugins/KSCTowerNetwork.version.
+The current package version is 1.0.1. Assembly and AVC versions must match; the builder regenerates the released CKAN version, download size and hashes.
 
 From KSCTowerNetwork-dev (substitute actual paths):
 
@@ -44,10 +44,10 @@ checks archive staging for private files and excluded optional assets, and emits
 manifests tying both packages to the source commit. Existing release folders and
 the maintainer's local GameData settings/runtime are not overwritten.
 
-Outputs under release/1.0.0-<unique>/:
+Outputs under release/1.0.1-<unique>/:
 
-- KSCTowerNetwork-Client-1.0.0-win-x64.zip
-- KSCTowerNetwork-Server-1.0.0.zip
+- KSCTowerNetwork-Client-1.0.1-win-x64.zip
+- KSCTowerNetwork-Server-1.0.1.zip
 - KSCTowerNetwork.ckan
 - SHA256SUMS.txt
 
@@ -60,7 +60,7 @@ acceptance. Use a GitHub prerelease while those checks remain outstanding.
 
 ## Publish
 
-Push the tested source commit to canonical main. Create tag v1.0.0 at that exact
+Push the tested source commit to canonical main. Create tag v1.0.1 at that exact
 commit, create a GitHub Release, attach the four outputs and explain client/server
 installation and verification limits. Do not upload source/build staging, local
 configuration, KSP assemblies, chart bundles, fonts or player game textures.
@@ -73,3 +73,14 @@ No automatic catalog inclusion is claimed by merely publishing GitHub assets.
 The checked-in standalone .ckan now describes the actual v1.0.0 Client ZIP;
 its corrected dependency IDs differ from the immutable release's original .ckan
 asset. Future builds regenerate download fields. See [CKAN validation](../ckan/README.md).
+
+## v1.0.1 client update
+
+Pilots can enter and save the operator's server address in Tower login. Log out
+and reopen the window to switch servers. The optional separate web desk address
+supports split website/API deployments. The bundled bridge follows the chosen
+server; existing operators do not need a server upgrade solely for this UI.
+
+The release pipeline includes 37 address checks and 31 checks using the real KSP
+ConfigNode save/load parser. Live KSP pairing, telemetry and two-participant voice
+acceptance remain outstanding, so this version is published as a prerelease.
