@@ -175,7 +175,7 @@ Key files:
 | Path | Purpose |
 |---|---|
 | `src/App.tsx` | Router + auth gate. |
-| `index.html` + `public/ksc-tower-social-preview.png` | Site title, description, and Open Graph/Twitter link-preview metadata and artwork. |
+| `index.html` + `public/ksc-tower-social-preview.jpg` | Site title, description, and Open Graph/Twitter link-preview metadata and artwork. |
 | `src/api/client.ts` | `apiFetch()` wrapper with bearer header + dev-voice-id header. |
 | `src/auth/session.ts` | LocalStorage user + token persistence; capability checks. |
 | `src/components/AppShell.tsx` | Nav + role-aware menu. |

@@ -1,6 +1,6 @@
 # KSCTowerNetwork
 
-![KSC Tower website preview](KSCTowerNetwork-dev/web/public/ksc-tower-social-preview.png)
+![KSC Tower website preview](KSCTowerNetwork-dev/web/public/ksc-tower-social-preview.jpg)
 
 Voice, telemetry, ACARS text, and controller tools for Kerbal Space Program. Pilots run the game with the plugin; controllers use a browser. Each player keeps their own physics and save.
 
