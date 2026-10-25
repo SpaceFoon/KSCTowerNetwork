@@ -2461,32 +2461,9 @@ button.voice-join-btn.voice-join-toggle:disabled {
 .landing-hero-inner {
   max-width: 1080px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  align-items: center;
-  gap: clamp(2rem, 5vw, 4.5rem);
-}
-
-.landing-hero-copy {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-}
-
-.landing-hero-art {
-  margin: 0;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: #07172a;
-  box-shadow: 0 24px 56px rgb(0 0 0 / 0.28);
-}
-
-.landing-hero-art img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1730 / 909;
-  object-fit: cover;
 }
 
 .landing-brand {
@@ -2776,18 +2753,6 @@ button.voice-join-btn.voice-join-toggle:disabled {
 .landing-footer-links a:hover,
 .landing-footer-link-btn:hover {
   color: var(--accent);
-}
-
-@media (max-width: 760px) {
-  .landing-hero-inner {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2rem;
-  }
-
-  .landing-hero-art {
-    width: min(100%, 44rem);
-    justify-self: center;
-  }
 }
 
 @media (max-width: 540px) {
