@@ -6,11 +6,11 @@ This document turns the [review gap analysis](#background) into an ordered roadm
 
 Today:
 
-- **Backend** (`backend/`, `npm test`): strong **unit** coverage for pure helpers, CSRF, hullcam pipeline, repository slices, scoring, checklists, world inventory/maps, etc. **No HTTP-level tests** for `routes/api.ts`.
+- **Backend** (`backend/`, `npm test`): broad unit coverage for pure helpers, CSRF, hullcam pipeline, repository slices, scoring, checklists, world inventory/maps, etc., plus narrow HTTP integration tests for messages and craft thumbnails. There is still no broad HTTP-level coverage for `routes/api.ts`.
 - **Web** (`web/`, `npm test`): tests for data parsers, hooks, small API/auth/voice helpers. **No page or component tests.**
 - **KSP plugin** (`PluginSrc/`): **no** Unity test project; **minimal** `csc` harness for `TowerVoiceListenUiLogic` (helmet ON AIR / BRIDGE rules) under `plugin-tests/`. See [PLUGIN.md → Automated tests](PLUGIN.md#automated-tests-listen-ui-logic).
-- **Voice bridge** (sibling `KSCTowerNetwork-voice-bridge/`): **no** tracked `*.test.ts` in-tree; scratch tests exist under `voice-bridge-tmp/` only.
-- **CI**: no `.github/workflows` under `KSCTowerNetwork-dev/` to run backend + web tests on every change.
+- **Voice bridge** (`KSCTowerNetwork-voice-bridge/voice-bridge/`): three tracked `node:test` suites cover bridge protocol, LiveKit token errors, and room lifecycle.
+- **CI and coverage**: [`.github/workflows/coverage.yml`](../../.github/workflows/coverage.yml) runs backend, web, and bridge coverage on pull requests and pushes to `main`. It publishes LCOV reports as workflow artifacts and uploads the combined JavaScript/TypeScript report to Codecov from `main` using GitHub OIDC. The C# plugin is not included.
 
 ## Principles
 
@@ -119,28 +119,25 @@ Today:
 
 ## Phase 7 — Voice bridge package
 
-**Goal:** Unit tests for protocol parsing, mixing, and queue logic in the **shipping** bridge package (not only `voice-bridge-tmp`).
+**Goal:** Keep protocol, LiveKit token-error, and room-lifecycle behavior covered in the shipping bridge package.
 
-**Approach:** Port or replace scratch tests from `voice-bridge-tmp/package` into the real `KSCTowerNetwork-voice-bridge` tree; run `vitest` or `node:test` in that package’s `npm test`.
+**Current state:** The package has tracked tests in `test/bridgeProtocol.test.ts`, `test/livekitTokenErrors.test.ts`, and `test/roomLifecycle.test.ts`. Its `npm test` command uses Node's built-in test runner.
 
-**Exit criteria:** `npm test` in the bridge package runs in CI with **no** hardware audio requirement.
+**Approach:** Add new bridge cases to this package's test tree and use `npm run test:coverage` to generate LCOV from the existing suite.
+
+**Exit criteria:** The tracked bridge tests pass in CI and their source coverage is included in the JavaScript/TypeScript report.
 
 ---
 
-## Phase 8 — CI
+## Phase 8 — CI and coverage
 
-**Goal:** No regressions from “forgot to run tests locally.”
+**Goal:** Run the existing backend, web, and voice-bridge tests on every pull request and publish measured JavaScript/TypeScript coverage.
 
-**Approach:**
+**Implementation:** The root [coverage workflow](../../.github/workflows/coverage.yml) runs each package's `npm ci` and `npm run test:coverage`. Backend and bridge use `c8` with the Node test runner; the web app uses Vitest's V8 provider. Each report is retained as a workflow artifact, and Codecov receives the combined `js-ts` reports on pushes to `main) through GitHub OIDC. No Codecov secret is stored in the repository.
 
-- Add GitHub Actions (or your host’s equivalent) at repo root or monorepo root:
-  - Job 1: `backend`: `npm ci`, `npm run typecheck`, `npm test`.
-  - Job 2: `web`: `npm ci`, `npm run build`, `npm test`.
-  - Optional: bridge package test job.
-- Cache `node_modules` by lockfile hash.
-- Run on **pull_request** and **push** to default branch.
+**Coverage scope:** Backend, web, and voice-bridge TypeScript source only. The C# plugin and its small custom test harness are not instrumented. No coverage threshold is enforced yet.
 
-**Exit criteria:** Red CI blocks merge (branch protection optional but recommended).
+**Exit criteria:** The three test jobs pass, their LCOV artifacts are available from the workflow run, and the Codecov badge reports the uploaded `js-ts` coverage.
 
 ---
 
@@ -148,7 +145,7 @@ Today:
 
 | Order | Phase | Rationale |
 |------|--------|-----------|
-| 1 | Phase 8 skeleton (CI running existing tests) | Immediate value, zero new tests |
+| 1 | Phase 8 CI and coverage | Run existing tests and publish measured JavaScript/TypeScript coverage |
 | 2 | Phase 1 | Largest blind spot |
 | 3 | Phase 2 | Auth/env bugs are highest severity |
 | 4 | Phase 4 | Matches product risk for voice |

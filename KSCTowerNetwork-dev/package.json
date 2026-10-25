@@ -14,6 +14,7 @@
     "verify:tower": "npm run verify:voice && npm run verify:acars",
     "test:voice": "npm run verify:voice && npm test --prefix ../KSCTowerNetwork-voice-bridge/voice-bridge && npm test --prefix web",
     "test:acars": "npm run verify:acars && npm test --prefix backend && npm test --prefix web",
+    "test:coverage": "npm run test:coverage --prefix backend && npm run test:coverage --prefix web && npm run test:coverage --prefix ../KSCTowerNetwork-voice-bridge/voice-bridge",
     "test:mutation": "npm run test:mutation --prefix backend",
     "test:plugin-listen-ui": "powershell -NoProfile -ExecutionPolicy Bypass -File \"./plugin-tests/run-listen-ui-tests.ps1\"",
     "test:plugin-comm-radio-pure": "powershell -NoProfile -ExecutionPolicy Bypass -File \"./plugin-tests/run-comm-radio-pure-tests.ps1\"",

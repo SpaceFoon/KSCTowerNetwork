@@ -10,13 +10,15 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/bridge.js",
     "postinstall": "node scripts/apply-livekit-patch.cjs",
-    "test": "node --import tsx --test \"test/**/*.test.ts\""
+    "test": "node --import tsx --test \"test/**/*.test.ts\"",
+    "test:coverage": "c8 --all --include \"src/**/*.ts\" --exclude \"src/**/*.test.ts\" --exclude \"src/**/*.d.ts\" --extension .ts --reporter text-summary --reporter lcovonly npm test"
   },
   "dependencies": {
     "@livekit/rtc-node": "1.1.0"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "c8": "^12.0.0",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }

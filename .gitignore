@@ -24,6 +24,7 @@
 !/GameData/KSCTowerNetwork/
 
 # ----- 4) Build / dependency junk -----
+**/coverage/
 # Never commit npm/yarn installs (including bridge-runtime under GameData).
 **/node_modules/
 

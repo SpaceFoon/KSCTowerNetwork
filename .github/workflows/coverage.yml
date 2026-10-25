@@ -1,0 +1,89 @@
+name: Coverage
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  coverage:
+    name: ${{ matrix.package }} coverage
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: backend
+            directory: KSCTowerNetwork-dev/backend
+          - package: web
+            directory: KSCTowerNetwork-dev/web
+          - package: bridge
+            directory: KSCTowerNetwork-voice-bridge/voice-bridge
+    defaults:
+      run:
+        working-directory: ${{ matrix.directory }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.22.1
+          cache: npm
+          cache-dependency-path: ${{ matrix.directory }}/package-lock.json
+      - run: npm ci
+      - run: npm run test:coverage
+      - name: Normalize coverage paths
+        env:
+          COVERAGE_PREFIX: ${{ matrix.directory }}
+          COVERAGE_STAGING: ${{ runner.temp }}/coverage/${{ matrix.package }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { mkdir, readFile, writeFile } from "node:fs/promises";
+
+          const prefix = process.env.COVERAGE_PREFIX.replaceAll("\\", "/");
+          const report = await readFile("coverage/lcov.info", "utf8");
+          const normalized = report.replace(/^SF:(.*)$/gm, (_, source) => {
+            const path = source.replaceAll("\\", "/");
+            const marker = `/${prefix}/`;
+            const markerAt = path.lastIndexOf(marker);
+            const relative = markerAt >= 0
+              ? path.slice(markerAt + marker.length)
+              : path.startsWith(`${prefix}/`)
+                ? path.slice(prefix.length + 1)
+                : path.replace(/^\\.\\//, "");
+            return `SF:${prefix}/${relative}`;
+          });
+
+          await mkdir(process.env.COVERAGE_STAGING, { recursive: true });
+          await writeFile(`${process.env.COVERAGE_STAGING}/lcov.info`, normalized);
+          NODE
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage-${{ matrix.package }}
+          path: ${{ runner.temp }}/coverage/${{ matrix.package }}/lcov.info
+          if-no-files-found: error
+          retention-days: 14
+
+  codecov:
+    name: Upload coverage to Codecov
+    needs: coverage
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: coverage-*
+          path: coverage-artifacts
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          files: coverage-artifacts/coverage-backend/lcov.info,coverage-artifacts/coverage-web/lcov.info,coverage-artifacts/coverage-bridge/lcov.info
+          flags: js-ts
+          name: js-ts
+          use_oidc: true
+          fail_ci_if_error: true

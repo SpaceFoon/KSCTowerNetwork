@@ -67,7 +67,13 @@ export default defineConfig({
   plugins: [react(), securityHeadersPlugin()],
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts"]
+    include: ["src/**/*.test.ts"],
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["**/*.d.ts"],
+      reporter: ["text-summary", "lcovonly"]
+    }
   },
   server: {
     host: "127.0.0.1",

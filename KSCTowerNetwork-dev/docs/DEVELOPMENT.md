@@ -178,6 +178,19 @@ errors fail the build. Run `npm test --prefix web` from the dev workspace for th
 web regression suite. There's no global lint runner; rely on TS's strict mode +
 the editor's inline diagnostics.
 
+## Test coverage
+
+Run the existing backend, web, and voice-bridge test suites with coverage from
+`KSCTowerNetwork-dev/`:
+
+```powershell
+npm run test:coverage
+```
+
+LCOV reports are written under each package's `coverage/` directory. The README
+badge covers these JavaScript and TypeScript packages; the C# plugin harness is
+not instrumented.
+
 ## Mutation testing (tower logic)
 
 Pure tower derivation modules under `backend/src/tower/` are held to **≥80%**
