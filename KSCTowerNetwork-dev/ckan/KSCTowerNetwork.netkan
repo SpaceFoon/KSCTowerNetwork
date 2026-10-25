@@ -1,7 +1,6 @@
 {
     "spec_version": "v1.34",
-    "$kref": "#/ckan/github/SpaceFoon/KSCTowerNetwork",
-    "x_netkan_asset_match": "^KSCTowerNetwork-Client-[0-9.]+-win-x64\\.zip$",
+    "$kref": "#/ckan/github/SpaceFoon/KSCTowerNetwork/asset_match/^KSCTowerNetwork-Client-[0-9]+\\.[0-9]+\\.[0-9]+-win-x64\\.zip$",
     "$vref": "#/ckan/ksp-avc/GameData/KSCTowerNetwork/Plugins/KSCTowerNetwork.version",
 
     "identifier": "KSCTowerNetwork",
@@ -30,8 +29,8 @@
     "recommends": [
         { "name": "ClickThroughBlocker" },
         { "name": "RasterPropMonitor" },
-        { "name": "ASET-Props" },
-        { "name": "ASET-Avionics" },
+        { "name": "ASETProps" },
+        { "name": "ASETAvionics" },
         { "name": "AvionicsSystems" },
         { "name": "kOS" },
         { "name": "HullcamVDSContinued" },

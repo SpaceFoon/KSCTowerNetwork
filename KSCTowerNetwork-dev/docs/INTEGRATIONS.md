@@ -12,7 +12,7 @@ If you installed via **CKAN**, the recommended set is already offered to you wit
 |---|---|
 | A tower mod that loads and lets you talk to controllers via the web tower | Just `KSCTowerNetwork` + `ModuleManager` |
 | The above, with no risk of clicking through your radio panel onto your rocket | Add `ClickThroughBlocker` |
-| In-cockpit (IVA) push-to-talk button + frequency dial | Add `RasterPropMonitor` + `ASET-Props` + `ASET-Avionics` (or `AvionicsSystems` for MAS cockpits) |
+| In-cockpit (IVA) push-to-talk button + frequency dial | Add `RasterPropMonitor` + `ASETProps` + `ASETAvionics` (or `AvionicsSystems` for MAS cockpits) |
 | kOS scripts that read tower clearances and that mirror your kOS terminal to the web tower | Add `kOS` |
 | Live HullCam snapshots forwarded to the web tower so ground control can see your camera feed | Add `HullcamVDSContinued` + `JustReadTheInstructions` |
 | Live radiation rad/s on the controller's strip | Add `Kerbalism` |
@@ -56,10 +56,10 @@ If you rip the entire IVA stack out, you lose: in-cockpit PTT button, in-cockpit
 ### RasterPropMonitor
 The PTT prop (`pb_KSCTOWER_mic_PTT`) uses RPM's `JSIActionGroupSwitch` to call into our plugin. The ASET COMM radio prop we patch is also an RPM prop. Without RPM there's no clickable in-IVA PTT button.
 
-### ASET-Props
+### ASETProps
 Provides the physical button models (`pb_Full_Cap_White`, `pb_Collider`) and the click sound (`pb_Push02`) used by the PTT prop.
 
-### ASET-Avionics
+### ASETAvionics
 Ships `ASET_COMM_Radio` — the cockpit COMM radio instrument. We patch our `KSCTowerCommRadioPtt` and `TowerCommRadioFreqSync` modules onto it so turning the dial in the cockpit changes which tower frequency / room you're on.
 
 ### AvionicsSystems (MAS)

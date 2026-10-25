@@ -64,5 +64,9 @@ configuration, KSP assemblies, chart bundles, fonts or player game textures.
 Do not overwrite an existing published tag or release: use a new patch version.
 
 CKAN catalog publication is a separate NetKAN submission and dependency review.
-The NetKAN template selects only Client ZIPs; the server ZIP is never a mod install.
+The NetKAN metadata selects only Client ZIPs via the $kref /asset_match/ suffix; the server ZIP is never a mod install.
 No automatic catalog inclusion is claimed by merely publishing GitHub assets.
+
+The checked-in standalone .ckan now describes the actual v1.0.0 Client ZIP;
+its corrected dependency IDs differ from the immutable release's original .ckan
+asset. Future builds regenerate download fields. See [CKAN validation](../ckan/README.md).

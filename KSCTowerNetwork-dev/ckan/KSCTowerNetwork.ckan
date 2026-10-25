@@ -28,8 +28,8 @@
     "recommends": [
         { "name": "ClickThroughBlocker" },
         { "name": "RasterPropMonitor" },
-        { "name": "ASET-Props" },
-        { "name": "ASET-Avionics" },
+        { "name": "ASETProps" },
+        { "name": "ASETAvionics" },
         { "name": "AvionicsSystems" },
         { "name": "kOS" },
         { "name": "HullcamVDSContinued" },
@@ -48,10 +48,10 @@
     ],
 
     "download": "https://github.com/SpaceFoon/KSCTowerNetwork/releases/download/v1.0.0/KSCTowerNetwork-Client-1.0.0-win-x64.zip",
-    "download_size": 0,
+    "download_size": 47351304,
     "download_hash": {
-        "sha1":   "REPLACE_ME_SHA1_OF_RELEASE_ZIP",
-        "sha256": "REPLACE_ME_SHA256_OF_RELEASE_ZIP"
+        "sha1":   "0c7a96a166887fc3b4a84c3b0c184483c0618b4a",
+        "sha256": "2f50db1b9acf5b6c4f87719e3b9745329ae0a44e2cf565f84d7653485a6de06f"
     },
     "download_content_type": "application/zip",
 
