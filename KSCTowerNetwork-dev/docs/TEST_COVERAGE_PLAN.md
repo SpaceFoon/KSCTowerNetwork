@@ -133,7 +133,7 @@ Today:
 
 **Goal:** Run the existing backend, web, and voice-bridge tests on every pull request and publish measured JavaScript/TypeScript coverage.
 
-**Implementation:** The root [coverage workflow](../../.github/workflows/coverage.yml) runs each package's `npm ci` and `npm run test:coverage`. Backend and bridge use `c8` with the Node test runner; the web app uses Vitest's V8 provider. Each report is retained as a workflow artifact, and Codecov receives the combined `js-ts` reports on pushes to `main) through GitHub OIDC. No Codecov secret is stored in the repository.
+**Implementation:** The root [coverage workflow](../../.github/workflows/coverage.yml) runs each package's `npm ci` and `npm run test:coverage`. Backend and bridge use `c8` with the Node test runner; the web app uses Vitest's V8 provider. Each report is retained as a workflow artifact, and Codecov receives the combined `js-ts` reports on pushes to `main` through GitHub OIDC. No Codecov secret is stored in the repository.
 
 **Coverage scope:** Backend, web, and voice-bridge TypeScript source only. The C# plugin and its small custom test harness are not instrumented. No coverage threshold is enforced yet.
 
