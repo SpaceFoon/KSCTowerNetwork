@@ -1,17 +1,12 @@
 <div align="center">
   <h1>🚀 KSCTowerNetwork</h1>
+    <p><img src="KSCTowerNetwork-dev/web/public/ksc-tower-social-preview.jpg" alt="KSC Tower website preview" width="520"></p>
   <p>
-    <strong>📦 RELEASES</strong><br>
     <a href="https://github.com/SpaceFoon/KSCTowerNetwork/releases"><img src="https://img.shields.io/github/v/release/SpaceFoon/KSCTowerNetwork?include_prereleases&label=latest%20release&style=flat-square&logo=github" alt="Latest release"></a>
     <a href="https://github.com/SpaceFoon/KSCTowerNetwork/releases"><img src="https://img.shields.io/github/downloads-pre/SpaceFoon/KSCTowerNetwork/total?label=downloads&style=flat-square&logo=github" alt="Release downloads"></a>
   </p>
   <p>
-    <strong>🧪 BUILD &amp; COVERAGE</strong><br>
     <a href="https://github.com/SpaceFoon/KSCTowerNetwork/actions/workflows/coverage.yml"><img src="https://github.com/SpaceFoon/KSCTowerNetwork/actions/workflows/coverage.yml/badge.svg?branch=main" alt="Coverage checks"></a>
-    <a href="https://codecov.io/gh/SpaceFoon/KSCTowerNetwork"><img src="https://codecov.io/gh/SpaceFoon/KSCTowerNetwork/branch/main/graph/badge.svg?flag=js-ts" alt="JavaScript and TypeScript coverage"></a>
-  </p>
-  <p>
-    <strong>🧭 PROJECT STATUS</strong><br>
     <a href="https://github.com/SpaceFoon/KSCTowerNetwork/issues"><img src="https://img.shields.io/github/issues/SpaceFoon/KSCTowerNetwork?label=open%20issues&style=flat-square&logo=github" alt="Open issues"></a>
     <a href="https://github.com/SpaceFoon/KSCTowerNetwork/blob/main/LICENSE"><img src="https://img.shields.io/github/license/SpaceFoon/KSCTowerNetwork?style=flat-square" alt="License"></a>
     <a href="https://github.com/SpaceFoon/KSCTowerNetwork/commits/main/"><img src="https://img.shields.io/github/last-commit/SpaceFoon/KSCTowerNetwork/main?label=updated&style=flat-square&logo=github" alt="Last updated"></a>
@@ -20,7 +15,6 @@
     <strong>Voice, telemetry, ACARS text, and controller tools for Kerbal Space Program.</strong><br>
     Pilots run the game with the plugin; controllers use a browser. Each player keeps their own physics and save.
   </p>
-  <p><img src="KSCTowerNetwork-dev/web/public/ksc-tower-social-preview.jpg" alt="KSC Tower website preview" width="640"></p>
   <p>
     <a href="#start-here">Start here</a> ·
     <a href="#what-runs-where">What runs where</a> ·
