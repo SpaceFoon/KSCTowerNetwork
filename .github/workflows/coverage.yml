@@ -53,7 +53,9 @@ jobs:
               ? path.slice(markerAt + marker.length)
               : path.startsWith(`${prefix}/`)
                 ? path.slice(prefix.length + 1)
-      : path.startsWith("./") ? path.slice(2) : path;
+                : path.startsWith("./")
+                  ? path.slice(2)
+                  : path;
             return `SF:${prefix}/${relative}`;
           });
 
