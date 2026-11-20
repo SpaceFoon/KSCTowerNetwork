@@ -1715,9 +1715,9 @@ function legendStateFor(
 ): LegendState {
   if (layer === "schematic") {
     return {
-      title: "Schematic (alt-tinted)",
-      bands: ALT_LEGEND,
-      note: "Bundled schematic vector hypsometry. Sharp at any zoom."
+      title: "Static surface map",
+      bands: null,
+      note: "Bundled terrain texture. Traffic markers are sample positions, not live telemetry."
     };
   }
   if (layer === "alt") {
@@ -3977,7 +3977,7 @@ export function KerbinTowerMap({
               {(() => {
                 const layerLabel =
                   basemapLayerPref === "schematic"
-                    ? "Schematic"
+                    ? "Surface"
                     : basemapLayerPref === "alt"
                       ? "Alt"
                       : basemapLayerPref === "biome"
@@ -3990,7 +3990,7 @@ export function KerbinTowerMap({
                     )}s ago).`
                   : basemap?.layers
                     ? "Pre-baked Alt / Biome / Slope variants from the bundled basemap."
-                    : "No live PQS bake published yet — only the bundled schematic plate is available.";
+                    : "No live PQS bake is published. The bundled static surface map is available.";
                 return (
                   <MapToolbarPopover
                     label="Map type"
@@ -4057,7 +4057,7 @@ export function KerbinTowerMap({
                           </label>
                         );
                       })}
-                      <label title="Bundled schematic plate (no live PQS bake).">
+                      <label title="Bundled static surface map (no live PQS bake).">
                         <input
                           type="radio"
                           name={`basemap-layer-${persistKey ?? "x"}`}
@@ -4065,7 +4065,7 @@ export function KerbinTowerMap({
                           checked={basemapLayerPref === "schematic"}
                           onChange={() => setBasemapLayerPref("schematic")}
                         />
-                        Schematic
+                        Surface
                       </label>
                     </div>
                   </MapToolbarPopover>
