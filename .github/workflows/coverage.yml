@@ -12,7 +12,7 @@ permissions:
 jobs:
   coverage:
     name: ${{ matrix.package }} coverage
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' || fromJSON('["self-hosted","Linux"]') }}
     strategy:
       fail-fast: false
       matrix:
@@ -73,7 +73,7 @@ jobs:
     name: Upload coverage to Codecov
     needs: coverage
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' || fromJSON('["self-hosted","Linux"]') }}
     permissions:
       contents: read
       id-token: write
