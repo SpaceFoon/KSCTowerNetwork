@@ -210,6 +210,9 @@ a Vite review entry, not a production route or real pilot session. Its
 **Preview saved thumbnail** file picker can display a local PNG on the sample
 KERBAL-7 card without uploading it; that state is labeled **Local thumbnail
 preview** and does not prove the authenticated relay.
+`/flightwall-preview.html?capture=portfolio` drops the controls and renders
+only the Traffic scenario at the viewport size; the automated portfolio
+screenshot uses it (see [DEVELOPMENT.md](DEVELOPMENT.md#portfolio-screenshot)).
 
 ### `RoomPage.tsx`
 

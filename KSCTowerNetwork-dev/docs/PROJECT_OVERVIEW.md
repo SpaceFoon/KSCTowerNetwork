@@ -186,7 +186,7 @@ Key files:
 | `src/components/TowerRadarScope.tsx` + `FlightWallCard.tsx` + `flightWall.css` | Flightwall radar and selected craft photo/details; existing `tower-radar` wall source. |
 | `src/components/TowerRadarScope.test.ts` | Sweep crossing across skipped frames and rotation wrap; phosphor decay and repaint checks. |
 | `src/tower/flightWallGuidance.ts` + `airfieldGeometry.ts` | Freshness-aware directional hints, compass labels and spherical airfield distances. |
-| `flightwall-preview.html` + `src/previews/FlightWallPreview.tsx` | Local sample-telemetry preview of Flightwall selection, stale and empty states. |
+| `flightwall-preview.html` + `src/previews/FlightWallPreview.tsx` | Local sample-telemetry preview of Flightwall selection, stale and empty states. `?capture=portfolio` renders only the Flightwall for `scripts/portfolio-media/`. |
 | `src/pages/RoomPage.tsx` | Per-session chat + voice page. |
 | `src/pages/AdminDesk.tsx` | Moderation UI. |
 | `src/voice/livekit.ts` | LiveKit connect/publish/subscribe wrapper (`connectVoiceRoom`, token flavors), remote audio attach, Krisp toggle, `subscribeIncomingLevel` (incoming meter; analyser + time-domain RMS). |

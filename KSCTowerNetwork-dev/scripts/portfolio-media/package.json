@@ -1,0 +1,9 @@
+{
+  "name": "ksc-tower-portfolio-media",
+  "private": true,
+  "description": "Renders the portfolio Flightwall screenshot; see capture.sh.",
+  "type": "module",
+  "devDependencies": {
+    "playwright-core": "1.65.1"
+  }
+}

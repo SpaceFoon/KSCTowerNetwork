@@ -281,6 +281,34 @@ the web Flightwall, then switch to a differently named craft and confirm the
 old image disappears. Compilation and local HTTP tests do not prove that
 live KSP-to-browser path.
 
+## Portfolio screenshot
+
+The portfolio's Flightwall image (`tower-flightwall.jpg`, 1280x720) is rendered
+by CI and published without human review, so it shows only the preview's
+built-in sample traffic: fictional Kerbal pilots and craft, no backend, KSP,
+LiveKit, real server or real callsigns.
+`.github/workflows/portfolio-media.yml` runs on self-hosted Linux runners for
+pushes to `main` and pull requests that touch the web app or the capture
+scripts, and on demand. It uploads the `portfolio-media` artifact, which the
+portfolio's media puller imports.
+
+To produce the same file locally (Linux, Docker and Node 24):
+
+```bash
+npm ci --prefix KSCTowerNetwork-dev/web
+npm ci --prefix KSCTowerNetwork-dev/scripts/portfolio-media
+KSCTowerNetwork-dev/scripts/portfolio-media/capture.sh /path/to/out
+```
+
+`capture.sh` starts Vite on a free loopback port and screenshots
+`/flightwall-preview.html?capture=portfolio` with the pinned
+`mcr.microsoft.com/playwright` image, so fonts match on every machine. API
+calls get a 404 (the card shows its missing-photo state). `shoot.mjs` fixes the
+browser clock and runs exactly three sweeps plus a fixed offset, so an
+unchanged UI gives identical bytes. Keep the image tag in `capture.sh` in step
+with `playwright-core` in that folder's `package.json`. The out-dir defaults to
+`KSCTowerNetwork-dev/portfolio-media/`, which Git ignores.
+
 ## Moving an existing local checkout
 
 Keep the legacy checkout until the new checkout has passed local login,

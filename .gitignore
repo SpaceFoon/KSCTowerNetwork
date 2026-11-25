@@ -17,6 +17,7 @@
 !/AGENTS.md
 !/.nvmrc
 !/REPOSITORY_SETUP.md
+!/.github/
 !/licenses/
 !/KSCTowerNetwork-dev/
 !/KSCTowerNetwork-voice-bridge/
@@ -37,6 +38,7 @@ KSCTowerNetwork-voice-bridge/**/dist/
 
 # Build artefact staging at the workspace roots
 KSCTowerNetwork-dev/release/
+KSCTowerNetwork-dev/portfolio-media/
 KSCTowerNetwork-dev/release-zips/
 
 # Scratch packaging output produced when staging the voice bridge runtime;

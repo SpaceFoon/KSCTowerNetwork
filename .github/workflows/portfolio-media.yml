@@ -1,0 +1,63 @@
+# Portfolio screenshot (see KSCTowerNetwork-dev/scripts/portfolio-media/capture.sh and
+# KSCTowerNetwork-dev/docs/DEVELOPMENT.md "Portfolio screenshot").
+# The portfolio imports the "portfolio-media" artifact and publishes it without review,
+# so it renders only the Flightwall preview's built-in sample traffic: no backend, KSP,
+# LiveKit, real server or real callsigns.
+name: Portfolio media
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - KSCTowerNetwork-dev/web/src/**
+      - KSCTowerNetwork-dev/web/public/**
+      - KSCTowerNetwork-dev/web/flightwall-preview.html
+      - KSCTowerNetwork-dev/web/vite.config.ts
+      - KSCTowerNetwork-dev/web/package.json
+      - KSCTowerNetwork-dev/web/package-lock.json
+      - KSCTowerNetwork-dev/scripts/dev-ports.mjs
+      - KSCTowerNetwork-dev/scripts/portfolio-media/**
+      - .github/workflows/portfolio-media.yml
+  pull_request:
+    paths:
+      - KSCTowerNetwork-dev/web/src/**
+      - KSCTowerNetwork-dev/web/public/**
+      - KSCTowerNetwork-dev/web/flightwall-preview.html
+      - KSCTowerNetwork-dev/web/vite.config.ts
+      - KSCTowerNetwork-dev/web/package.json
+      - KSCTowerNetwork-dev/web/package-lock.json
+      - KSCTowerNetwork-dev/scripts/dev-ports.mjs
+      - KSCTowerNetwork-dev/scripts/portfolio-media/**
+      - .github/workflows/portfolio-media.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency: portfolio-media
+
+jobs:
+  capture:
+    runs-on: [self-hosted, Linux]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.22.1
+          cache: npm
+          cache-dependency-path: |
+            KSCTowerNetwork-dev/web/package-lock.json
+            KSCTowerNetwork-dev/scripts/portfolio-media/package-lock.json
+      - run: npm ci
+        working-directory: KSCTowerNetwork-dev/web
+      - run: npm ci
+        working-directory: KSCTowerNetwork-dev/scripts/portfolio-media
+      - name: Render the Flightwall
+        run: bash KSCTowerNetwork-dev/scripts/portfolio-media/capture.sh "$RUNNER_TEMP/portfolio-media"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: portfolio-media
+          path: ${{ runner.temp }}/portfolio-media/tower-flightwall.jpg
+          if-no-files-found: error
+          retention-days: 14
