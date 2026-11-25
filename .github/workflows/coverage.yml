@@ -31,7 +31,8 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24.22.1
-          cache: npm
+          cache: ${{ runner.environment == 'github-hosted' && 'npm' || '' }}
+          package-manager-cache: ${{ runner.environment == 'github-hosted' }}
           cache-dependency-path: ${{ matrix.directory }}/package-lock.json
       - run: npm ci
       - run: npm run test:coverage
