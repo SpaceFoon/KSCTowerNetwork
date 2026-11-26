@@ -15,11 +15,17 @@ import assert from "node:assert/strict";
 
 import {
   SessionClosedError,
+  addSessionChecklistPhase,
+  assignTower,
+  banGuestIp,
+  banUser,
+  blockUserForSession,
   closeSession,
   createSession,
   defaultFrequencyMhz,
   findOpenSessionByFrequency,
   getSessionWithDevSharedBootstrap,
+  isIpBanned,
   isServerOwnedRadioFrequency,
   normalizeRequestedFrequencyMhz,
   setSessionPilot
@@ -120,4 +126,30 @@ test("setSessionPilot returns undefined for an unknown sessionId", async () => {
 test("getSessionWithDevSharedBootstrap is undefined for unknown ids (POST /livekit-token → 404)", async () => {
   const got = await getSessionWithDevSharedBootstrap("ksc-tower-no_such_session_ever", "user-pilot-A");
   assert.equal(got, undefined);
+});
+
+test("blocking the assigned controller releases the tower seat", async () => {
+  const room = await createSession("user-pilot-block");
+  await assignTower(room.id, "user-tower-block");
+  const after = await blockUserForSession(room.id, "user-tower-block");
+  assert.equal(after?.assignedTowerUserId, undefined);
+  assert.ok(after?.blockedUserIds.includes("user-tower-block"));
+});
+
+test("a plain ban on an IP-banned guest keeps the IP ban", async () => {
+  await banGuestIp("guest_ipcarry", "203.0.113.9", "mod-1");
+  await banUser("guest_ipcarry", "mod-2", 3600);
+  assert.equal(await isIpBanned("203.0.113.9"), true);
+});
+
+test("adding duplicate long checklist phase titles terminates with unique ids", async () => {
+  const room = await createSession("user-pilot-phases");
+  const title = "x".repeat(80);
+  const ids = new Set<string>();
+  for (let i = 0; i < 4; i++) {
+    const r = await addSessionChecklistPhase({ sessionId: room.id, basePhases: [], title });
+    assert.ok(r);
+    ids.add(r!.phaseId);
+  }
+  assert.equal(ids.size, 4);
 });

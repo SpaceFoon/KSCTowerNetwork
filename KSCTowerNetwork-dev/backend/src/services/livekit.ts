@@ -331,10 +331,26 @@ export async function kickIdentityFromRoom(
  * updated. Failures on individual participants are swallowed (they may have
  * disconnected mid-fanout); the room-level operation is best-effort.
  */
+/** Token metadata set by the `/livekit-token` route (`flavor`, `publishEligible`, ...). */
+export type ParticipantTokenMeta = Record<string, unknown>;
+
+export function parseParticipantMeta(raw: string | undefined): ParticipantTokenMeta {
+  if (!raw) return {};
+  try {
+    const v = JSON.parse(raw) as unknown;
+    return v && typeof v === "object" ? (v as ParticipantTokenMeta) : {};
+  } catch {
+    return {};
+  }
+}
+
+type PublishSkip<A extends unknown[]> = (...args: A) => boolean | Promise<boolean>;
+
 export async function setPublishForRoomParticipants(
   roomName: string,
   canPublish: boolean,
-  exemptIdentities: ReadonlySet<string>
+  exemptIdentities: ReadonlySet<string>,
+  opts: { skip?: PublishSkip<[identity: string, meta: ParticipantTokenMeta]> } = {}
 ): Promise<number> {
   const roomClient = getRoomClient();
   if (!roomClient) return 0;
@@ -350,6 +366,7 @@ export async function setPublishForRoomParticipants(
   let updated = 0;
   await runWithConcurrencyCap(targets, LIVEKIT_FANOUT_CONCURRENCY, async (p) => {
     try {
+      if (opts.skip && (await opts.skip(p.identity, parseParticipantMeta(p.metadata)))) return;
       await roomClient.updateParticipant(roomName, p.identity, undefined, {
         canPublish,
         canSubscribe: true,
@@ -392,13 +409,22 @@ export async function revokePublishForIdentity(identity: string): Promise<number
  * Used on unmute so the mic comes back live without forcing a reconnect.
  * No-op when LiveKit isn't configured. Mirrors `revokePublishForIdentity`.
  */
-export async function restorePublishForIdentity(identity: string): Promise<number> {
+export async function restorePublishForIdentity(
+  identity: string,
+  opts: { skip?: PublishSkip<[roomName: string, meta: ParticipantTokenMeta]> } = {}
+): Promise<number> {
   const roomClient = getRoomClient();
   if (!roomClient) return 0;
   const rooms = await findRoomsForIdentity(roomClient, identity);
   let updated = 0;
   await runWithConcurrencyCap(rooms, LIVEKIT_FANOUT_CONCURRENCY, async (roomName) => {
     try {
+      if (opts.skip) {
+        const parts = await roomClient.listParticipants(roomName);
+        const me = parts.find((p) => p.identity === identity);
+        if (!me) return;
+        if (await opts.skip(roomName, parseParticipantMeta(me.metadata))) return;
+      }
       await roomClient.updateParticipant(roomName, identity, undefined, {
         canPublish: true,
         canSubscribe: true,

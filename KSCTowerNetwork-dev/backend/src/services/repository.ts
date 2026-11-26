@@ -694,6 +694,21 @@ function localBanIsActive(rec: LocalBanRecord, kind?: "ban" | "mute"): boolean {
 
 function setLocalBan(rec: LocalBanRecord): void {
   const list = localBans.get(rec.userId) ?? [];
+  // A plain ban on a guest that is already IP-banned must not drop the IP (which
+  // lets them mint a fresh guest id) or shorten it. Mirrors the DB upsert in banUser.
+  const priorIp = list.find((existing) => existing.kind === rec.kind && existing.ip);
+  if (priorIp && !rec.ip) {
+    rec = {
+      ...rec,
+      ip: priorIp.ip,
+      expiresAtMs:
+        priorIp.expiresAtMs == null || rec.expiresAtMs == null
+          ? priorIp.expiresAtMs == null
+            ? undefined
+            : rec.expiresAtMs
+          : Math.max(priorIp.expiresAtMs, rec.expiresAtMs)
+    };
+  }
   const next = list.filter((existing) => existing.kind !== rec.kind);
   next.push(rec);
   localBans.set(rec.userId, next);
@@ -878,12 +893,26 @@ export async function getUserAccess(userId: string): Promise<UserAccess> {
 
   // Guest sessions never go through the `users` table — role is fixed and bans are checked separately.
   if (isGuestId(userId)) {
-    return makeAccess(
-      userId,
-      "guest",
-      !!getActiveLocalRecord(userId, "ban"),
-      !!getActiveLocalRecord(userId, "mute")
-    );
+    let banned = !!getActiveLocalRecord(userId, "ban");
+    let muted = !!getActiveLocalRecord(userId, "mute");
+    // banUser/muteUser persist guest rows too; without this a backend restart
+    // (local map empty) silently lifts every guest ban and mute.
+    if (useDbPersistence() && (!banned || !muted)) {
+      try {
+        const rows = (await withConn((conn) =>
+          conn.query(
+            `SELECT kind FROM bans WHERE user_id = ? AND (expires_at IS NULL OR expires_at > NOW())`,
+            [userId]
+          )
+        )) as Array<Record<string, unknown>>;
+        const kinds = new Set(rows.map((r) => String(r.kind ?? "ban")));
+        banned = banned || kinds.has("ban");
+        muted = muted || kinds.has("mute");
+      } catch (error) {
+        logger.warn({ err: error, userId }, "Failed to read guest bans; using in-memory state");
+      }
+    }
+    return makeAccess(userId, "guest", banned, muted);
   }
 
   if (!useDbPersistence()) {
@@ -2047,6 +2076,13 @@ export async function blockUserForSession(sessionId: string, blockedUserId: stri
     }
   }
 
+  // A blocked controller must lose the seat too, or they keep full participant
+  // rights (chat, voice publish, rename, close) in the room that blocked them.
+  if (session.assignedTowerUserId === blockedUserId) {
+    const released = await clearAssignedTower(sessionId, { tryReplaceFromQueue: true });
+    return released.session ?? session;
+  }
+
   return session;
 }
 
@@ -2505,10 +2541,14 @@ export async function banUser(
         INSERT INTO bans (user_id, banned_by_user_id, reason, kind, expires_at)
         VALUES (?, ?, ?, 'ban', ${expiresAtMs ? `FROM_UNIXTIME(? / 1000)` : `NULL`})
         ON DUPLICATE KEY UPDATE
+          expires_at = IF(
+            ip IS NOT NULL AND (expires_at IS NULL OR expires_at > VALUES(expires_at)),
+            expires_at,
+            VALUES(expires_at)
+          ),
           banned_by_user_id = VALUES(banned_by_user_id),
           reason = VALUES(reason),
-          kind = VALUES(kind),
-          expires_at = VALUES(expires_at)
+          kind = VALUES(kind)
         `,
           expiresAtMs
             ? [userId, bannedByUserId ?? null, reason ?? "manual admin ban", expiresAtMs]

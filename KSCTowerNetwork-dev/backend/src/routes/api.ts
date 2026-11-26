@@ -2220,7 +2220,17 @@ apiRouter.post(
     const livekitUpdated = await setPublishForRoomParticipants(
       boothLiveKitRoomName(sessionId),
       !parsed.data.muted,
-      exempt
+      exempt,
+      {
+        // Mute: moderators riding the booth keep their mic (see comment above).
+        // Unmute: never re-open a mic the seat isn't entitled to, or one under
+        // an active admin mute.
+        skip: async (identity, meta) => {
+          if (parsed.data.muted) return meta.boothModerator === true;
+          if (meta.publishEligible === false) return true;
+          return isIdentityMutedForRestore(identity);
+        }
+      }
     );
 
     await logAction(req.auth!.userId, "session.booth.mute", {
@@ -4116,7 +4126,8 @@ apiRouter.post("/session/:sessionId/livekit-token", requireAuth, async (req, res
         sessionId: lobbySession.id,
         roomName: lobbySession.name ?? lobbySession.id,
         frequencyMhz: lobbySession.frequencyMhz ?? null,
-        flavor: "lobby_ops"
+        flavor: "lobby_ops",
+        publishEligible: false
       }
     });
     await logAction(userId, "livekit.token.issue", {
@@ -4191,6 +4202,11 @@ apiRouter.post("/session/:sessionId/livekit-token", requireAuth, async (req, res
 
   let canPublish: boolean;
   let canSubscribe: boolean;
+  // Whether this seat may publish once any admin mute / booth gag is lifted.
+  // Carried in the token metadata so the unmute paths can restore publish only
+  // where the room policy actually allows it.
+  let publishEligible: boolean;
+  let boothModerator = false;
 
   if (flavor === "booth") {
     // Booth room policy:
@@ -4218,7 +4234,9 @@ apiRouter.post("/session/:sessionId/livekit-token", requireAuth, async (req, res
       return;
     }
     const isModerator = isAssignedTower || isMod;
+    boothModerator = isModerator;
     const boothGagged = getSessionBoothMuted(session) && !isModerator;
+    publishEligible = hasVoice;
     canPublish = hasVoice && !access.isMuted && !boothGagged;
     canSubscribe = true;
   } else {
@@ -4232,12 +4250,11 @@ apiRouter.post("/session/:sessionId/livekit-token", requireAuth, async (req, res
     //     always receive subscribe. Dev open-auth keeps the old roster-wide
     //     subscribe path for local testing.
     //   - lobby listen uses flavor `lobby_ops` (handled above), not this branch.
-    canPublish =
+    publishEligible =
       (isServerRadioSession
         ? roleAtLeast(access.role, "pilot")
-        : isPilot || isAssignedTower || isDevOpen) &&
-      hasVoice &&
-      !access.isMuted;
+        : isPilot || isAssignedTower || isDevOpen) && hasVoice;
+    canPublish = publishEligible && !access.isMuted;
     canSubscribe = isServerRadioSession
       ? roleAtLeast(access.role, "pilot")
       : isBridgeIdentity(userId) ||
@@ -4265,7 +4282,9 @@ apiRouter.post("/session/:sessionId/livekit-token", requireAuth, async (req, res
       sessionId: session.id,
       roomName: session.name ?? session.id,
       frequencyMhz: session.frequencyMhz ?? null,
-      flavor
+      flavor,
+      publishEligible,
+      boothModerator
     }
   });
 
@@ -4723,6 +4742,15 @@ apiRouter.post("/admin/unban", requireAuth, requireRole("mod"), async (req, res)
  * Lift an active mute. Restores publish perms across every room the user
  * is currently in so the mic comes back without forcing a reconnect.
  */
+async function isIdentityMutedForRestore(identity: string): Promise<boolean> {
+  try {
+    return (await getUserAccess(identity)).isMuted;
+  } catch {
+    // Unknown principal: don't hand it a live mic.
+    return true;
+  }
+}
+
 apiRouter.post("/admin/unmute", requireAuth, requireRole("mod"), async (req, res) => {
   const parsed = unmuteSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -4730,7 +4758,20 @@ apiRouter.post("/admin/unmute", requireAuth, requireRole("mod"), async (req, res
     return;
   }
   const removed = await unmuteUser(parsed.data.userId, req.auth!.userId);
-  const restored = removed ? await restorePublishForIdentity(parsed.data.userId) : 0;
+  const restored = removed
+    ? await restorePublishForIdentity(parsed.data.userId, {
+        // Only re-open the mic where the token policy granted it; a gagged booth
+        // stays gagged for non-moderators until the kill-switch is lifted.
+        skip: async (_roomName, meta) => {
+          if (meta.publishEligible === false) return true;
+          if (meta.flavor === "booth" && meta.boothModerator !== true && typeof meta.sessionId === "string") {
+            const s = await getSession(meta.sessionId);
+            if (s && getSessionBoothMuted(s)) return true;
+          }
+          return false;
+        }
+      })
+    : 0;
   res.json({ ok: true, removed, livekitRestored: restored, sanctions: await collectSanctions() });
 });
 
