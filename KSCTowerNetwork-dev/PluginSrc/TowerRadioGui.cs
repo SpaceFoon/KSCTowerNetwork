@@ -473,6 +473,12 @@ namespace KSCTowerNetwork
         /// voice bridge (POST /session/{id}/livekit-token expects a server session slug/UUID).
         /// </summary>
         private bool _atisLocalReceiveOnly;
+        /// <summary>
+        /// Bumped by every tune. Claim-pilot replies from an older tune are dropped: they had no
+        /// cancel guard, so stepping TWR -> GND -> ATIS quickly let the GND reply land last,
+        /// adopt the GND room and clear the ATIS state while the dial still showed 128.250.
+        /// </summary>
+        private int _tuneGeneration;
         private float _bridgePingNextAt;
 
         private bool _micUiHeld;
@@ -3003,6 +3009,7 @@ namespace KSCTowerNetwork
 
             if (string.Equals(freqCandidate, AtisPresetMhz, StringComparison.Ordinal))
             {
+                _tuneGeneration++;
                 StopHelmetVoiceAfterTuneFailure();
                 _atisLocalReceiveOnly = true;
                 if (!TryParseFreqDigits(AtisPresetMhz, _dialDigits))
@@ -3029,6 +3036,8 @@ namespace KSCTowerNetwork
 
             if (IsCurrentRoomOnFrequency(freqCandidate))
             {
+                // Still a new tune: a reply for a frequency dialed just before must not win.
+                _tuneGeneration++;
                 _dialDirty = false;
                 if (Regex.IsMatch(freqCandidate, FreqFormatRegex))
                 {
@@ -3066,7 +3075,8 @@ namespace KSCTowerNetwork
             {
                 hintRoomId = null;
             }
-            StartCoroutine(ClaimPilotAtFrequencyRoutine(freqCandidate, hintRoomId));
+            _tuneGeneration++;
+            StartCoroutine(ClaimPilotAtFrequencyRoutine(freqCandidate, hintRoomId, _tuneGeneration));
         }
 
         /// <summary>
@@ -3282,9 +3292,9 @@ namespace KSCTowerNetwork
         /// On other HTTP errors / network failure / bad JSON: <see cref="TowerModSettings.SessionId"/>
         ///   is unchanged, but helmet PCM listen is stopped so the radio UI does not read "ON AIR".
         /// </summary>
-        private IEnumerator ClaimPilotAtFrequencyRoutine(string targetFreq, string hintRoomId)
+        private IEnumerator ClaimPilotAtFrequencyRoutine(string targetFreq, string hintRoomId, int generation)
         {
-            yield return ClaimPilotRequest(targetFreq, hintRoomId, allowFallback: true);
+            yield return ClaimPilotRequest(targetFreq, hintRoomId, allowFallback: true, generation: generation);
         }
 
         /// <summary>
@@ -3302,7 +3312,7 @@ namespace KSCTowerNetwork
             v.StopBridgeConnection();
         }
 
-        private IEnumerator ClaimPilotRequest(string targetFreq, string hintRoomId, bool allowFallback)
+        private IEnumerator ClaimPilotRequest(string targetFreq, string hintRoomId, bool allowFallback, int generation)
         {
             var url = TowerModSettings.ApiBaseUrl + "/session/claim-pilot";
             var sb = new StringBuilder();
@@ -3330,6 +3340,12 @@ namespace KSCTowerNetwork
                 TowerApiAuth.ApplyBearer(req);
                 yield return req.SendWebRequest();
 
+                if (generation != _tuneGeneration)
+                {
+                    // Superseded by a newer tune; its own reply decides the radio state.
+                    yield break;
+                }
+
                 if (req.isNetworkError)
                 {
                     StopHelmetVoiceAfterTuneFailure();
@@ -3355,7 +3371,7 @@ namespace KSCTowerNetwork
                         // without the hint so the server resolves the provisioned frequency.
                         Debug.Log("[KSCTowerNetwork] ClaimPilot retry without stale hint sessionId="
                             + hintRoomId + " freq=" + targetFreq);
-                        yield return ClaimPilotRequest(targetFreq, null, allowFallback: false);
+                        yield return ClaimPilotRequest(targetFreq, null, allowFallback: false, generation: generation);
                         yield break;
                     }
                     StopHelmetVoiceAfterTuneFailure();
@@ -3775,7 +3791,13 @@ namespace KSCTowerNetwork
                     meter.StartSampling();
                 }
 
-                if (!_bridgeMicLive)
+                if (_atisLocalReceiveOnly && !_dialDirty)
+                {
+                    // ATIS is a local receive-only loop; SessionId still names the previous
+                    // tower room, so keying here would transmit on that room unseen.
+                    _statusLine = "ATIS is receive-only.";
+                }
+                else if (!_bridgeMicLive)
                 {
                     TrySendBridgeMicCommand(true);
                 }

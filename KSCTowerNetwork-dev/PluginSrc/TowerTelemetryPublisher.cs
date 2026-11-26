@@ -732,6 +732,19 @@ namespace KSCTowerNetwork
                 blockedAtMs = 0L;
             }
 
+            // Timestamps are server clock; TowerRadioState compares against the local clock.
+            // Shift them by the reply's serverNowMs so a client a few seconds ahead of the
+            // server (BUSY_HOLD is 2.5 s) still shows FREQ BUSY, as the countdown path does.
+            long serverNowMs;
+            if (TryReadLong(json, "\"serverNowMs\"", out serverNowMs) && serverNowMs > 0L)
+            {
+                var localNowMs = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+                var skew = localNowMs - serverNowMs;
+                if (expiresAtMs > 0L) expiresAtMs += skew;
+                if (blockedAtMs > 0L) blockedAtMs += skew;
+                updatedAtMs += skew;
+            }
+
             var message = blocked ? "BLOCKED - SAY AGAIN" : (busy ? "FREQ BUSY" : string.Empty);
             TowerRadioState.Apply(busy, blocked, freqMhz, hasFreq, message, updatedAtMs, expiresAtMs, blockedAtMs);
         }
