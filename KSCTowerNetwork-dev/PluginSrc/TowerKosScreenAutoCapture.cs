@@ -99,6 +99,11 @@ namespace KSCTowerNetwork
             public readonly Dictionary<string, float> RecentlyShipped =
                 new Dictionary<string, float>(StringComparer.Ordinal);
 
+            // index → text last read from that row. Used to recognise a scroll: after one PRINT
+            // scrolls the terminal every row's tick bumps, and each row now holds the text that
+            // was k rows below it. Those rows are not new output.
+            public readonly Dictionary<int, string> RowText = new Dictionary<int, string>();
+
             public string Tag = string.Empty;
         }
 
@@ -519,6 +524,7 @@ namespace KSCTowerNetwork
                     if (line == null) { continue; }
                     var tick0 = (ulong)_lineLastChangeTickProp.GetValue(line, null);
                     state.ShippedTicks[i] = tick0;
+                    state.RowText[i] = ReadRowText(line);
                 }
 
                 return null;
@@ -529,6 +535,8 @@ namespace KSCTowerNetwork
 
             List<string> newLines = null;
             int emittedThisTick = 0;
+            var rowTextBefore = new Dictionary<int, string>(state.RowText);
+            var scrollRows = -1; // unknown until the first changed, non-empty row
 
             for (var i = 0; i < buffer.Count && emittedThisTick < MaxLinesPerProcessorPerTick; i++)
             {
@@ -571,7 +579,36 @@ namespace KSCTowerNetwork
                 }
 
                 var text = TrimLineChars(chars, len);
+                state.RowText[i] = text;
                 if (text.Length == 0)
+                {
+                    state.ShippedTicks[i] = tick;
+                    continue;
+                }
+
+                // Scroll detection: the 3 s dedupe below only covers lines shipped very recently,
+                // so a script printing one line every few seconds re-sent the whole visible
+                // screen on each print. Work out the scroll distance from the first changed row,
+                // then treat any row that just holds the text from `scrollRows` below as moved.
+                if (scrollRows < 0)
+                {
+                    scrollRows = 0;
+                    for (var k = 1; k < buffer.Count; k++)
+                    {
+                        string below;
+                        if (rowTextBefore.TryGetValue(i + k, out below) &&
+                            string.Equals(below, text, StringComparison.Ordinal))
+                        {
+                            scrollRows = k;
+                            break;
+                        }
+                    }
+                }
+
+                string movedFrom;
+                if (scrollRows > 0 &&
+                    rowTextBefore.TryGetValue(i + scrollRows, out movedFrom) &&
+                    string.Equals(movedFrom, text, StringComparison.Ordinal))
                 {
                     state.ShippedTicks[i] = tick;
                     continue;
@@ -632,6 +669,25 @@ namespace KSCTowerNetwork
         /// returning the visible text. kOS pads rows to ColumnCount with spaces, so without
         /// this trim every PRINT would be 50 chars wide on the wire.
         /// </summary>
+        private string ReadRowText(object line)
+        {
+            try
+            {
+                var len = (int)_lineLengthProp.GetValue(line, null);
+                if (len <= 0)
+                {
+                    return string.Empty;
+                }
+
+                var chars = (char[])_lineToArrayMethod.Invoke(line, null);
+                return chars == null ? string.Empty : TrimLineChars(chars, len);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
         private static string TrimLineChars(char[] chars, int len)
         {
             var end = Math.Min(len, chars.Length);

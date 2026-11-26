@@ -541,6 +541,13 @@ namespace KSCTowerNetwork
         private static string ExtractPhasesArray(string envelopeJson)
         {
             if (string.IsNullOrEmpty(envelopeJson)) return "[]";
+            // JsonUtility cannot write a null nested [Serializable] class: an item with no rule
+            // goes out as "autoRule":{"kind":"","expr":""}, which the backend schema rejects
+            // (kind must be "telemetry", expr non-empty), so Load / Save template got a 400.
+            envelopeJson = System.Text.RegularExpressions.Regex.Replace(
+                envelopeJson,
+                ",\"autoRule\":\\{\"kind\":\"\",\"expr\":\"\"\\}",
+                string.Empty);
             var idx = envelopeJson.IndexOf("\"phases\":", StringComparison.Ordinal);
             if (idx < 0) return "[]";
             var arrStart = envelopeJson.IndexOf('[', idx);
