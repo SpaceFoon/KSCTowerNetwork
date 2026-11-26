@@ -404,11 +404,18 @@ async function main(): Promise<void> {
     if (!hasKspConnections()) return;
     joinInProgress = true;
     try {
+      let sessionChangedDuringJoin = false;
       const tryConnect = async (): Promise<void> => {
         const sessionAtStart = currentSessionId;
         const fresh = await fetchLiveKitTokenWithRetry();
         // KSP could have quit while we were waiting on the backend; re-check.
-        if (!hasKspConnections() || shuttingDown || sessionAtStart !== currentSessionId) {
+        if (!hasKspConnections() || shuttingDown) {
+          return;
+        }
+        if (sessionAtStart !== currentSessionId) {
+          // A SESSION: switch landed mid-fetch. Its own join call bailed out on
+          // joinInProgress, so without a retry nobody joins the new room.
+          sessionChangedDuringJoin = true;
           return;
         }
         // Reconnect backoff may have let another code path connect first - never stack
@@ -426,6 +433,7 @@ async function main(): Promise<void> {
       let shouldScheduleRetry = false;
       try {
         await tryConnect();
+        shouldScheduleRetry = sessionChangedDuringJoin;
       } catch (e) {
         let msg = e instanceof Error ? e.message : String(e);
         console.warn(`[voice-bridge] join failed: ${msg}`);
@@ -702,7 +710,10 @@ async function main(): Promise<void> {
             if (!roomJoined) await joinRoomIfNeeded();
             try {
               await sendPttToRoom(true);
-              kspTxSockets.add(socket);
+              // The plugin uses one short-lived socket per command with a 750 ms timeout.
+              // If it already hung up during the awaits above, its close handler has run
+              // and nothing would ever remove this entry — muting the downlink for good.
+              if (!socket.destroyed) kspTxSockets.add(socket);
               safeSocketWrite(socket, "OK mic_on\n");
             } catch (e) {
               kspTxSockets.delete(socket);

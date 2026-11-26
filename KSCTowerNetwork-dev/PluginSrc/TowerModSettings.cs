@@ -383,7 +383,7 @@ namespace KSCTowerNetwork
             }
 
             float delay;
-            if (float.TryParse(node.GetValue("autoConnectDelaySeconds"), out delay) && delay >= 0f && delay < 60f)
+            if (float.TryParse(node.GetValue("autoConnectDelaySeconds"), NumberStyles.Float, CultureInfo.InvariantCulture, out delay) && delay >= 0f && delay < 60f)
             {
                 AutoConnectDelaySeconds = delay;
             }

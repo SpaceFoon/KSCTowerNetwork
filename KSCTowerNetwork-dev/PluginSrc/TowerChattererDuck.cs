@@ -169,9 +169,16 @@ namespace KSCTowerNetwork
                 _rapidRescanRoutine = null;
             }
 
-            RebuildListInto(_ducked);
-            ApplyMuteToList(_ducked, true);
-            _muteActive = true;
+            // While our mute is still applied (re-press inside the post-release hold, or a
+            // second PTT source), a fresh snapshot would record PriorMute = true for every
+            // source and the restore would then leave them muted for the rest of the scene.
+            if (!_muteActive)
+            {
+                RebuildListInto(_ducked);
+                ApplyMuteToList(_ducked, true);
+                _muteActive = true;
+            }
+
             ExtendDuckToNewSources();
             // Chatterer often reacts to the same PTT in its own Update after our InternalModule
             // OnUpdate — mute after end-of-frame and the next couple frames so new sources never

@@ -3787,10 +3787,12 @@ namespace KSCTowerNetwork
                     meter.StopSampling();
                 }
 
-                if (_bridgeMicLive)
-                {
-                    TrySendBridgeMicCommand(false);
-                }
+                // Unconditional: _bridgeMicLive only flips when the MIC_ON reply is
+                // dispatched on a later frame, so gating on it dropped MIC_OFF for a
+                // quick tap (mic stuck hot) and left the PTT bus open when the bridge
+                // was down. Sends run on pool threads with no ordering guarantee, so the
+                // MIC_ON reply handler also re-closes the mic if PTT was released meanwhile.
+                TrySendBridgeMicCommand(false);
             }
         }
 
@@ -3824,6 +3826,11 @@ namespace KSCTowerNetwork
                         {
                             _bridgeMicLive = wantOn;
                             _statusLine = wantOn ? "Mic open." : "Mic closed.";
+                            if (wantOn && !_pttCombinedPrev)
+                            {
+                                TrySendBridgeMicCommand(false);
+                            }
+
                             return;
                         }
 
