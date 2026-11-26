@@ -2405,8 +2405,14 @@ function TowerStationStatusSlot(): JSX.Element {
       </thead>
       <tbody>
         {presets.map((preset) => {
+          // Compared numerically in kHz: formatLobbyMhz yields the display form
+          // ("122.00"), which never equals the canonical preset string ("122.000").
+          const presetKhz = Math.round(Number(preset.frequencyMhz) * 1000);
           const stationRooms = rooms.filter(
-            (r) => formatLobbyMhz(r.frequencyMhz) === preset.frequencyMhz
+            (r) =>
+              r.frequencyMhz != null &&
+              r.frequencyMhz !== "" &&
+              Math.round(Number(r.frequencyMhz) * 1000) === presetKhz
           );
           const controllerIds = stationRooms
             .map((r) => r.assignedTowerUserId)

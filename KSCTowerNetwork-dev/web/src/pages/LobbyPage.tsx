@@ -736,7 +736,7 @@ export function LobbyPage({ user, onRoomChanged }: Props): JSX.Element {
                       <button
                         type="button"
                         onClick={() => handleRename(room.roomId, room.name ?? null)}
-                        disabled={renameBusyId === room.roomId || !isMine || isServerRadioRoom}
+                        disabled={renameBusyId === room.roomId || !(isMine || user.isMod === true) || isServerRadioRoom}
                         title={
                           isServerRadioRoom
                             ? "Server-owned radio channel names are fixed"

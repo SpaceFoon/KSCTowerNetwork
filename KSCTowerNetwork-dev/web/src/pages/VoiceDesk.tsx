@@ -451,7 +451,9 @@ export function VoiceDesk({ embedInWall }: VoiceDeskProps = {}): JSX.Element {
       handleRef.current = vh;
       unsubIncomingRef.current?.();
       unsubIncomingRef.current = vh.subscribeIncomingLevel(setIncomingLevel);
-      startLocalMicMeter(vh.getLocalMicMediaStreamTrack());
+      // Listen-only users have no local track; metering them would fall back to
+      // getUserMedia and prompt for a mic they can never transmit on.
+      if (canPublish) startLocalMicMeter(vh.getLocalMicMediaStreamTrack());
       setRoomState(vh.room.state);
       setConnecting(false);
 

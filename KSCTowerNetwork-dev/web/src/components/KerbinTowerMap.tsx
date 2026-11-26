@@ -305,6 +305,11 @@ export function formatKerbinDays(
   if (daysRemaining != null && Number.isFinite(daysRemaining)) {
     if (daysRemaining < 0) return "—";
     if (daysRemaining < 1) {
+      // `daysRemaining` is in home-body days (6 h on Kerbin), so converting with
+      // 24 h/day overstates the time left 4x; prefer the raw seconds when sent.
+      if (secondsRemainingFallback != null && Number.isFinite(secondsRemainingFallback)) {
+        return formatDuration(secondsRemainingFallback);
+      }
       const hrs = daysRemaining * 24;
       if (hrs < 1) return `${(hrs * 60).toFixed(0)} min`;
       return `${hrs.toFixed(1)} h`;
@@ -1687,10 +1692,11 @@ function formatDms(deg: number, posChar: "N" | "E", negChar: "S" | "W"): string 
   if (!Number.isFinite(deg)) return "—";
   const sign = deg >= 0 ? posChar : negChar;
   const abs = Math.abs(deg);
-  const d = Math.floor(abs);
-  const minFloat = (abs - d) * 60;
-  const m = Math.floor(minFloat);
-  const s = (minFloat - m) * 60;
+  // Round total arc-seconds first so 59.6" carries into minutes instead of printing 60".
+  const totalSec = Math.round(abs * 3600);
+  const d = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
   // 1 second of arc on Kerbin ≈ 2.9 m at the equator — rounding to whole seconds keeps the
   // display compact without losing useful precision for a click pick (the click target itself is
   // already nowhere near sub-second).
@@ -2110,7 +2116,13 @@ function KerbinMapMarkerModalView({
             <dl className="kerbin-map-marker-modal-dl">
               <div>
                 <dt>Source</dt>
-                <dd>{state.s.source === "stock" ? "Stock KSP" : "Making History DLC"}</dd>
+                <dd>
+                  {state.s.source === "stock"
+                    ? "Stock KSP"
+                    : state.s.source === "kerbal-konstructs"
+                      ? "Kerbal Konstructs"
+                      : "Making History DLC"}
+                </dd>
               </div>
               <div><dt>Latitude</dt><dd>{state.s.lat.toFixed(5)}°</dd></div>
               <div><dt>Longitude</dt><dd>{state.s.lon.toFixed(5)}°</dd></div>
@@ -3121,11 +3133,12 @@ export function KerbinTowerMap({
             mapShowVor,
             mapShowIls,
             mapShowNdb,
-            mapShowKsc,
+            // Home-body markers are not drawn on other bodies, so they must not be clickable there.
+            mapShowKsc: mapShowKsc && isViewingHomeBody,
             mapShowSites,
             vesselTargets: vesselPickTargets,
-            navaids: effectiveNavaids,
-            launchSites: effectiveLaunchSites,
+            navaids: isViewingHomeBody ? effectiveNavaids : [],
+            launchSites: isViewingHomeBody ? effectiveLaunchSites : [],
             kscLat: homeBaseLat,
             kscLon: homeBaseLon,
             homeBodyName
@@ -3565,7 +3578,7 @@ export function KerbinTowerMap({
                         homeBodyName={homeBodyName}
                       />
                     ) : null}
-                    {hasCoords && onHomeBody && telemetry && !mapShowTowerGuidance ? (
+                    {hasCoords && onHomeBody && isViewingHomeBody && !suppressAircraftOverlay && telemetry && !mapShowTowerGuidance ? (
                       <KerbinVesselMapMarker
                         cx={latLonToMapVB(telemetry.lat as number, telemetry.lon as number).x}
                         cy={latLonToMapVB(telemetry.lat as number, telemetry.lon as number).y}

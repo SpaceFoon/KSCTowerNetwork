@@ -472,7 +472,12 @@ export function AdminDesk(): JSX.Element {
         setServerLogError(null);
         setServerLogLoadedAt(Date.now());
         const incoming = Array.isArray(data.entries) ? data.entries : [];
-        if (typeof data.latestSeq === "number" && data.latestSeq > serverLogSeqRef.current) {
+        // Also moves backwards: a backend restart, resets its in-memory sequence, and without
+        // it the tail keeps asking for entries after the old, higher cursor.
+        if (
+          typeof data.latestSeq === "number" &&
+          (reset || data.latestSeq !== serverLogSeqRef.current)
+        ) {
           serverLogSeqRef.current = data.latestSeq;
         }
         setServerLogs((prev) => {

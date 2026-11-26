@@ -16,7 +16,9 @@ export type VoiceTopBarSnapshot = {
   micHot: boolean;
 };
 
-const snap: VoiceTopBarSnapshot = {
+// Replaced, never mutated: useSyncExternalStore compares snapshots by identity,
+// so an in-place update would never re-render the top bar.
+let snap: VoiceTopBarSnapshot = {
   present: false,
   connected: false,
   connecting: false,
@@ -53,20 +55,23 @@ export function registerVoiceTopBar(opts: {
   snapshot: Partial<VoiceTopBarSnapshot>;
   ptt: VoiceTopBarPttHandlers | null;
 }): void {
-  Object.assign(snap, opts.snapshot);
+  snap = { ...snap, ...opts.snapshot };
   pttHandlers = opts.ptt;
   emit();
 }
 
 export function resetVoiceTopBar(): void {
-  snap.present = false;
-  snap.connected = false;
-  snap.connecting = false;
-  snap.reconnecting = false;
-  snap.canPublish = false;
-  snap.canSubscribe = false;
-  snap.pttEnabled = true;
-  snap.micHot = false;
+  snap = {
+    ...snap,
+    present: false,
+    connected: false,
+    connecting: false,
+    reconnecting: false,
+    canPublish: false,
+    canSubscribe: false,
+    pttEnabled: true,
+    micHot: false
+  };
   pttHandlers = null;
   emit();
 }

@@ -50,6 +50,8 @@ export function useAuthMe(): {
     refetchInterval: 0
   });
 
+  const authRejected = enabled && (q.error?.status === 401 || q.error?.status === 403);
+
   // Sync server-truth into localStorage so a hard refresh paints the cached
   // user immediately and only swaps it after the request returns.
   useEffect(() => {
@@ -57,15 +59,21 @@ export function useAuthMe(): {
       setStoredUser(null);
       return;
     }
-    if (q.data) {
+    // Error first: a failed refetch keeps the last successful `data`, so testing
+    // `data` first would re-store the user and hide an expired session. Only
+    // 401/403 mean the session is gone; a 5xx during a backend restart must not
+    // log the user out.
+    if (authRejected) {
+      void clearStoredSession();
+    } else if (q.data && !q.error) {
       const next = authUserFromResponse(q.data.user);
       setStoredUser(next);
-    } else if (q.error && !q.error.unreachable) {
-      // Auth-style failure (not a network blip) — wipe the local session so
-      // the UI flips to the login screen on the next render.
-      void clearStoredSession();
     }
-  }, [enabled, q.data, q.error]);
+  }, [enabled, q.data, q.error, authRejected]);
+
+  if (authRejected) {
+    return { user: null, isLoading: false, apiOffline: false };
+  }
 
   const cached = getStoredUser();
   const live = q.data ? authUserFromResponse(q.data.user) : null;
