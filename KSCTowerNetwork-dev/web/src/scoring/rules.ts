@@ -146,12 +146,16 @@ export function detectFromTelemetryClient(
     note(state, "meco", sessionEpochSec);
   }
 
+  const prevRadar = prev?.radarAlt ?? Number.POSITIVE_INFINITY;
   const isTouchdown =
-    radarAlt < 1 && (prev?.verticalSpeed ?? 0) < -0.2 && cooledDown(state, "touchdown", sessionEpochSec, 30);
+    radarAlt < 1 &&
+    prevRadar >= 1 &&
+    (prev?.verticalSpeed ?? 0) < -0.2 &&
+    cooledDown(state, "touchdown", sessionEpochSec, 30);
   if (isTouchdown) {
     out.push({ kind: "touchdown", points: 0, label: "Touchdown", bucketSec: bucket(2) });
     note(state, "touchdown", sessionEpochSec);
-    if (currVS > -0.5) {
+    if (prevVS > -0.5) {
       out.push({ kind: "greaser", points: 10, label: "Greaser landing", bucketSec: bucket(2) });
       note(state, "greaser", sessionEpochSec);
     }
@@ -191,6 +195,7 @@ export function detectFromTelemetryClient(
     prevThrottle > 0.5 &&
     currThrottle < 0.05 &&
     radarAlt < 500 &&
+    radarAlt > 5 &&
     cooledDown(state, "flameout_low", sessionEpochSec, 20)
   ) {
     out.push({

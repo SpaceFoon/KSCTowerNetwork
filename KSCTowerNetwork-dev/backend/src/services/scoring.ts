@@ -134,13 +134,19 @@ export function detectFromTelemetry(
 
   // touchdown: ground contact; we score this *and* the achievement/penalty variants on the
   // same edge so the "greaser" / "gear_up_landing" rows attach to the same dedupe window.
+  // prev must still be airborne: otherwise rolling over a bump re-scores a landing.
+  const prevRadar = prev?.radarAlt ?? Number.POSITIVE_INFINITY;
   const isTouchdown =
-    radarAlt < 1 && (prev?.verticalSpeed ?? 0) < -0.2 && cooledDown(state, "touchdown", sessionEpochSec, 30);
+    radarAlt < 1 &&
+    prevRadar >= 1 &&
+    (prev?.verticalSpeed ?? 0) < -0.2 &&
+    cooledDown(state, "touchdown", sessionEpochSec, 30);
   if (isTouchdown) {
     out.push({ kind: "touchdown", points: 0, label: "Touchdown", bucketSec: bucket(2) });
     note(state, "touchdown", sessionEpochSec);
 
-    if (currVS > -0.5) {
+    // Judged on the last airborne sample: after contact VS reads ~0 however hard the impact.
+    if (prevVS > -0.5) {
       out.push({ kind: "greaser", points: 10, label: "Greaser landing", bucketSec: bucket(2) });
       note(state, "greaser", sessionEpochSec);
     }
@@ -187,6 +193,8 @@ export function detectFromTelemetry(
     prevThrottle > 0.5 &&
     currThrottle < 0.05 &&
     radarAlt < 500 &&
+    // Chopping throttle in the flare, after touchdown or on an aborted roll is deliberate.
+    radarAlt > 5 &&
     cooledDown(state, "flameout_low", sessionEpochSec, 20)
   ) {
     out.push({

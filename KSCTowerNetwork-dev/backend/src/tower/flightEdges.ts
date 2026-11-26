@@ -56,6 +56,12 @@ export function isArrivalTouchdown(prev: EdgeTelemetry | undefined, curr: EdgeTe
 
 export function missedApproachCandidate(prev: EdgeTelemetry, curr: EdgeTelemetry): boolean {
   if (!curr.onApproach) return false;
+  // The plugin's onApproach / APPROACH phase is purely geometric (aligned, near, low)
+  // and is also set on the ground, so a normal departure off an aligned runway would
+  // otherwise read as a go-around. A missed approach needs an airborne, descending
+  // (or explicitly landing) aircraft on the previous sample.
+  if (situationGrounded(prev.situation)) return false;
+  if (prev.landing !== true && !((prev.verticalSpeed ?? 0) < 0)) return false;
   if (!publisherLandingApproachIntent(prev) && !publisherLandingApproachIntent(curr)) return false;
   const dist = curr.distKSC ?? Number.POSITIVE_INFINITY;
   if (dist >= 3000) return false;

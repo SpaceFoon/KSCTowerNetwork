@@ -11,7 +11,12 @@ import { computeSeparationConflicts, type SeparationRow } from "./separation";
 import { phaseTimelineTick } from "./phaseTimeline";
 import { landingQualityFromSamples } from "./landingQuality";
 import { isArrivalTouchdown, missedApproachCandidate, situationGrounded } from "./flightEdges";
-import { getRunwayOccupancy, markRunwayLanding, tickRunwayOccupancyFromTelemetry } from "./runwayState";
+import {
+  getRunwayOccupancy,
+  isRunwayOccupantFresh,
+  markRunwayLanding,
+  tickRunwayOccupancyFromTelemetry
+} from "./runwayState";
 import { pushViolationEvent, violationDisplayLine } from "./violations";
 
 const goAroundLast = new Map<string, number>();
@@ -35,15 +40,17 @@ function normalizeRunwayId(s: string | undefined): string {
   return (s ?? "").trim().toUpperCase().replace(/^RWY\s*/i, "");
 }
 
-function mergeApproachRows(all: SessionRecord[]): ApproachRow[] {
+function mergeApproachRows(all: SessionRecord[], nowMs: number): ApproachRow[] {
   return all
     .filter((s) => s.telemetry)
+    .filter((s) => isLiveForTowerHooks(s, nowMs))
     .map((s) => {
       const t = s.telemetry!;
       return {
         sessionId: s.id,
         bodyName: t.bodyName ?? "Kerbin",
         activeRunway: t.activeRunway,
+        kscAerodrome: t.kscAerodrome,
         onApproach: t.onApproach,
         distKSC: t.distKSC,
         alignErr: t.alignErr,
@@ -55,18 +62,22 @@ function mergeApproachRows(all: SessionRecord[]): ApproachRow[] {
     });
 }
 
+/**
+ * Sessions whose pilot left hours ago still carry a last-known position; without
+ * this they keep ranking in the approach queue and raising separation conflicts.
+ */
+function isLiveForTowerHooks(s: SessionRecord, nowMs: number): boolean {
+  if (s.status !== "active" && s.status !== "assigned") return false;
+  if (s.telemetryStatus?.state) return false;
+  const at = s.lastTelemetryAt ? Date.parse(s.lastTelemetryAt) : NaN;
+  return Number.isFinite(at) && nowMs - at < SEPARATION_FRESH_MS;
+}
+
 function mergeSeparationRows(all: SessionRecord[], nowMs: number): SeparationRow[] {
   return all
     .filter((s) => s.telemetry?.lat != null && s.telemetry?.lon != null)
-    // Parked aircraft and sessions whose pilot left hours ago still carry a
-    // last-known position; without these filters they raise loss-of-separation
-    // against anything nearby, forever.
-    .filter((s) => s.status === "active" || s.status === "assigned")
-    .filter((s) => !s.telemetryStatus?.state)
-    .filter((s) => {
-      const at = s.lastTelemetryAt ? Date.parse(s.lastTelemetryAt) : NaN;
-      return Number.isFinite(at) && nowMs - at < SEPARATION_FRESH_MS;
-    })
+    .filter((s) => isLiveForTowerHooks(s, nowMs))
+    // Parked aircraft are not a separation hazard.
     .filter((s) => !situationGrounded(s.telemetry!.situation))
     .map((s) => {
       const t = s.telemetry!;
@@ -125,7 +136,7 @@ export async function runTowerTelemetryHooks(
     }
 
     const all = await listSessionsMerged();
-    const seqMap = computeApproachSequences(mergeApproachRows(all));
+    const seqMap = computeApproachSequences(mergeApproachRows(all, now));
     approachSequence = seqMap.get(sessionId) ?? null;
 
     const conflicts = computeSeparationConflicts(mergeSeparationRows(all, now));
@@ -159,7 +170,12 @@ export async function runTowerTelemetryHooks(
 
       if (body && rw) {
         const occ = getRunwayOccupancy(`${body}:${rw}`);
-        if (occ?.occupied && occ.bySessionId && occ.bySessionId !== sessionId) {
+        if (
+          occ?.occupied &&
+          occ.bySessionId &&
+          occ.bySessionId !== sessionId &&
+          isRunwayOccupantFresh(occ, now)
+        ) {
           const v = pushViolationEvent(sessionId, "RWY_INCURSION", now, occ.bySessionId);
           if (v) {
             appendViolationToSession(session, v);

@@ -161,6 +161,8 @@ All must hold on **current** sample unless noted:
 | On approach | `curr.onApproach === true` |
 | Near field | `distKSC < 3000` (missing → no trigger) |
 | Approach intent | prev **or** curr has approach intent |
+| Was airborne | prev `situation` not LANDED / SPLASHED / PRELANDED |
+| Was descending | prev `landing === true` **or** prev `verticalSpeed < 0` (the plugin tags aligned departures `APPROACH` too) |
 | Climb signal | `verticalSpeed > 2` m/s **or** altitude gain `> 8` m vs prev |
 
 ---
@@ -212,10 +214,16 @@ and tower awareness. **Not** a formal runway lock (see `RUNWAY_LOCKS_PLAN.md`).
 | `surfaceSpeed` | `< 38` m/s |
 | `alignErr` | `< 14` |
 
-Sets `occupied`, `bySessionId`, preserves `sinceMs` for same session.
+Sets `occupied`, `bySessionId`, `lastSeenMs`, preserves `sinceMs` for same
+session. Does **not** replace a different occupant that reported within the
+last 30 s (`RUNWAY_OCCUPANT_STALE_MS`), so a second lander is flagged rather
+than taking the runway over.
 
 **Clear** when same session was occupant and (`radarAlt > 200` **or**
-`surfaceSpeed > 55`).
+`surfaceSpeed > 55` **or** `alignErr >= 14`, i.e. turned off the runway).
+
+**Stale occupant:** an occupant with no on-surface sample for 30 s neither
+blocks a takeover nor raises `RWY_INCURSION` (`isRunwayOccupantFresh`).
 
 **Manual override** (`setRunwayManualOverride`): telemetry ticks ignored until
 cleared.

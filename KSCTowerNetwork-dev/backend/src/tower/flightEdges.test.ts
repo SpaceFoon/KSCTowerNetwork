@@ -51,6 +51,14 @@ describe("missedApproachCandidate", () => {
     assert.equal(missedApproachCandidate(basePrev, { ...climbCurr, distKSC: 2999 }), true);
   });
 
+  it("does not fire for a departure the plugin tagged APPROACH while aligned", () => {
+    const rolling = { onApproach: true, distKSC: 1000, verticalSpeed: 0, aslAlt: 70, radarAlt: 1, flightPhase: "APPROACH", situation: "LANDED" };
+    const rotating = { onApproach: true, distKSC: 1000, verticalSpeed: 3, aslAlt: 80, radarAlt: 10, flightPhase: "APPROACH", situation: "FLYING" };
+    const climbing = { ...rotating, verticalSpeed: 8, aslAlt: 120, radarAlt: 50 };
+    assert.equal(missedApproachCandidate(rolling, rotating), false);
+    assert.equal(missedApproachCandidate(rotating, climbing), false);
+  });
+
   it("does not fire for takeoff-like phases without approach intent", () => {
     assert.equal(
       missedApproachCandidate(

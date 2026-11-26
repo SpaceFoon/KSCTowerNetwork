@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 import {
   getRunwayOccupancy,
+  isRunwayOccupantFresh,
   markRunwayLanding,
   resetRunwayOccupancyForTests,
   runwayKey,
@@ -181,5 +182,23 @@ describe("runwayState", () => {
     assert.equal(snap[0]?.runwayId, "09");
     assert.equal(snap[0]?.record.occupied, true);
     assert.ok((snap[0]?.record.lastLandingAtMs ?? 0) > 0);
+  });
+  it("releases the occupant when it turns off the runway", () => {
+    tickRunwayOccupancyFromTelemetry({ bodyName: "Kerbin", runwayId: "09", sessionId: "s1", radarAlt: 2, surfaceSpeed: 8, alignErr: 2 });
+    tickRunwayOccupancyFromTelemetry({ bodyName: "Kerbin", runwayId: "09", sessionId: "s1", radarAlt: 2, surfaceSpeed: 6, alignErr: 80 });
+    assert.equal(getRunwayOccupancy("Kerbin:09"), undefined);
+  });
+
+  it("does not let a second lander take over from a live occupant", () => {
+    tickRunwayOccupancyFromTelemetry({ bodyName: "Kerbin", runwayId: "09", sessionId: "s1", radarAlt: 2, surfaceSpeed: 8, alignErr: 2 });
+    tickRunwayOccupancyFromTelemetry({ bodyName: "Kerbin", runwayId: "09", sessionId: "s2", radarAlt: 2, surfaceSpeed: 30, alignErr: 2 });
+    assert.equal(getRunwayOccupancy("Kerbin:09")?.bySessionId, "s1");
+  });
+
+  it("treats an occupant that stopped reporting as stale", () => {
+    tickRunwayOccupancyFromTelemetry({ bodyName: "Kerbin", runwayId: "09", sessionId: "s1", radarAlt: 2, surfaceSpeed: 8, alignErr: 2 });
+    const rec = getRunwayOccupancy("Kerbin:09")!;
+    assert.equal(isRunwayOccupantFresh(rec, (rec.lastSeenMs ?? 0) + 1_000), true);
+    assert.equal(isRunwayOccupantFresh(rec, (rec.lastSeenMs ?? 0) + 31_000), false);
   });
 });

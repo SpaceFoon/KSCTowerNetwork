@@ -18,6 +18,26 @@ describe("detectFromTelemetry", () => {
     assert.ok(kinds.includes("liftoff"));
   });
 
+  it("judges a greaser on the last airborne sample, not the post-contact one", () => {
+    const hard = detectFromTelemetry({ verticalSpeed: -9, radarAlt: 3 }, { verticalSpeed: 0, radarAlt: 0.5 }, SID, 5_000);
+    assert.ok(hard.some((e) => e.kind === "touchdown"));
+    assert.ok(!hard.some((e) => e.kind === "greaser"));
+  });
+
+  it("emits liftoff when VS passes 5 m/s gradually", () => {
+    const events = detectFromTelemetry({ verticalSpeed: 4.5, radarAlt: 10 }, { verticalSpeed: 6, radarAlt: 12 }, SID, 7_000);
+    assert.ok(events.some((e) => e.kind === "liftoff"));
+  });
+
+  it("does not score wing rock as a barrel roll", () => {
+    let fired = false;
+    for (let i = 0; i < 12; i++) {
+      const events = detectFromTelemetry(undefined, { roll: i % 2 === 0 ? 20 : -20, aslAlt: 2000, radarAlt: 2000 }, SID, 9_000 + i);
+      if (events.some((e) => e.kind === "barrel_roll")) fired = true;
+    }
+    assert.equal(fired, false);
+  });
+
   it("emits maxq when crossing Mach 1 below 30 km", () => {
     const prev: TelemetrySample = { surfaceSpeed: 300, aslAlt: 5000 };
     const curr: TelemetrySample = { surfaceSpeed: 350, aslAlt: 8000 };

@@ -4,6 +4,8 @@ export type ApproachRow = {
   sessionId: string;
   bodyName: string;
   activeRunway?: string;
+  /** Plugin aerodrome id (KKSC / KAFD); both fields publish runways as "09"/"27". */
+  kscAerodrome?: string;
   onApproach?: boolean;
   distKSC?: number;
   alignErr?: number;
@@ -20,7 +22,7 @@ export function computeApproachSequences(rows: ApproachRow[]): Map<string, Appro
   const groups = new Map<string, ApproachRow[]>();
   for (const r of rows) {
     if (!r.onApproach || !r.activeRunway?.trim()) continue;
-    const key = `${r.bodyName}:${r.activeRunway.trim()}`;
+    const key = `${r.bodyName}:${r.kscAerodrome?.trim() ?? ""}:${r.activeRunway.trim()}`;
     const g = groups.get(key);
     if (g) g.push(r);
     else groups.set(key, [r]);

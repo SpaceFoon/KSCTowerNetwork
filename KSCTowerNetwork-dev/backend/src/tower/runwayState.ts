@@ -6,7 +6,21 @@ export type RunwayOccupancyRecord = {
   sinceMs?: number;
   lastLandingAtMs?: number;
   manualOverride?: boolean;
+  /** Last telemetry sample from `bySessionId` that still put it on the runway. */
+  lastSeenMs?: number;
 };
+
+/**
+ * An occupant that stopped reporting (quit, crashed, closed) is no longer on the
+ * runway as far as the tower can tell; it must not block or flag other traffic.
+ */
+export const RUNWAY_OCCUPANT_STALE_MS = 30_000;
+
+export function isRunwayOccupantFresh(rec: RunwayOccupancyRecord, nowMs: number = Date.now()): boolean {
+  if (rec.manualOverride) return true;
+  if (rec.lastSeenMs == null) return true;
+  return nowMs - rec.lastSeenMs < RUNWAY_OCCUPANT_STALE_MS;
+}
 
 const occupancy = new Map<RunwayKey, RunwayOccupancyRecord>();
 
@@ -56,14 +70,21 @@ export function tickRunwayOccupancyFromTelemetry(input: {
   const onSurface = radar < 55 && spd < 38 && align < 14;
   const now = Date.now();
   if (onSurface) {
+    // A second aircraft slowing on the runway must not take the record over from
+    // a live occupant — the touchdown hook reads it right after to flag incursions.
+    if (prev?.bySessionId && prev.bySessionId !== input.sessionId && isRunwayOccupantFresh(prev, now)) {
+      return;
+    }
     occupancy.set(key, {
       occupied: true,
       bySessionId: input.sessionId,
       sinceMs: prev?.bySessionId === input.sessionId ? prev.sinceMs ?? now : now,
       lastLandingAtMs: prev?.lastLandingAtMs,
-      manualOverride: false
+      manualOverride: false,
+      lastSeenMs: now
     });
-  } else if (prev && prev.bySessionId === input.sessionId && (radar > 200 || spd > 55)) {
+  } else if (prev && prev.bySessionId === input.sessionId && (radar > 200 || spd > 55 || align >= 14)) {
+    // align >= 14: the occupant turned off onto a taxiway or apron.
     occupancy.delete(key);
   }
 }
