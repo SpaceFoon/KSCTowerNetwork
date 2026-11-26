@@ -76,7 +76,8 @@ function pickRunwayForKksc(
 }
 
 /**
- * Inbound unit vector (east, north) from the far end of the runway toward `thr` (final direction).
+ * Landing-direction unit vector (east, north): from `thr` (the landing threshold) toward
+ * the far end of the runway, i.e. the direction an aircraft on final is flying.
  */
 function inboundUnitEn(
   thr: KerbinAerodromeRunway,
@@ -85,8 +86,8 @@ function inboundUnitEn(
 ): { x: number; y: number } {
   const t = latLonToEnM(thr.thresholdLat, thr.thresholdLon, thr.thresholdLat, thr.thresholdLon, radiusM);
   const o = latLonToEnM(other.thresholdLat, other.thresholdLon, thr.thresholdLat, thr.thresholdLon, radiusM);
-  const vx = t.x - o.x;
-  const vy = t.y - o.y;
+  const vx = o.x - t.x;
+  const vy = o.y - t.y;
   const len = Math.hypot(vx, vy) || 1;
   return { x: vx / len, y: vy / len };
 }

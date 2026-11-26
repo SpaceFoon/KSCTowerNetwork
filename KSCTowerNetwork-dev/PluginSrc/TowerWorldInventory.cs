@@ -559,8 +559,9 @@ namespace KSCTowerNetwork
             }
 
             // Game-surveyed stock coordinates — matches `kerbinAeroCharts.ts` / web map defaults.
-            AppendRunwayThresholdJson(sb, true, home, "KKSC", "09", -0.050278, -74.488611, 69.2, 89.85);
-            AppendRunwayThresholdJson(sb, false, home, "KKSC", "27", -0.048611, -74.728333, 68.9, 270.15);
+            // Threshold = landing end: 09 is the west end, 27 the east end (as for KAFD).
+            AppendRunwayThresholdJson(sb, true, home, "KKSC", "09", -0.048611, -74.728333, 68.9, 89.85);
+            AppendRunwayThresholdJson(sb, false, home, "KKSC", "27", -0.050278, -74.488611, 69.2, 270.15);
             AppendRunwayThresholdJson(sb, false, home, "KAFD", "09", -1.516111, -71.967222, 133.7, 90.0);
             AppendRunwayThresholdJson(sb, false, home, "KAFD", "27", -1.516111, -71.855278, 133.7, 270.0);
             sb.Append(']');

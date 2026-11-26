@@ -185,18 +185,22 @@ export const KERBIN_AERODROMES: KerbinAerodrome[] = [
     runwaySpec: "2500 x 60 CONCRETE",
     runways: [
       {
+        // A runway's threshold is the end you land at: 09 (eastbound) is the WEST
+        // end, 27 the EAST end — same convention as KAFD below. These were
+        // swapped, which put every KKSC approach line, ILS marker and glide
+        // calculation 2.5 km off, measured from the stop end.
         designator: "09",
         headingDeg: 89.85,
-        thresholdLat: -0.050278,
-        thresholdLon: -74.488611,
-        thresholdElevationM: 69.2,
+        thresholdLat: -0.048611,
+        thresholdLon: -74.728333,
+        thresholdElevationM: 68.9,
       },
       {
         designator: "27",
         headingDeg: 270.15,
-        thresholdLat: -0.048611,
-        thresholdLon: -74.728333,
-        thresholdElevationM: 68.9,
+        thresholdLat: -0.050278,
+        thresholdLon: -74.488611,
+        thresholdElevationM: 69.2,
       },
     ],
   },

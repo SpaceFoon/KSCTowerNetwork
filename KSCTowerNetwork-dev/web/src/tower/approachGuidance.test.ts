@@ -81,6 +81,25 @@ describe("computeKkscTowerGuidance", () => {
     expect(hi.glide).toBe("HIGH");
   });
 
+  it("measures final from the 09 landing threshold (west end) and reads GOOD on a 3° path", () => {
+    expect(R09.thresholdLon).toBeLessThan(R27.thresholdLon);
+    // 5 km west of the 09 threshold (~0.4775°/5 km on a 600 km Kerbin), 3° glide.
+    const dLon = (5000 / 600_000) * (180 / Math.PI);
+    const g = computeKkscTowerGuidance({
+      lat: R09.thresholdLat,
+      lon: R09.thresholdLon - dLon,
+      headingDeg: R09.headingDeg,
+      radarAltM: 5000 * Math.tan((3 * Math.PI) / 180),
+      runwayPair: KKSC.runways,
+      kscLat: -0.05,
+      kscLon: -74.6,
+      bodyRadiusM: 600_000
+    });
+    expect(g.alongApproachM).toBeGreaterThan(4900);
+    expect(g.alongApproachM).toBeLessThan(5100);
+    expect(g.glide).toBe("GOOD");
+  });
+
   it("selects runway 27 when heading matches 270°", () => {
     const g = computeKkscTowerGuidance({
       lat: R27.thresholdLat,
