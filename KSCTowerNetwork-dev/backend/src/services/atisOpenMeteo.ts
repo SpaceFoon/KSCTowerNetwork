@@ -21,7 +21,7 @@ const openMeteoCurrentSchema = z.object({
     relative_humidity_2m: z.number().optional(),
     wind_speed_10m: z.number(),
     wind_direction_10m: z.number(),
-    surface_pressure: z.number().optional(),
+    pressure_msl: z.number().optional(),
     cloud_cover: z.number().optional(),
     weather_code: z.number().optional(),
     visibility: z.number().optional()
@@ -99,8 +99,8 @@ export function mapOpenMeteoCurrentToWeather(current: z.infer<typeof openMeteoCu
     current.dew_point_2m
   );
   const altInHg =
-    current.surface_pressure !== undefined && Number.isFinite(current.surface_pressure)
-      ? Math.round((current.surface_pressure / 33.8638866667) * 100) / 100
+    current.pressure_msl !== undefined && Number.isFinite(current.pressure_msl)
+      ? Math.round((current.pressure_msl / 33.8638866667) * 100) / 100
       : 29.92;
   const altimeterInHg = clamp(altInHg, 28, 31);
   const visibilitySm = Math.round(visibilitySmFromMeters(current.visibility, current.weather_code) * 10) / 10;
@@ -150,7 +150,7 @@ export async function fetchOpenMeteoCurrent(
       "relative_humidity_2m",
       "wind_speed_10m",
       "wind_direction_10m",
-      "surface_pressure",
+      "pressure_msl",
       "cloud_cover",
       "weather_code",
       "visibility"

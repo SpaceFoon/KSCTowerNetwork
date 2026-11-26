@@ -18,7 +18,7 @@ describe("mapOpenMeteoCurrentToWeather", () => {
       dew_point_2m: 11.4,
       wind_speed_10m: 2.8,
       wind_direction_10m: 321,
-      surface_pressure: 1018.4,
+      pressure_msl: 1018.4,
       cloud_cover: 63,
       weather_code: 2,
       visibility: 20800

@@ -88,9 +88,9 @@ function rollWrap(samples: number[]): number {
     let d = (samples[i] ?? 0) - (samples[i - 1] ?? 0);
     while (d > 180) d -= 360;
     while (d < -180) d += 360;
-    total += Math.abs(d);
+    total += d;
   }
-  return total;
+  return Math.abs(total);
 }
 
 /**
@@ -117,7 +117,7 @@ export function detectFromTelemetryClient(
   const currThrottle = curr.throttle ?? 0;
 
   if (
-    prevVS <= 0 &&
+    prevVS <= 5 &&
     currVS > 5 &&
     radarAlt < 30 &&
     cooledDown(state, "liftoff", sessionEpochSec, 60)

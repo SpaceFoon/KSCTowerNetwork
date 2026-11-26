@@ -96,7 +96,7 @@ export function detectFromTelemetry(
   const currVS = curr.verticalSpeed ?? 0;
   const radarAlt = curr.radarAlt ?? Number.POSITIVE_INFINITY;
   if (
-    prevVS <= 0 &&
+    prevVS <= 5 &&
     currVS > 5 &&
     radarAlt < 30 &&
     cooledDown(state, "liftoff", sessionEpochSec, 60)
@@ -202,9 +202,9 @@ export function detectFromTelemetry(
 }
 
 /**
- * Sum the absolute roll change across the sliding window, treating wrap-around (e.g. 170 → -170)
- * as a small step rather than a 340° jump. This way a clean barrel roll registers as ~360° while
- * a stationary plane sitting at roll=180 doesn't trigger anything.
+ * Net roll rotation across the sliding window, treating wrap-around (e.g. 170 → -170) as a small
+ * step rather than a 340° jump. Steps are summed signed so a clean barrel roll registers as ~360°
+ * while wing rock (+20°/-20° repeatedly) cancels out instead of adding up to a "roll".
  */
 function computeRollWrap(samples: TelemetrySample[]): number {
   if (samples.length < 2) return 0;
@@ -216,7 +216,7 @@ function computeRollWrap(samples: TelemetrySample[]): number {
     let d = b - a;
     while (d > 180) d -= 360;
     while (d < -180) d += 360;
-    total += Math.abs(d);
+    total += d;
   }
-  return total;
+  return Math.abs(total);
 }

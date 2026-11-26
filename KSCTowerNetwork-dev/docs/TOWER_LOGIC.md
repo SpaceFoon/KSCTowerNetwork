@@ -116,6 +116,11 @@ altitude non-finite.
 `LOSS_OF_SEPARATION` violation + system chat line if `pushViolationEvent`
 allows.
 
+**Hook input filter:** only sessions that are `active`/`assigned`, have
+telemetry newer than 30 s, no `telemetryStatus`, and are not grounded
+(`LANDED`/`SPLASHED`/`PRELANDED`) are compared. Parked aircraft and sessions
+whose pilot has left never raise a violation.
+
 ---
 
 ### `flightEdges.ts` — touchdown and go-around detection

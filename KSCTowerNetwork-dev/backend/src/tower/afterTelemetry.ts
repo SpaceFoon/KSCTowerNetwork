@@ -10,13 +10,16 @@ import { computeApproachSequences, type ApproachRow, type ApproachSequence } fro
 import { computeSeparationConflicts, type SeparationRow } from "./separation";
 import { phaseTimelineTick } from "./phaseTimeline";
 import { landingQualityFromSamples } from "./landingQuality";
-import { isArrivalTouchdown, missedApproachCandidate } from "./flightEdges";
+import { isArrivalTouchdown, missedApproachCandidate, situationGrounded } from "./flightEdges";
 import { getRunwayOccupancy, markRunwayLanding, tickRunwayOccupancyFromTelemetry } from "./runwayState";
 import { pushViolationEvent, violationDisplayLine } from "./violations";
 
 const goAroundLast = new Map<string, number>();
 const shortFinal = new Map<string, { alignErr?: number; verticalSpeed?: number }>();
 const separationPairLast = new Map<string, number>();
+
+/** Matches the active-aircraft window in live/snapshotCache.ts. */
+const SEPARATION_FRESH_MS = 30_000;
 
 function appendPhase(session: SessionRecord, ev: { code: string; at: string }): void {
   const list = session.phaseTimeline ?? [];
@@ -52,9 +55,19 @@ function mergeApproachRows(all: SessionRecord[]): ApproachRow[] {
     });
 }
 
-function mergeSeparationRows(all: SessionRecord[]): SeparationRow[] {
+function mergeSeparationRows(all: SessionRecord[], nowMs: number): SeparationRow[] {
   return all
     .filter((s) => s.telemetry?.lat != null && s.telemetry?.lon != null)
+    // Parked aircraft and sessions whose pilot left hours ago still carry a
+    // last-known position; without these filters they raise loss-of-separation
+    // against anything nearby, forever.
+    .filter((s) => s.status === "active" || s.status === "assigned")
+    .filter((s) => !s.telemetryStatus?.state)
+    .filter((s) => {
+      const at = s.lastTelemetryAt ? Date.parse(s.lastTelemetryAt) : NaN;
+      return Number.isFinite(at) && nowMs - at < SEPARATION_FRESH_MS;
+    })
+    .filter((s) => !situationGrounded(s.telemetry!.situation))
     .map((s) => {
       const t = s.telemetry!;
       return {
@@ -115,14 +128,14 @@ export async function runTowerTelemetryHooks(
     const seqMap = computeApproachSequences(mergeApproachRows(all));
     approachSequence = seqMap.get(sessionId) ?? null;
 
-    const conflicts = computeSeparationConflicts(mergeSeparationRows(all));
+    const conflicts = computeSeparationConflicts(mergeSeparationRows(all, now));
     for (const c of conflicts) {
       const key = [c.sessionA, c.sessionB].sort().join(":");
       const last = separationPairLast.get(key) ?? 0;
       if (now - last < 30_000) continue;
       separationPairLast.set(key, now);
       for (const sid of [c.sessionA, c.sessionB]) {
-        const v = pushViolationEvent(sid, "LOSS_OF_SEPARATION", now, `${c.callsignA ?? sid}/${c.callsignB}`);
+        const v = pushViolationEvent(sid, "LOSS_OF_SEPARATION", now, `${c.callsignA ?? c.sessionA}/${c.callsignB ?? c.sessionB}`);
         if (!v) continue;
         const sess = await getSession(sid);
         if (sess) {
