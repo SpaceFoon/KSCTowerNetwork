@@ -324,6 +324,8 @@ async function main(): Promise<void> {
     console.log(`[voice-bridge] unsubscribed remote audio ${sid}`);
   });
 
+  const IDLE_LIVENESS_FRAME_INTERVAL_MS = 2_000;
+  let lastIdleLivenessFrameMs = 0;
   const pumpMixer = (async () => {
     let restartCount = 0;
     while (!shuttingDown) {
@@ -332,11 +334,17 @@ async function main(): Promise<void> {
           if (kspTxSockets.size > 0) {
             continue;
           }
-          // Suppress pure-keepalive output: when no real remote audio is
-          // subscribed, mixed output is just our silence stream. Skip writing
-          // it so KSP sees the same idle behavior it had before keepalive.
+          // Pure-keepalive output (no real remote audio subscribed) is just our
+          // silence stream; don't stream it. But still send one silent frame every
+          // couple of seconds: the plugin's "on air" lamp needs a chunk within 10 s
+          // (TowerVoiceListenUiLogic.FreshChunkMaxSeconds), so a pilot alone in a
+          // room otherwise saw the radio flip to OFF and a tap powered it down.
           if (streamRefs.size === 0) {
-            continue;
+            const nowMs = Date.now();
+            if (nowMs - lastIdleLivenessFrameMs < IDLE_LIVENESS_FRAME_INTERVAL_MS) {
+              continue;
+            }
+            lastIdleLivenessFrameMs = nowMs;
           }
           const data = frame.data;
           const buf = Buffer.from(data.buffer, data.byteOffset, data.byteLength);
