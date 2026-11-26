@@ -50,6 +50,7 @@ import { exchangePluginToken, issueExchangeCode } from "../services/pluginAuth";
 import { authenticateWebUser, issueWebSessionToken, resolveWebSessionDisplayName } from "../services/webAuth";
 import {
   registerUser,
+  findCredentialByEmail,
   changeRegisteredUserPassword,
   adminResetRegisteredUserPassword,
   isRegisteredUserId,
@@ -1181,6 +1182,12 @@ apiRouter.post("/auth/register", authLimiter, async (req, res) => {
       res.status(400).json({ error: "Invite codes are not enabled on this server.", reason: "invite_not_accepted" });
       return;
     }
+    // Checked before consuming so a mistyped/duplicate email doesn't burn a
+    // single-use invite.
+    if (findCredentialByEmail(parsed.data.email)) {
+      res.status(409).json({ error: "An account with that email already exists.", reason: "email_taken" });
+      return;
+    }
     const consume = await consumeInviteCode(parsed.data.inviteCode!);
     if (!consume.ok) {
       res.status(400).json({
@@ -1211,7 +1218,9 @@ apiRouter.post("/auth/register", authLimiter, async (req, res) => {
     return;
   }
 
-  ensureLocalRoleSeeded(result.user.userId, result.user.role);
+  // Persisted, not just seeded locally: with the DB up, getUserAccess reads
+  // users.role, which ensureUser would otherwise create as plain 'pilot'.
+  await setUserRole(result.user.userId, result.user.role, result.user.userId);
   await logAction(result.user.userId, "auth.register", {
     email: result.user.email,
     role: result.user.role,
@@ -1614,10 +1623,18 @@ apiRouter.post("/session/call", requireAuth, requireCapability("plugin:use"), as
   const session = withDerivedRoomLabels((await setSessionPilot(target.id, pilotUserId))!);
   // Atomic claim: previously this was nextTowerExcluding() + assignTower() which
   // could double-book the same controller for two concurrent /v1/call requests.
-  const { assigned: nextTower } = await claimNextTowerForSession(
-    session.id,
-    new Set(session.blockedUserIds)
-  );
+  // The radio session is shared: a later caller must not pop a second
+  // controller onto a frequency that already has one, nor be assigned to
+  // themselves when they are also sitting in the tower queue.
+  const seatedTower = session.assignedTowerUserId ?? undefined;
+  const nextTower =
+    seatedTower ??
+    (
+      await claimNextTowerForSession(
+        session.id,
+        new Set([...session.blockedUserIds, pilotUserId])
+      )
+    ).assigned;
 
   await logAction(pilotUserId, "session.call", {
     sessionId: session.id,
@@ -2828,6 +2845,11 @@ apiRouter.post("/session/:sessionId/next-tower", requireAuth, async (req, res) =
     return;
   }
 
+  if (existing.status === "closed") {
+    res.status(410).json({ error: "Session is closed", code: "session_closed" });
+    return;
+  }
+
   const session = await rotateNextTower(sessionId);
   if (!session) {
     res.status(404).json({ error: "Session not found" });
@@ -3144,7 +3166,7 @@ apiRouter.post("/telemetry/:sessionId", requireAuth, telemetryLimiter, async (re
 
   // Telemetry-driven checklist auto-tick. Best-effort — never break the telemetry hot path.
   try {
-    const phases = session.checklistPhases ?? DEFAULT_CHECKLIST_PHASES;
+    const { phases } = effectivePhases(session);
     const flipped = await evaluateAndApplyAutoRules(sessionId, phases, parsed.data);
     if (flipped.length > 0) {
       // eslint-disable-next-line no-await-in-loop
@@ -4466,6 +4488,11 @@ apiRouter.post("/admin/ban-ip", requireAuth, requireRole("mod"), async (req, res
   const guest = await getGuestById(parsed.data.guestId);
   if (!guest) {
     res.status(404).json({ error: "Guest not found", guestId: parsed.data.guestId });
+    return;
+  }
+  const callerRole = await effectiveRole(req);
+  if (!parsed.data.durationSeconds && !roleAtLeast(callerRole, "supermod")) {
+    res.status(403).json({ error: "Permanent bans require supermod", have: callerRole });
     return;
   }
   await banGuestIp(guest.id, guest.ip, req.auth!.userId, parsed.data.reason, parsed.data.durationSeconds);
@@ -6140,8 +6167,8 @@ apiRouter.put(
     }
     if (parsed.data.name != null) patch.name = parsed.data.name;
     if (parsed.data.isDefault != null) patch.isDefault = parsed.data.isDefault;
-    if (parsed.data.phases != null) patch.phases = sanitizeChecklistPhases(parsed.data.phases);
     try {
+      if (parsed.data.phases != null) patch.phases = sanitizeChecklistPhases(parsed.data.phases);
       // For global templates, treat the existing owner as the effective owner so the inner
       // ownership guard passes; the outer mod+ check above is the real gate.
       const effectiveOwner = existing.scope === "global" ? existing.ownerUserId : req.auth!.userId;

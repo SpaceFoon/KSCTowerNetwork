@@ -1710,7 +1710,7 @@ export async function createSession(
   if (requestedName) {
     const taken: string[] = [];
     for (const s of localSessions.values()) {
-      if (s.name) taken.push(s.name);
+      if (s.name && s.status !== "closed") taken.push(s.name);
     }
     name = disambiguateRoomName(requestedName, taken);
   } else {
@@ -2514,12 +2514,12 @@ export async function banUser(
             ? [userId, bannedByUserId ?? null, reason ?? "manual admin ban", expiresAtMs]
             : [userId, bannedByUserId ?? null, reason ?? "manual admin ban"]
         );
-        if (!expiresAtMs) {
-          await conn.query(
-            `UPDATE users SET is_banned = 1, updated_at = CURRENT_TIMESTAMP WHERE clerk_user_id = ?`,
-            [userId]
-          );
-        }
+        // Written both ways: a temp ban replacing a permanent one must clear the
+        // flag, or the user stays banned after the temp ban expires.
+        await conn.query(
+          `UPDATE users SET is_banned = ?, updated_at = CURRENT_TIMESTAMP WHERE clerk_user_id = ?`,
+          [expiresAtMs ? 0 : 1, userId]
+        );
       });
     } catch (error) {
       logger.warn({ err: error }, "Failed to persist ban");
@@ -4885,7 +4885,9 @@ export async function addSessionChecklistPhase(args: {
     controller: [...p.controller]
   }));
   const taken = new Set(phases.map((p) => p.id));
-  const baseId = slugify(cleaned, "phase");
+  // Capped below 64 so the `_N` collision suffix survives the slice; otherwise
+  // every candidate is identical and the loop never terminates.
+  const baseId = slugify(cleaned, "phase").slice(0, 56);
   let phaseId = baseId;
   let bump = 2;
   while (taken.has(phaseId)) phaseId = `${baseId}_${bump++}`.slice(0, 64);

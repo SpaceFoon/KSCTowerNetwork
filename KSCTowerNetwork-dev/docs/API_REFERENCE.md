@@ -37,10 +37,10 @@ Base path: `/v1`. All bodies JSON unless noted. Bearer token via the
 |---|---|---|---|
 | `POST` | `/queue/join` | `[auth]` | Optional `{ kind?: "tower" }`. Pilot joins the wait-for-controller queue. |
 | `POST` | `/queue/leave` | `[auth]` | Removes caller from the queue. |
-| `POST` | `/session/call` | `[cap:plugin:use]` | `{ kind:"tower", craftName? }` → creates a session and returns the assigned controller (if any). |
+| `POST` | `/session/call` | `[cap:plugin:use]` | `{ kind:"tower", craftName? }` → joins the server-owned radio session and returns its controller: the one already seated, otherwise the next queued controller (never the caller). |
 | `GET` | `/session/:sessionId` | `[auth]` | Full `SessionRecord`. Returns 404 unless caller is participant, spectator, or admin, for every token type. |
 | `POST` | `/session/claim-pilot` | `[cap:plugin:use]` | `{ sessionId? or frequencyMhz?, name? }`. Requires a `plugin_session` token; tower web JWTs cannot claim a pilot seat. |
-| `POST` | `/session/:sessionId/next-tower` | `[auth]` | Re-roll controller assignment (skip current). Tower-side. |
+| `POST` | `/session/:sessionId/next-tower` | `[auth]` | Re-roll controller assignment (skip current). Tower-side. `410` if the session is closed. |
 | `POST` | `/session/:sessionId/block` | `[auth]` | Block another user from the caller's future sessions. |
 | `GET` | `/session/:sessionId/scorecard` | `[auth]` | Computed score events for the session. |
 | `POST` | `/session/:sessionId/clearance` | `[cap:controller:assume]` | `{ clearance: TAKEOFF\|LANDING\|TAXI\|HOLD_SHORT\|GO_AROUND, status: cleared\|violation\|neutral }`. Persists `clearances_json`. |
