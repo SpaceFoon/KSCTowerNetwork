@@ -66,6 +66,12 @@ export type AtisMaterialSnapshot = {
   runwayId: string;
   altInHg: number;
   notamSig: string;
+  /**
+   * Spoken weather that doesn't advance the letter. Part of the audio hash only:
+   * the plugin skips re-downloading the WAV while the hash is unchanged, so
+   * leaving these out kept in-game audio announcing stale visibility/sky/temps.
+   */
+  spoken?: { visibilitySm: number; skyConditions: string; tempC: number; dewpointC: number };
 };
 
 export type AtisWeatherSource = "live" | "file" | "default";
@@ -352,8 +358,9 @@ const ROLEPLAY_FIELD_STATUS_LINES = [
 ] as const;
 
 function contentHashStable(letter: string, mat: AtisMaterialSnapshot, notamSig: string): string {
+  const { spoken: _spoken, ...stable } = mat;
   const h = createHash("sha256");
-  h.update(JSON.stringify({ letter, mat, notamSig }), "utf8");
+  h.update(JSON.stringify({ letter, mat: stable, notamSig }), "utf8");
   return h.digest("hex");
 }
 
@@ -459,7 +466,13 @@ function materialFromInputs(
     windKt: w.windKt,
     runwayId,
     altInHg: Math.round(w.altimeterInHg * 100) / 100,
-    notamSig
+    notamSig,
+    spoken: {
+      visibilitySm: w.visibilitySm,
+      skyConditions: w.skyConditions,
+      tempC: w.tempC,
+      dewpointC: w.dewpointC
+    }
   };
 }
 

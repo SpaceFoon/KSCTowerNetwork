@@ -27,6 +27,8 @@ export interface VesselManifestRecord {
   approxBytes: number;
   /** Wall clock at last write. */
   uploadedAtMs: number;
+  /** Wall clock at last write or read; drives the idle TTL. */
+  lastTouchedMs: number;
 }
 
 /** Idle TTL — manifest is dropped if neither updated nor read for this long. */
@@ -60,7 +62,7 @@ function ensureSweeper(): void {
 function sweep(): void {
   const cutoff = Date.now() - IDLE_TTL_MS;
   for (const [sid, rec] of store) {
-    if (rec.uploadedAtMs < cutoff) {
+    if (rec.lastTouchedMs < cutoff) {
       store.delete(sid);
     }
   }
@@ -74,7 +76,7 @@ function evictOldestUntilUnderCap(): void {
   if (store.size <= MAX_MANIFESTS) return;
   // Cheap O(n log n) sort. Store is bounded so this never matters.
   const entries = [...store.entries()].sort(
-    ([, a], [, b]) => a.uploadedAtMs - b.uploadedAtMs
+    ([, a], [, b]) => a.lastTouchedMs - b.lastTouchedMs
   );
   const drop = entries.length - MAX_MANIFESTS;
   for (let i = 0; i < drop; i++) {
@@ -107,17 +109,22 @@ export function putManifest(sessionId: string, json: unknown): void {
   store.set(sessionId, {
     json,
     approxBytes,
-    uploadedAtMs: Date.now()
+    uploadedAtMs: Date.now(),
+    lastTouchedMs: Date.now()
   });
 }
 
 export function getManifest(sessionId: string): VesselManifestRecord | null {
   const rec = store.get(sessionId);
   if (!rec) return null;
-  if (Date.now() - rec.uploadedAtMs > IDLE_TTL_MS) {
+  if (Date.now() - rec.lastTouchedMs > IDLE_TTL_MS) {
     store.delete(sessionId);
     return null;
   }
+  // The plugin only re-uploads when the part tree changes, so a read must keep
+  // the manifest alive (the TTL is documented as "neither updated nor read").
+  // Otherwise a long cruise with the schematic open blanks after 30 min.
+  rec.lastTouchedMs = Date.now();
   return rec;
 }
 

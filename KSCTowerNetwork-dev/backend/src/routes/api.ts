@@ -5597,6 +5597,9 @@ apiRouter.get("/session/:sessionId/checklist/stream", async (req, res) => {
   const sessionId = String(req.params.sessionId);
   const session = await loadSessionIfAuthorized(req, res, sessionId);
   if (!session) return;
+  // The client may have gone away during the awaits above; its "close" already
+  // fired, so subscribing now would leak the listener and heartbeat forever.
+  if (res.destroyed || res.writableEnded || req.socket?.destroyed) return;
 
   res.status(200);
   res.setHeader("Content-Type", "text/event-stream");

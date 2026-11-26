@@ -285,11 +285,26 @@ export async function initDbSchema(): Promise<void> {
         session_id VARCHAR(64) NOT NULL,
         from_user_id VARCHAR(128) NOT NULL,
         body TEXT NOT NULL,
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
         PRIMARY KEY (id),
         KEY idx_session_messages_session_created (session_id, created_at)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
+    // Whole-second created_at made the `?since=` cursor (`created_at > ?`) drop
+    // every message sent later in the same second as the cursor message.
+    const msgPrecision = (await conn.query(
+      `
+      SELECT DATETIME_PRECISION AS p
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'session_messages' AND COLUMN_NAME = 'created_at'
+      `
+    )) as Array<Record<string, unknown>>;
+    if (msgPrecision.length > 0 && Number(msgPrecision[0]?.p ?? 0) < 3) {
+      await conn.query(
+        "ALTER TABLE `session_messages` MODIFY `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)"
+      );
+      logger.info("Migrated session_messages.created_at to DATETIME(3)");
+    }
 
     // One-way kOS screen mirror: each row is one terminal line forwarded by the
     // plugin's TowerKosScreenAutoCapture (reflective walk of every kOSProcessor
