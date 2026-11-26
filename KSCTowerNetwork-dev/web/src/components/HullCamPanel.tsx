@@ -73,6 +73,7 @@ export function HullCamPanel({ sessionId, compact = false }: Props): JSX.Element
   const { cameras, loadedOnce } = useHullCamList(sessionId);
   const [emptySinceMs, setEmptySinceMs] = useState<number | null>(null);
   const [expandedCameraId, setExpandedCameraId] = useState<number | null>(null);
+  const compactCameraIdRef = useRef<number | null>(null);
 
   // Track how long the camera list has been empty so we only show the help blurb after
   // the relay's had a real chance to push frames (mod-not-installed vs. brief blip).
@@ -105,11 +106,19 @@ export function HullCamPanel({ sessionId, compact = false }: Props): JSX.Element
 
   // Compact mode: show one tile (the most recently-updated camera) without chrome.
   if (compact) {
-    const newest = [...cameras].sort((a, b) => b.updatedAtMs - a.updatedAtMs)[0];
+    // Sticky: updatedAtMs moves on every frame push, so "most recent" alternated
+    // between streaming cameras each poll. Switch only when the shown one goes stale.
+    const sticky = cameras.find((c) => c.id === compactCameraIdRef.current);
+    const newest =
+      sticky && Date.now() - sticky.updatedAtMs < STALE_FRAME_MS
+        ? sticky
+        : [...cameras].sort((a, b) => b.updatedAtMs - a.updatedAtMs)[0];
     if (!newest) return null;
+    compactCameraIdRef.current = newest.id;
     return (
       <div className="hullcam-panel hullcam-panel--compact">
         <HullCamTile
+          key={newest.id}
           sessionId={sessionId}
           camera={newest}
           onExpand={() => setExpandedCameraId(newest.id)}

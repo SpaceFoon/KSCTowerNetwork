@@ -162,8 +162,9 @@ export function CountdownPanel({
   const tMinusLabel = (() => {
     if (!isRunning || remainingSec == null) return null;
     if (remainingSec > 0) return `T-${String(remainingSec).padStart(2, "0")}`;
-    if (remainingSec >= -3) return `T-00 LIFTOFF`;
-    return null;
+    // Whole post-T-0 grace window (isRunning lasts to T+5); returning null here
+    // flashed "HOLDING" for the last second or two right after liftoff.
+    return `T-00 LIFTOFF`;
   })();
 
   // Beep fallback (ladder of descending pitches). Returns a cleanup that also kills any
@@ -178,6 +179,8 @@ export function CountdownPanel({
     const cancellers: Array<() => void> = [];
     const beep = (atSec: number, freq: number, durSec: number): void => {
       const fireMs = startedAtMs + atSec * 1000 - Date.now();
+      // Ticks already in the past are skipped, not fired late in a burst.
+      if (fireMs < -150) return;
       const id = window.setTimeout(() => {
         const o = ctx.createOscillator();
         const g = ctx.createGain();
@@ -231,7 +234,9 @@ export function CountdownPanel({
         };
       })
       .catch(() => {
-        cleanup = playBeepFallback(Math.max(1, Math.floor(remaining + 0.5)), Date.now());
+        // Anchored to the shared start time so every viewer beeps on the synced
+        // clock; re-anchoring to "now" with a rounded length drifted up to 0.5 s.
+        cleanup = playBeepFallback(lengthSec, startMs);
       });
 
     return () => {

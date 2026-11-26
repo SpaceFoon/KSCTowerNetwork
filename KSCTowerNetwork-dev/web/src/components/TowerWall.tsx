@@ -1538,7 +1538,8 @@ function SlotContent({
       }
       return (
         <div className="tower-wall__hullcam-large">
-          <HullCamTile sessionId={sessionId} camera={cam} />
+          {/* key: the tile's frame poller holds per-camera state (last image, freshness). */}
+          <HullCamTile key={cam.id} sessionId={sessionId} camera={cam} />
         </div>
       );
     }
@@ -1748,9 +1749,6 @@ function CountdownWallSlot({ sessionId }: { sessionId: string }): JSX.Element {
   const qc = useQueryClient();
   const liveConnected = useTowerLiveSubscriptions(sessionId);
   const user = getStoredUser();
-  if (!user) {
-    return <div className="tower-wall__empty">Sign in to use launch countdown.</div>;
-  }
 
   type SessionRes = {
     ok?: boolean;
@@ -1769,6 +1767,12 @@ function CountdownWallSlot({ sessionId }: { sessionId: string }): JSX.Element {
     refetchInterval: liveConnected ? false : sessionId ? 1_000 : false,
     placeholderData: (prev) => prev
   });
+
+  // After every hook: an early return above useApiQuery changed the hook count
+  // when the stored user was cleared while the wall was mounted, and React threw.
+  if (!user) {
+    return <div className="tower-wall__empty">Sign in to use launch countdown.</div>;
+  }
 
   const s = sessionQuery.data?.session;
 

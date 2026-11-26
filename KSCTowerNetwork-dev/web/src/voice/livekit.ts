@@ -413,7 +413,15 @@ export async function connectVoiceRoom(options: ConnectVoiceRoomOptions): Promis
   room.on(RoomEvent.ParticipantConnected, (_p: RemoteParticipant) => {
     updateParticipants();
   });
-  room.on(RoomEvent.ParticipantDisconnected, (_p: RemoteParticipant) => {
+  // KSP bridges currently holding PTT. The tower mic follows "any bridge holds",
+  // and a bridge that leaves (KSP crash, network drop) releases its hold — a
+  // single latched flag kept the tower mic open forever when MIC_OFF never came.
+  const bridgePttHolders = new Set<string>();
+  const emitBridgePtt = (fromIdentity: string): void => {
+    options.onBridgePtt?.(bridgePttHolders.size > 0, fromIdentity);
+  };
+  room.on(RoomEvent.ParticipantDisconnected, (p: RemoteParticipant) => {
+    if (bridgePttHolders.delete(p.identity)) emitBridgePtt(p.identity);
     updateParticipants();
   });
   room.on(RoomEvent.ActiveSpeakersChanged, () => {
@@ -421,9 +429,14 @@ export async function connectVoiceRoom(options: ConnectVoiceRoomOptions): Promis
   });
 
   if (options.onBridgePtt) {
-    const cb = options.onBridgePtt;
     room.on(RoomEvent.DataReceived, (payload: Uint8Array, participant) => {
-      dispatchKspPttData(payload, participant, cb);
+      dispatchKspPttData(payload, participant, (on, fromIdentity) => {
+        // Key by the sending participant: that is what ParticipantDisconnected reports.
+        const holder = participant?.identity || fromIdentity;
+        if (on) bridgePttHolders.add(holder);
+        else bridgePttHolders.delete(holder);
+        emitBridgePtt(fromIdentity);
+      });
     });
   }
 
