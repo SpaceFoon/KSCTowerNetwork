@@ -4,9 +4,19 @@ import { queryClient, queryKeys } from "../query/client";
 
 type ConnectionListener = (connected: boolean) => void;
 
+/**
+ * One socket, one session: the backend only pushes `session.*` / `hullcam.meta`
+ * for the sessionId in the URL. The first retained session owns the socket; other
+ * callers (e.g. per-room status cards) are counted but do not steal it, and they
+ * see `connected === false` so their queries keep polling. Previously the last
+ * caller re-pointed the socket at its own room while every caller still read
+ * `connected === true`, so the tracked room silently stopped updating.
+ */
 type SharedLiveSocket = {
   socket: WebSocket | null;
   refs: number;
+  /** Retain counts per session id ("" = global topics only). */
+  sessionRefs: Map<string, number>;
   sessionId: string;
   connected: boolean;
   listeners: Set<ConnectionListener>;
@@ -15,6 +25,7 @@ type SharedLiveSocket = {
 const shared: SharedLiveSocket = {
   socket: null,
   refs: 0,
+  sessionRefs: new Map(),
   sessionId: "",
   connected: false,
   listeners: new Set()
@@ -121,37 +132,68 @@ function openSocket(sessionId: string): void {
 function retainSocket(sessionId: string): void {
   shared.refs += 1;
   const sid = sessionId.trim();
+  shared.sessionRefs.set(sid, (shared.sessionRefs.get(sid) ?? 0) + 1);
   if (!shared.socket) {
     openSocket(sid);
     return;
   }
-  if (sid && shared.sessionId !== sid) {
+  // Upgrade a global-only socket to the first real session; never steal one.
+  if (sid && !shared.sessionId) {
     openSocket(sid);
   }
 }
 
-function releaseSocket(): void {
+function releaseSocket(sessionId: string): void {
   shared.refs = Math.max(0, shared.refs - 1);
+  const sid = sessionId.trim();
+  const left = (shared.sessionRefs.get(sid) ?? 1) - 1;
+  if (left > 0) shared.sessionRefs.set(sid, left);
+  else shared.sessionRefs.delete(sid);
   if (shared.refs === 0) {
     closeSocket();
     shared.sessionId = "";
+    shared.sessionRefs.clear();
+    return;
+  }
+  if (sid === shared.sessionId && left <= 0) {
+    // Owner went away. Defer the hand-off: when the owner merely switched rooms,
+    // React runs this cleanup and the new retain in the same commit, and the new
+    // room should win over some unrelated card that happens to be mounted.
+    shared.sessionId = "";
+    queueMicrotask(() => {
+      if (shared.refs === 0) return;
+      if (shared.sessionId && shared.sessionRefs.has(shared.sessionId)) return;
+      const next = [...shared.sessionRefs.keys()].find((k) => k !== "") ?? "";
+      openSocket(next);
+    });
   }
 }
 
+/** Whether pushes for `sessionId` actually arrive on the shared socket. */
+function coversSession(sessionId: string): boolean {
+  const sid = sessionId.trim();
+  return !sid || sid === shared.sessionId;
+}
+
 export function useTowerLiveSubscriptions(sessionId: string): boolean {
-  const [connected, setConnected] = useState(shared.connected);
+  const [connected, setConnected] = useState(shared.connected && coversSession(sessionId));
   useEffect(() => {
-    const listener: ConnectionListener = (next) => setConnected(next);
+    const listener: ConnectionListener = (next) => setConnected(next && coversSession(sessionId));
     shared.listeners.add(listener);
+    listener(shared.connected);
     return () => {
       shared.listeners.delete(listener);
     };
-  }, []);
+  }, [sessionId]);
 
   useEffect(() => {
     retainSocket(sessionId);
-    return () => releaseSocket();
+    notifyConnected(shared.connected);
+    return () => releaseSocket(sessionId);
   }, [sessionId]);
 
   return connected;
 }
+
+/** Exposed for unit tests only. */
+export const __liveSocketTestHooks = { retainSocket, releaseSocket, coversSession, shared };
