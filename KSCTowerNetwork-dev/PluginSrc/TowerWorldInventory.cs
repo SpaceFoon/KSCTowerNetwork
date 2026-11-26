@@ -14,7 +14,11 @@ namespace KSCTowerNetwork
     /// mods (planet packs, KK, MAS, …). Posts to the Tower backend so the web map can re-plot itself
     /// for whatever world the player is actually flying in (Kerbin, RSS Earth, JNSQ, GPP, …).
     /// </summary>
-    [KSPAddon(KSPAddon.Startup.SpaceCentre, true)]
+    // once = false: with `true` KSP creates this addon only on the first matching scene
+    // and the coroutine dies with that scene, so a player who reached KSC before logging
+    // in (or left the scene early) never got a retry until KSP restarted. The static
+    // guard below keeps it to one successful run per game session.
+    [KSPAddon(KSPAddon.Startup.SpaceCentre, false)]
     public class TowerWorldInventory : MonoBehaviour
     {
         private static bool _publishedThisGameSession;

@@ -29,7 +29,11 @@ namespace KSCTowerNetwork
     /// static fallback. If anyone wants a quantitative live slope layer later we can re-add it
     /// behind an opt-in toggle.
     /// </summary>
-    [KSPAddon(KSPAddon.Startup.SpaceCentre, true)]
+    // once = false: with `true` KSP creates this addon only on the first matching scene
+    // and the coroutine dies with that scene, so a player who reached KSC before logging
+    // in (or left the scene early) never got a retry until KSP restarted. The static
+    // guard below keeps it to one successful run per game session.
+    [KSPAddon(KSPAddon.Startup.SpaceCentre, false)]
     public class TowerBasemapBaker : MonoBehaviour
     {
         // The web overlays (graticule, picks, vessel pins) project lat/lon into a 596x298 viewBox.

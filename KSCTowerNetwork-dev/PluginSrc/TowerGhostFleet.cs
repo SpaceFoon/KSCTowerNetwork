@@ -172,6 +172,14 @@ namespace KSCTowerNetwork
         private bool _started;
         private bool _backendUnreachable;
         private float _lastErrorLogTime;
+        /// <summary>Unscaled time of the last snapshot that was actually applied.</summary>
+        private float _lastSnapshotAppliedTime;
+        /// <summary>
+        /// With no fresh snapshot for this long the ghosts are removed: Update holds the last
+        /// pose after 5 s of extrapolation, so a backend outage or expired token otherwise left
+        /// aircraft frozen in mid-air for the rest of the scene.
+        /// </summary>
+        private const float GhostSnapshotStaleSeconds = 15f;
 
         private sealed class GhostProxy
         {
@@ -234,6 +242,11 @@ namespace KSCTowerNetwork
                 }
 
                 yield return StartCoroutine(FetchAndApply());
+
+                if (_ghosts.Count > 0 && Time.unscaledTime - _lastSnapshotAppliedTime > GhostSnapshotStaleSeconds)
+                {
+                    ClearAllGhosts();
+                }
 
                 var wait = _backendUnreachable ? UnreachableBackoffSeconds : nominal;
                 yield return new WaitForSeconds(wait);
@@ -378,6 +391,7 @@ namespace KSCTowerNetwork
                 return;
             }
 
+            _lastSnapshotAppliedTime = Time.unscaledTime;
             ApplyGhosts(parsed);
         }
 
@@ -412,6 +426,13 @@ namespace KSCTowerNetwork
             {
                 if (spawned >= maxCount) break;
                 if (a == null || string.IsNullOrEmpty(a.sessionId)) continue;
+                // The feed carries pilots on every body; lat/lon on another body would be
+                // drawn at the wrong place over the home world.
+                if (!string.IsNullOrEmpty(a.bodyName) &&
+                    !string.Equals(a.bodyName, home.bodyName, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
 
                 float supUntil;
                 if (_ghostCombatSuppressedUntil.TryGetValue(a.sessionId, out supUntil) && Time.unscaledTime < supUntil)

@@ -13,19 +13,23 @@ namespace KSCTowerNetwork
     /// wrong LiveKit room until the radio dial is touched. The web shell uses server active-room as
     /// truth; this brings the plugin in line without waiting for a manual retune.
     /// </summary>
-    [KSPAddon(KSPAddon.Startup.FlightAndKSC, true)]
+    // once = false: with `true` KSP creates this addon only on the first matching scene
+    // and the coroutine dies with that scene, so a player who reached KSC before logging
+    // in (or changed scene before the token arrived) never got a retry until KSP restarted. The static
+    // guard below keeps it to one successful run per game session.
+    [KSPAddon(KSPAddon.Startup.FlightAndKSC, false)]
     public class TowerAcarsActiveRoomSync : MonoBehaviour
     {
-        private static bool _started;
+        /// <summary>Set once the active-room request has completed (any outcome).</summary>
+        private static bool _done;
 
         private void Start()
         {
-            if (_started)
+            if (_done)
             {
                 return;
             }
 
-            _started = true;
             TowerModSettings.EnsureLoaded();
             StartCoroutine(SyncRoutine());
         }
@@ -60,6 +64,7 @@ namespace KSCTowerNetwork
                 req.timeout = 10;
                 TowerApiAuth.ApplyBearer(req);
                 yield return req.SendWebRequest();
+                _done = true;
 
                 if (req.isNetworkError || req.isHttpError)
                 {

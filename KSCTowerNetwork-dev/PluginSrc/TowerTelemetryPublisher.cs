@@ -2088,7 +2088,13 @@ namespace KSCTowerNetwork
 
             var radar = v.radarAltitude;
             var altUse = (radar > 0 && !double.IsNaN(radar) && !double.IsInfinity(radar)) ? radar : v.altitude;
-            onApproach = alignErrDeg < 20.0 && distMeters < 30000.0 && altUse < 3000.0;
+            // Airborne and closing on the field: the geometric gate alone was also true for a
+            // takeoff roll / climb-out on an aligned runway, which forced the phase to APPROACH
+            // (hiding TAKEOFF/CLIMB from the server), fired "[CALL] 10 km from KSC" on every
+            // departure and ranked departing aircraft in the approach queue.
+            var closing = AbsAngleDeg(surfaceTrackDeg - bearingToRefDeg) < 90.0;
+            onApproach = !v.LandedOrSplashed && closing &&
+                         alignErrDeg < 20.0 && distMeters < 30000.0 && altUse < 3000.0;
             landing = onApproach && v.verticalSpeed < 0.0;
 
             if (radar > 1.0 && v.verticalSpeed < -0.5)

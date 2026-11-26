@@ -74,6 +74,7 @@ namespace KSCTowerNetwork
 
         private bool _started;
         private float _backoffUntil;
+        private string _lastUploadedSessionId = string.Empty;
         private uint _lastUploadedPersistentId;
         private int _lastUploadedPartCount;
         private int _lastUploadedFingerprint;
@@ -115,7 +116,10 @@ namespace KSCTowerNetwork
                 int partCount = v.parts == null ? 0 : v.parts.Count;
                 int fingerprint = ComputeStageFingerprint(v);
 
+                // The manifest is stored per session id, so a mid-flight retune must re-upload
+                // or the new room has no schematic until the craft next stages or docks.
                 bool changed =
+                    !string.Equals(TowerModSettings.SessionId ?? string.Empty, _lastUploadedSessionId, StringComparison.Ordinal) ||
                     v.persistentId != _lastUploadedPersistentId ||
                     partCount != _lastUploadedPartCount ||
                     fingerprint != _lastUploadedFingerprint;
@@ -249,6 +253,7 @@ namespace KSCTowerNetwork
 
             // Success — remember what we just sent so the next tick's
             // change-detector knows we don't need to re-send.
+            _lastUploadedSessionId = TowerModSettings.SessionId ?? string.Empty;
             _lastUploadedPersistentId = v.persistentId;
             _lastUploadedPartCount = v.parts.Count;
             _lastUploadedFingerprint = ComputeStageFingerprint(v);
