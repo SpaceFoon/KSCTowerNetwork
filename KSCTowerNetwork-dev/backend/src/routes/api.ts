@@ -5268,6 +5268,15 @@ apiRouter.post(
       res.status(400).json({ error: "Invalid score payload", details: parsed.error.flatten() });
       return;
     }
+    // Scoring is a controller judging someone else; a controller-rank pilot could
+    // otherwise farm points for themselves on their own (or any open) session.
+    if (parsed.data.targetUserId === req.auth!.userId) {
+      const caller = await getUserAccess(req.auth!.userId);
+      if (!roleAtLeast(caller.role, "mod")) {
+        res.status(403).json({ error: "You cannot award score to yourself", reason: "score_self_award" });
+        return;
+      }
+    }
 
     const ev = await awardEvent({
       sessionId,

@@ -154,6 +154,8 @@ function newUserId(): string {
  * Persist a new account. Caller is responsible for invite-code consumption,
  * rate-limiting, and role-seeding (`ensureLocalRoleSeeded`) after success.
  */
+const pendingEmails = new Set<string>();
+
 export async function registerUser(req: RegisterRequest): Promise<RegisterResult> {
   if (!loaded) {
     // Defensive: register before load means we'd silently overwrite the disk
@@ -161,10 +163,18 @@ export async function registerUser(req: RegisterRequest): Promise<RegisterResult
     await loadRegisteredUsers();
   }
   const email = normalizeEmail(req.email);
-  if (usersByEmail.has(email)) {
+  if (usersByEmail.has(email) || pendingEmails.has(email)) {
     return { ok: false, reason: "email_taken" };
   }
-  const passwordHash = await argon2.hash(req.password, { type: argon2.argon2id });
+  // Reserved across the argon2 await: two concurrent registrations for one email
+  // both passed the check above, and the second silently orphaned the first id.
+  pendingEmails.add(email);
+  let passwordHash: string;
+  try {
+    passwordHash = await argon2.hash(req.password, { type: argon2.argon2id });
+  } finally {
+    pendingEmails.delete(email);
+  }
   const row: StoredRegisteredUser = {
     userId: newUserId(),
     email,
