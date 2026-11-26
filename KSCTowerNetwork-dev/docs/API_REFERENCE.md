@@ -46,10 +46,10 @@ Base path: `/v1`. All bodies JSON unless noted. Bearer token via the
 | `POST` | `/session/:sessionId/clearance` | `[cap:controller:assume]` | `{ clearance: TAKEOFF\|LANDING\|TAXI\|HOLD_SHORT\|GO_AROUND, status: cleared\|violation\|neutral }`. Persists `clearances_json`. |
 | `POST` | `/session/:sessionId/expected-runway` | `[cap:controller:assume]` | `{ runway: string \| null }` — optional expected landing runway for wrong-runway RP checks. |
 | `POST` | `/session/:sessionId/runway-occupancy` | `[cap:controller:assume]` | `{ bodyName, runwayId, occupied: boolean }` — manual runway occupancy override (in-memory). |
-| `POST` | `/session/:sessionId/countdown/request` | `[cap:chat:session]` | Pilot ping: `{ kind?: "launch" \| "takeoff" }` — sets ephemeral `countdownRequest` or `takeoffRequest` (mutually exclusive) + session chat line. Throttled. |
+| `POST` | `/session/:sessionId/countdown/request` | `[cap:chat:session]` | Pilot ping: `{ kind?: "launch" \| "takeoff" }` — sets ephemeral `countdownRequest` or `takeoffRequest` (mutually exclusive) + session chat line. Throttled. Pilot, assigned tower or mod (any pilot+ on server radio frequencies); spectators get `403 spectator_read_only`. |
 | `POST` | `/session/:sessionId/countdown/start` | `[cap:controller:assume]` | `{ seconds }` — starts synced countdown; clears pending markers. |
 | `POST` | `/session/:sessionId/countdown/scrub` | `[cap:controller:assume]` | Clears active countdown clock + pending launch marker. |
-| `POST` | `/session/:sessionId/countdown/post-liftoff-abort` | `[cap:chat:session]` | Within **60 s** after nominal T-0; clears countdown (same scrub path) + chat line. |
+| `POST` | `/session/:sessionId/countdown/post-liftoff-abort` | `[cap:chat:session]` | Within **60 s** after nominal T-0; clears countdown (same scrub path) + chat line. Pilot, assigned tower or mod (any pilot+ on server radio frequencies); spectators get `403 spectator_read_only`. |
 | `POST` | `/session/:sessionId/pilot-pending/handle` | `[cap:controller:assume]` | `{ target: "takeoff" \| "launch", action: "grant" \| "dismiss" }` — takeoff: grant (posts `[CLEARANCE]`) or dismiss; launch: **dismiss** only (grant launch → **400**, use **countdown/start**). `{ ok, changed }` when nothing to do. |
 
 ## Messaging
@@ -57,7 +57,7 @@ Base path: `/v1`. All bodies JSON unless noted. Bearer token via the
 | Method | Path | Gate | Notes |
 |---|---|---|---|
 | `GET` | `/session/:sessionId/messages` | `[auth]` | Participant or admin. |
-| `POST` | `/session/:sessionId/messages` | `[cap:chat:session]` | `{ text }`. Mute-checked. |
+| `POST` | `/session/:sessionId/messages` | `[cap:chat:session]` | `{ text }`. Mute-checked. Pilot, assigned tower or mod (any pilot+ on server radio frequencies); spectators get `403 spectator_read_only`. |
 | `GET` | `/lobby/messages` | `[auth]` | |
 | `POST` | `/lobby/messages` | `[cap:chat:lobby]` | `{ text }`. Mute-checked. |
 | `GET` | `/lobby/rooms` | `[auth]` | List of currently active sessions. |

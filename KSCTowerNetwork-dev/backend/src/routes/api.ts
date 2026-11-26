@@ -996,6 +996,25 @@ async function loadSessionIfAuthorized(
   return session;
 }
 
+/**
+ * Write-side gate for session content (chat, kOS lines, countdown requests/aborts).
+ * Spectators passed `loadSessionIfAuthorized` (the read gate), which let them inject
+ * chat/kOS lines and raise takeoff requests the controller then granted to the real
+ * pilot. Server-owned radio frequencies stay open to every pilot+ account, since
+ * several pilots share them and only the latest claimer is `pilotUserId`.
+ */
+async function assertSessionWriter(req: Request, res: Response, session: SessionRecord): Promise<boolean> {
+  const access = await getUserAccess(req.auth!.userId);
+  const isMod = roleAtLeast(access.role, "mod");
+  const ok =
+    isSessionParticipantOrAdmin(req.auth!.userId, session, isMod) ||
+    (isServerOwnedRadioSessionId(session.id) && roleAtLeast(access.role, "pilot"));
+  if (!ok) {
+    res.status(403).json({ error: "Spectators are read-only in this session", reason: "spectator_read_only" });
+  }
+  return ok;
+}
+
 apiRouter.get("/health", (_req, res) => {
   res.json({
     ok: true,
@@ -2045,6 +2064,7 @@ apiRouter.post(
     if (!session) {
       return;
     }
+    if (!(await assertSessionWriter(req, res, session))) return;
     if (!(await assertNotMuted(req, res))) return;
 
     const message = await appendSessionMessage(sessionId, req.auth!.userId, parsed.data.text);
@@ -2613,6 +2633,7 @@ apiRouter.post(
     if (!session) {
       return;
     }
+    if (!(await assertSessionWriter(req, res, session))) return;
     if (!(await assertNotMuted(req, res))) return;
 
     const line = await appendKosScreenLine(sessionId, req.auth!.userId, parsed.data.line);
@@ -4937,6 +4958,7 @@ apiRouter.post(
     const sessionId = String(req.params.sessionId);
     const session = await loadSessionIfAuthorized(req, res, sessionId);
     if (!session) return;
+    if (!(await assertSessionWriter(req, res, session))) return;
 
     if (!session.countdownStartsAt || session.countdownLengthSec == null) {
       res.status(400).json({ error: "No active countdown to abort" });
@@ -5002,6 +5024,7 @@ apiRouter.post(
     const sessionId = String(req.params.sessionId);
     const session = await loadSessionIfAuthorized(req, res, sessionId);
     if (!session) return;
+    if (!(await assertSessionWriter(req, res, session))) return;
 
     const body = req.body && typeof req.body === "object" ? (req.body as Record<string, unknown>) : {};
     const kind = body.kind === "takeoff" ? "takeoff" : "launch";
