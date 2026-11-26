@@ -16,6 +16,8 @@ describe("flightwall guidance", () => {
       expect(flightWallGuidance({ sampleUnixMs: timestamp, onApproach: true }, 5, 0, now).state).toBe("stale");
     }
     expect(flightWallGuidance({ ...fresh, sampleUnixMs: now - 20_000 }, 5, 0, now, 60_000).state).not.toBe("stale");
+    // Viewer clock 10 s behind the server: still live.
+    expect(flightWallGuidance({ ...fresh, sampleUnixMs: now + 10_000 }, 5, 0, now).state).not.toBe("stale");
   });
   it("respects ground, approach and orbital states", () => {
     expect(flightWallGuidance({ ...fresh, situation: "LANDED" }, 0, 0, now).state).toBe("ground");

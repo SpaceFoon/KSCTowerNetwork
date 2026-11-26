@@ -4,8 +4,15 @@ export function compassPoint(degrees: number): string {
   return ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.round(((degrees % 360 + 360) % 360) / 45) % 8]!;
 }
 
+/** How far behind the server a viewer's clock may be before samples look invalid. */
+const MAX_CLIENT_CLOCK_BEHIND_MS = 60_000;
+
 export function flightWallGuidance(t: Telemetry, distanceKm: number, bearing: number, nowMs: number, staleAfterMs = 15_000) {
-  const fresh = t.sampleUnixMs != null && Number.isFinite(t.sampleUnixMs) && nowMs - t.sampleUnixMs >= -5_000 && nowMs - t.sampleUnixMs < staleAfterMs;
+  // sampleUnixMs is server time and nowMs the browser clock. A sample slightly "from the
+  // future" just means the viewer's clock is behind; the old -5 s floor marked every live
+  // track stale for such viewers. Far-future values are still treated as garbage.
+  const ageMs = t.sampleUnixMs != null ? nowMs - t.sampleUnixMs : NaN;
+  const fresh = Number.isFinite(ageMs) && ageMs >= -MAX_CLIENT_CLOCK_BEHIND_MS && ageMs < staleAfterMs;
   const direction = compassPoint(bearing);
   if (!fresh) return { title: "Last known position", detail: "Waiting for fresh flight telemetry.", state: "stale", direction };
   if (t.situation === "LANDED" || t.situation === "PRELAUNCH" || t.situation === "SPLASHED") {
