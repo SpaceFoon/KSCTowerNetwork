@@ -1869,8 +1869,12 @@ namespace KSCTowerNetwork
                 AppendNum(sb, "touchdownEtaSec", etaTd, false);
             }
 
+            // FrequencyChannelMap is empty on a default install, so also ask the radio's lobby
+            // cache; without radioFreqMhz the backend never computes FREQ BUSY / BLOCKED.
             double radioMhz;
-            if (TowerModSettings.TryResolveFrequencyForChannel(TowerModSettings.SessionId ?? string.Empty, out radioMhz) &&
+            var radioSid = TowerModSettings.SessionId ?? string.Empty;
+            if ((TowerModSettings.TryResolveFrequencyForChannel(radioSid, out radioMhz) ||
+                 TowerRadioGui.TryGetLobbyFrequencyMhzForSession(radioSid, out radioMhz)) &&
                 radioMhz > 1.0)
             {
                 AppendNum(sb, "radioFreqMhz", radioMhz, false);
@@ -1978,7 +1982,14 @@ namespace KSCTowerNetwork
 
             var a = (double)PositionSmoothAlpha;
             _smoothLat += (lat - _smoothLat) * a;
-            _smoothLon += (lon - _smoothLon) * a;
+            // Step across the antimeridian the short way: 179.99 -> -179.99 is 0.02 deg,
+            // not -359.98 (which put the smoothed ghost ~70 deg away for a sample).
+            var dLon = lon - _smoothLon;
+            if (dLon > 180.0) dLon -= 360.0;
+            else if (dLon < -180.0) dLon += 360.0;
+            _smoothLon += dLon * a;
+            if (_smoothLon > 180.0) _smoothLon -= 360.0;
+            else if (_smoothLon < -180.0) _smoothLon += 360.0;
             _smoothAslAlt += (asl - _smoothAslAlt) * a;
         }
 

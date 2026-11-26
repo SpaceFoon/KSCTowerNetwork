@@ -9,6 +9,12 @@ namespace KSCTowerNetwork
     public class KSCTowerRpmMic : InternalModule
     {
         private bool _micLive;
+        /// <summary>
+        /// Button state, set synchronously. _micLive only follows the async bridge reply, so
+        /// teardown keyed on it alone skipped the release while a press was still in flight
+        /// or had failed, leaving the PTT bus (toolbar icon, radioPtt) stuck open.
+        /// </summary>
+        private bool _pressed;
 
         /// <summary>RPM calls this with <c>true</c> when the switch goes on and <c>false</c> when off (momentary release).</summary>
         public void TowerMicSet(bool on)
@@ -17,6 +23,7 @@ namespace KSCTowerNetwork
             var host = TowerModSettings.VoiceCtlHost;
             var port = TowerModSettings.VoiceCtlPort;
             var cmd = on ? "MIC_ON" : "MIC_OFF";
+            _pressed = on;
 
             // Publish to the bus before queuing the TCP round trip so chatter ducking happens on
             // the same frame as the button press; otherwise Chatterer / the ASET COMM radio's own
@@ -43,6 +50,11 @@ namespace KSCTowerNetwork
                     if (!string.IsNullOrEmpty(resp) && resp.StartsWith("OK"))
                     {
                         _micLive = on;
+                        // Released before MIC_ON landed: close it again rather than leave it hot.
+                        if (on && !_pressed && this != null)
+                        {
+                            TowerMicSet(false);
+                        }
                     }
                     else
                     {
@@ -65,7 +77,7 @@ namespace KSCTowerNetwork
 
         private void OnDestroy()
         {
-            if (_micLive)
+            if (_micLive || _pressed)
             {
                 TowerModSettings.EnsureLoaded();
                 // Release the bus *first* — vessel switch / scene unload must not strand subscribers
@@ -79,6 +91,7 @@ namespace KSCTowerNetwork
                     "MIC_OFF",
                     null);
                 _micLive = false;
+                _pressed = false;
             }
         }
     }
