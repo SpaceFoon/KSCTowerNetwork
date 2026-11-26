@@ -614,15 +614,7 @@ export function TowerWall({
   // poll. The 60s cadence makes that acceptable; the alternative is prop-drilling
   // optional inventory + catalog through every consumer.)
   const [worldInventory, setWorldInventory] = useState<WorldInventory | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    void fetchWorldInventory(sessionId).then((wi) => {
-      if (!cancelled) setWorldInventory(wi);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [sessionId]);
+  useWorldInventoryPoll(sessionId, setWorldInventory);
   // Fall back to the bundled stock catalog when the KSP plugin hasn't published
   // `/v1/world-inventory/{sessionId}` yet  keeps the schematic cell useful instead
   // of showing "system catalog isn't loaded" forever on a fresh session.
@@ -870,16 +862,7 @@ export function TowerWall({
           <div className="tower-wall-settings-dialog__section">
             <label className="tower-wall__field">
               <span>Rows</span>
-              <input
-                type="number"
-                min={MIN_ROWS}
-                max={MAX_ROWS}
-                value={rows.length}
-                onChange={(e) => {
-                  const n = Number(e.target.value);
-                  if (Number.isFinite(n)) setRowCount(n);
-                }}
-              />
+              <WallCountInput min={MIN_ROWS} max={MAX_ROWS} value={rows.length} onCommit={setRowCount} />
             </label>
             <span className="tower-wall-settings-dialog__meta">
               {cameras.length > 0
@@ -940,15 +923,11 @@ export function TowerWall({
                 <div className="tower-wall-settings-dialog__row-fields">
                   <label className="tower-wall__field">
                     <span>Cols</span>
-                    <input
-                      type="number"
+                    <WallCountInput
                       min={MIN_COLS}
                       max={MAX_COLS}
                       value={row.cells.length}
-                      onChange={(e) => {
-                        const n = Number(e.target.value);
-                        if (Number.isFinite(n)) setRowCols(rowIndex, n);
-                      }}
+                      onCommit={(n) => setRowCols(rowIndex, n)}
                     />
                   </label>
                   <label
@@ -1138,15 +1117,7 @@ export function TowerWallRowPane({
   }, [rowLayoutOpen]);
 
   const [worldInventory, setWorldInventory] = useState<WorldInventory | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    void fetchWorldInventory(sessionId).then((wi) => {
-      if (!cancelled) setWorldInventory(wi);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [sessionId]);
+  useWorldInventoryPoll(sessionId, setWorldInventory);
 
   const catalogState = useSystemCatalog(worldInventory?.worldId ?? "kerbin-stock");
   const catalog = catalogState.kind === "ready" ? catalogState.catalog : null;
@@ -1230,16 +1201,7 @@ export function TowerWallRowPane({
                   <div className="tower-wall-settings-dialog__row-fields">
                     <label className="tower-wall__field">
                       <span>Cols</span>
-                      <input
-                        type="number"
-                        min={MIN_COLS}
-                        max={MAX_COLS}
-                        value={row.cells.length}
-                        onChange={(e) => {
-                          const n = Number(e.target.value);
-                          if (Number.isFinite(n)) onSetCols(n);
-                        }}
-                      />
+                      <WallCountInput min={MIN_COLS} max={MAX_COLS} value={row.cells.length} onCommit={onSetCols} />
                     </label>
                     <label
                       className="tower-wall__field tower-wall__field--width"
@@ -2022,6 +1984,63 @@ function TowerPlayerAnnunciatorBar({ telemetry: t }: { telemetry: MapTelemetry }
       {stormIncoming ? <AnnunciatorLamp tag="STR" title={stormTitle} tone="alert" pulse /> : null}
     </div>
   );
+}
+
+/**
+ * Row/column count field. Edits are held as a local draft and only committed
+ * when they parse to an in-range integer: committing `Number("")` (= 0, clamped
+ * to the minimum) used to delete every row the moment the field was cleared to
+ * type a new value, and the truncated layout was autosaved.
+ */
+function WallCountInput(props: { min: number; max: number; value: number; onCommit: (n: number) => void }) {
+  const { min, max, value, onCommit } = props;
+  const [draft, setDraft] = useState<string | null>(null);
+  return (
+    <input
+      type="number"
+      min={min}
+      max={max}
+      value={draft ?? String(value)}
+      onChange={(e) => {
+        const raw = e.target.value;
+        setDraft(raw);
+        const n = Number(raw);
+        if (raw.trim() !== "" && Number.isInteger(n) && n >= min && n <= max) onCommit(n);
+      }}
+      onBlur={() => setDraft(null)}
+    />
+  );
+}
+
+const WORLD_INVENTORY_REFRESH_MS = 60_000;
+
+/**
+ * The plugin publishes world inventory only after reaching the Space Center, so a
+ * wall opened earlier (404 -> null) must keep polling instead of staying on the
+ * stock-Kerbin fallbacks until a manual reload.
+ */
+function useWorldInventoryPoll(
+  sessionId: string,
+  setWorldInventory: (wi: WorldInventory | null) => void
+): void {
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => {
+      fetchWorldInventory(sessionId)
+        .then((wi) => {
+          if (!cancelled) setWorldInventory(wi);
+        })
+        .catch(() => {
+          /* keep the last good inventory; retry on the next tick */
+        });
+    };
+    load();
+    const t = window.setInterval(load, WORLD_INVENTORY_REFRESH_MS);
+    return () => {
+      cancelled = true;
+      window.clearInterval(t);
+    };
+  }, [sessionId, setWorldInventory]);
 }
 
 function formatLobbyMhz(v: string | number | null | undefined): string {

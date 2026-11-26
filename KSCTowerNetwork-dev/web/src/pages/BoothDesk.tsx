@@ -299,7 +299,11 @@ export function BoothDesk(): JSX.Element | null {
             unsubIncomingRef.current?.();
             unsubIncomingRef.current = null;
             setIncomingLevel(0);
+            // Remote-initiated disconnect: the handle still owns the meter RAF
+            // loop and analysers until it is disconnected explicitly.
+            const dead = voiceHandleRef.current;
             voiceHandleRef.current = null;
+            dead?.disconnect();
             releaseVoiceMic();
             setVoiceConnecting(false);
           }

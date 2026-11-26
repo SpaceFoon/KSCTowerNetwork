@@ -115,13 +115,16 @@ export function setStoredUser(user: AuthUser | null): void {
  * network shouldn't trap them in a "still logged in" UI.
  */
 export async function clearStoredSession(): Promise<void> {
+  // Start the request first so it still carries the bearer token, then clear
+  // locally without waiting on it.
+  const logout = apiFetch("/v1/auth/logout", { method: "POST" });
+  setStoredToken("");
+  setStoredUser(null);
   try {
-    await apiFetch("/v1/auth/logout", { method: "POST" });
+    await logout;
   } catch {
     /* offline or already-expired session — fall through */
   }
-  setStoredToken("");
-  setStoredUser(null);
 }
 
 /**

@@ -429,7 +429,17 @@ export function VoiceDesk({ embedInWall }: VoiceDeskProps = {}): JSX.Element {
             unsubIncomingRef.current?.();
             unsubIncomingRef.current = null;
             setIncomingLevel(0);
+            // Remote-initiated disconnect (kick, room closed, duplicate identity):
+            // the handle still owns the meter RAF loop and analysers, and the local
+            // mic meter keeps capturing, until they are torn down explicitly.
+            const dead = handleRef.current;
             handleRef.current = null;
+            dead?.disconnect();
+            localMicMeterStopRef.current?.();
+            localMicMeterStopRef.current = null;
+            localMicMeterStreamRef.current?.getTracks().forEach((t) => t.stop());
+            localMicMeterStreamRef.current = null;
+            setLocalMicLevel(0);
             releaseKerbalizerMic();
             setNoiseCancellationActive(false);
             setBridgePttActive(false);
