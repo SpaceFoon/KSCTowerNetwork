@@ -797,14 +797,15 @@ namespace KSCTowerNetwork
         {
             if (TowerModSettings.UseUdpLiveTransport)
             {
-                string udpReply;
-                string udpError;
-                if (TowerUdpClient.TryRequest(
-                        TowerUdpMessageType.GhostQuery,
-                        TowerModSettings.SessionId,
-                        "{}",
-                        out udpReply,
-                        out udpError))
+                var udpPending = TowerUdpClient.BeginRequest(TowerUdpMessageType.GhostQuery, TowerModSettings.SessionId, "{}");
+                while (!udpPending.IsDone)
+                {
+                    yield return null;
+                }
+
+                var udpReply = udpPending.Reply;
+                var udpError = udpPending.Error;
+                if (udpPending.Ok)
                 {
                     ApplyActiveAircraftSnapshot(udpReply);
                     yield break;

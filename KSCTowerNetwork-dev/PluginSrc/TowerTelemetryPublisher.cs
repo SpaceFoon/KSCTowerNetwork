@@ -348,14 +348,15 @@ namespace KSCTowerNetwork
             var json = "{\"state\":\"" + stateName + "\",\"message\":\"" + JsonEscape(message ?? string.Empty) + "\"}";
             if (TowerModSettings.UseUdpLiveTransport)
             {
-                string udpReply;
-                string udpError;
-                if (TowerUdpClient.TryRequest(
-                        TowerUdpMessageType.TelemetryStatus,
-                        TowerModSettings.SessionId,
-                        json,
-                        out udpReply,
-                        out udpError))
+                var udpPending = TowerUdpClient.BeginRequest(TowerUdpMessageType.TelemetryStatus, TowerModSettings.SessionId, json);
+                while (!udpPending.IsDone)
+                {
+                    yield return null;
+                }
+
+                var udpReply = udpPending.Reply;
+                var udpError = udpPending.Error;
+                if (udpPending.Ok)
                 {
                     _lastReportedDark = reason;
                     yield break;
@@ -473,14 +474,15 @@ namespace KSCTowerNetwork
         {
             if (TowerModSettings.UseUdpLiveTransport)
             {
-                string udpReply;
-                string udpError;
-                if (TowerUdpClient.TryRequest(
-                        TowerUdpMessageType.TelemetrySample,
-                        TowerModSettings.SessionId,
-                        json,
-                        out udpReply,
-                        out udpError))
+                var udpPending = TowerUdpClient.BeginRequest(TowerUdpMessageType.TelemetrySample, TowerModSettings.SessionId, json);
+                while (!udpPending.IsDone)
+                {
+                    yield return null;
+                }
+
+                var udpReply = udpPending.Reply;
+                var udpError = udpPending.Error;
+                if (udpPending.Ok)
                 {
                     // Backend clears telemetryStatus on each fresh sample.
                     _lastReportedDark = TelemetryGoneDarkReason.None;

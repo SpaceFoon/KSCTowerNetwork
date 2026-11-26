@@ -23,6 +23,56 @@ namespace KSCTowerNetwork
         private const int HeaderBytes = 1 + 1 + 1 + 4 + 8 + 2 + 2 + 2;
         private static int _sequence = 1;
 
+        /// <summary>In-flight UDP request; poll <see cref="IsDone"/> from a coroutine.</summary>
+        internal sealed class PendingRequest
+        {
+            private volatile bool _done;
+            public bool IsDone { get { return _done; } }
+            public bool Ok { get; private set; }
+            public string Reply { get; private set; }
+            public string Error { get; private set; }
+
+            internal void Complete(bool ok, string reply, string error)
+            {
+                Ok = ok;
+                Reply = reply ?? string.Empty;
+                Error = error ?? string.Empty;
+                _done = true;
+            }
+        }
+
+        /// <summary>
+        /// Runs <see cref="TryRequest"/> on a pool thread. TryRequest blocks on DNS, send and a
+        /// receive with LiveUdpTimeoutMs; called straight from coroutines it froze the game for
+        /// up to that timeout on every poll when the listener was slow or down (hard rule: no
+        /// synchronous network I/O on the Unity main thread).
+        /// </summary>
+        public static PendingRequest BeginRequest(TowerUdpMessageType messageType, string sessionId, string payloadJson)
+        {
+            // Settings load touches KSP APIs; do it here on the main thread, not on the worker.
+            TowerModSettings.EnsureLoaded();
+            var pending = new PendingRequest();
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                string reply;
+                string error;
+                bool ok;
+                try
+                {
+                    ok = TryRequest(messageType, sessionId, payloadJson, out reply, out error);
+                }
+                catch (Exception ex)
+                {
+                    ok = false;
+                    reply = string.Empty;
+                    error = ex.Message;
+                }
+
+                pending.Complete(ok, reply, error);
+            });
+            return pending;
+        }
+
         public static bool TryRequest(
             TowerUdpMessageType messageType,
             string sessionId,
