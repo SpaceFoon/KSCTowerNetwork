@@ -432,6 +432,26 @@ export function requireCapability(cap: Capability) {
   };
 }
 
+/**
+ * Ban gate for routes that authorize by session membership or ownership instead of
+ * role/capability. requireRole/requireCapability already reject banned callers; routes
+ * that only check "is this your session" must add this so a ban takes effect there too.
+ */
+export function requireNotBanned() {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    if (!req.auth?.userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    const access = await effectiveAccess(req);
+    if (access.isBanned) {
+      res.status(403).json({ error: "Banned", reason: "banned" });
+      return;
+    }
+    next();
+  };
+}
+
 /** Back-compat alias used by routes/api.ts; equivalent to requireRole("owner"). */
 export const requireAdmin = requireRole("owner");
 

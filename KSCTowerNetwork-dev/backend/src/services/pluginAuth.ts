@@ -87,6 +87,12 @@ export async function exchangePluginToken(code: string): Promise<string | null> 
       userId = rawUserId;
     }
   } catch {
+    // Redis unreachable: the memory map below is the only place this code can be.
+  }
+
+  // A code issued while Redis was down is only in memory, and a successful Redis reply that
+  // misses must not hide it. Check the map on every miss, and drop the entry on redemption.
+  if (!userId) {
     const record = exchangeCodes.get(code);
     if (record) {
       exchangeCodes.delete(code);

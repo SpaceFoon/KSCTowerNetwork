@@ -68,7 +68,7 @@ warnings in `TowerAcarsGui` deserialization fields.
 
 ### Backend
 
-- **H-B1. Tower-queue race.** `nextTowerExcluding` then `assignTower` is a read-then-write with no row lock. `backend/src/services/repository.ts:548-566`, `:645-672`, `backend/src/routes/api.ts:367-372`. Two sessions can be assigned the same controller. Fix: atomic Lua script in Redis, or `SELECT ... FOR UPDATE` in DB path.
+- **H-B1. Tower-queue race. — [FIXED]** Direct claims now go through `claimVacantTower` (`backend/src/services/repository.ts`), which checks and writes the seat in one step (cache check plus a conditional `UPDATE ... WHERE assigned_tower_user_id IS NULL`). Queue claims still remove the entry atomically in Redis (`ZREM`). Original note: `nextTowerExcluding` then `assignTower` is a read-then-write with no row lock. `backend/src/services/repository.ts:548-566`, `:645-672`, `backend/src/routes/api.ts:367-372`. Two sessions can be assigned the same controller. Fix: atomic Lua script in Redis, or `SELECT ... FOR UPDATE` in DB path.
 - **H-B2. Plugin exchange-code can vanish.** `services/pluginAuth.ts:19-27` doesn't check `SET ... NX` returning `null`; on collision the catch path doesn't run. Fix: handle `null` reply explicitly; retry with a fresh code.
 - **H-B3. `bans` table key collision.** Schema `PRIMARY KEY (user_id)` for both ban and mute upserts. `services/repository.ts:128-134`, `:401-434`, `:859-906`. Mute upsert overwrites ban row. Fix: composite PK `(user_id, kind)` and explicit kind column.
 - **H-B4. Inconsistent ban check on Redis-down path.** `services/repository.ts:559-565` uses `localBans.has(userId)` instead of `isUserBanned`. Mutes block tower assignment when Redis is down. Fix: call `isUserBanned`/`localBanIsActive` consistently.

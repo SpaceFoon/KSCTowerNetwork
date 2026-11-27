@@ -580,7 +580,8 @@ export interface GuestRecord {
   displayName: string;
 }
 
-const localTowerQueue = new Set<string>();
+/** Fallback queue used while Redis is unavailable: userId -> time they joined (ms). */
+const localTowerQueue = new Map<string, number>();
 const localSessions = new Map<string, SessionRecord>();
 const DEV_SHARED_SESSION_ID = "dev-shared";
 const localReports: ReportRecord[] = [];
@@ -1196,17 +1197,35 @@ export async function getGuestById(guestId: string): Promise<GuestRecord | undef
   }
 }
 
+/**
+ * Moves entries that joined during a Redis outage into the shared queue, oldest first. Each
+ * local copy is dropped only after its write succeeds, so a failure part-way leaves the rest
+ * in the fallback for the next call to retry.
+ */
+async function syncLocalTowerQueueToRedis(redis: ReturnType<typeof getRedis>): Promise<void> {
+  if (localTowerQueue.size === 0) return;
+  const pending = [...localTowerQueue.entries()].sort((a, b) => a[1] - b[1]);
+  for (const [queuedUserId, joinedAt] of pending) {
+    // NX keeps an entry Redis already holds at its original position.
+    await redis.zadd(TOWER_QUEUE_KEY, "NX", joinedAt, queuedUserId);
+    localTowerQueue.delete(queuedUserId);
+  }
+}
+
 export async function joinTowerQueue(userId: string): Promise<{ size: number }> {
   await ensureUser(userId);
   try {
     const redis = getRedis();
+    await syncLocalTowerQueueToRedis(redis);
     const score = Date.now();
     await redis.zadd(TOWER_QUEUE_KEY, "NX", score, userId);
     const size = await redis.zcard(TOWER_QUEUE_KEY);
     return { size };
   } catch (error) {
     logger.warn({ err: error }, "Redis queue join failed; using local fallback");
-    localTowerQueue.add(userId);
+    if (!localTowerQueue.has(userId)) {
+      localTowerQueue.set(userId, Date.now());
+    }
     return { size: localTowerQueue.size };
   }
 }
@@ -1222,6 +1241,7 @@ export async function getTowerQueueStatus(
 ): Promise<{ inQueue: boolean; size: number }> {
   try {
     const redis = getRedis();
+    await syncLocalTowerQueueToRedis(redis);
     const score = await redis.zscore(TOWER_QUEUE_KEY, userId);
     const size = await redis.zcard(TOWER_QUEUE_KEY);
     return { inQueue: score !== null && score !== undefined, size: Number(size) || 0 };
@@ -1233,7 +1253,9 @@ export async function getTowerQueueStatus(
 export async function leaveTowerQueue(userId: string): Promise<{ size: number }> {
   try {
     const redis = getRedis();
+    await syncLocalTowerQueueToRedis(redis);
     await redis.zrem(TOWER_QUEUE_KEY, userId);
+    localTowerQueue.delete(userId);
     const size = await redis.zcard(TOWER_QUEUE_KEY);
     return { size };
   } catch (error) {
@@ -1255,7 +1277,7 @@ export async function nextTowerExcluding(excluded: Set<string>): Promise<string 
     }
     return undefined;
   } catch {
-    for (const userId of localTowerQueue) {
+    for (const userId of localTowerQueue.keys()) {
       if (!excluded.has(userId) && !getActiveLocalRecord(userId, "ban")) {
         return userId;
       }
@@ -1281,6 +1303,7 @@ export async function claimNextTowerForSession(
   let chosen: string | undefined;
   try {
     const redis = getRedis();
+    await syncLocalTowerQueueToRedis(redis);
     const candidates = await redis.zrange(TOWER_QUEUE_KEY, 0, 200);
     for (const userId of candidates) {
       if (excluded.has(userId)) continue;
@@ -1295,7 +1318,7 @@ export async function claimNextTowerForSession(
       // removed === 0: another process popped them first, try the next candidate.
     }
   } catch {
-    for (const userId of localTowerQueue) {
+    for (const userId of localTowerQueue.keys()) {
       if (excluded.has(userId)) continue;
       if (getActiveLocalRecord(userId, "ban")) continue;
       localTowerQueue.delete(userId);
@@ -1936,6 +1959,65 @@ export async function assignTower(sessionId: string, towerUserId: string): Promi
   }
 
   return getSession(sessionId);
+}
+
+export type VacantTowerClaim =
+  | { ok: true; session: SessionRecord | undefined }
+  | { ok: false; assignedTowerUserId: string | null };
+
+/**
+ * Seat `towerUserId` only if the seat is still empty. Callers that checked the seat earlier
+ * are not safe: the await between that check and the write lets a second claim win too.
+ * Here the cache check and write run with no await between them, and the database write
+ * only matches while the seat is empty, so two concurrent claims cannot both succeed.
+ */
+export async function claimVacantTower(sessionId: string, towerUserId: string): Promise<VacantTowerClaim> {
+  await ensureUser(towerUserId);
+  const local = localSessions.get(sessionId);
+  let previous: { assignedTowerUserId?: string; status: SessionStatus; updatedAt: string } | undefined;
+  if (local) {
+    if (local.assignedTowerUserId) {
+      return { ok: false, assignedTowerUserId: local.assignedTowerUserId };
+    }
+    previous = {
+      assignedTowerUserId: local.assignedTowerUserId,
+      status: local.status,
+      updatedAt: local.updatedAt
+    };
+    local.assignedTowerUserId = towerUserId;
+    local.status = "assigned";
+    local.updatedAt = nowIso();
+  }
+
+  if (useDbPersistence()) {
+    let seatWon = true;
+    try {
+      seatWon = await withConn(async (conn) => {
+        const result = (await conn.query(
+          `
+        UPDATE sessions
+        SET assigned_tower_user_id = ?, status = 'assigned', updated_at = CURRENT_TIMESTAMP
+        WHERE id = ? AND assigned_tower_user_id IS NULL
+        `,
+          [towerUserId, sessionId]
+        )) as { affectedRows?: number };
+        return (result.affectedRows ?? 0) > 0;
+      });
+    } catch (error) {
+      logger.warn({ err: error }, "Failed to persist tower claim");
+    }
+    if (!seatWon) {
+      if (local && previous) {
+        local.assignedTowerUserId = previous.assignedTowerUserId;
+        local.status = previous.status;
+        local.updatedAt = previous.updatedAt;
+      }
+      const current = await getSession(sessionId);
+      return { ok: false, assignedTowerUserId: current?.assignedTowerUserId ?? null };
+    }
+  }
+
+  return { ok: true, session: await getSession(sessionId) };
 }
 
 /**

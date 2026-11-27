@@ -6,6 +6,8 @@ let redis: IORedis | null = null;
 /** Skip request-path Redis calls while unhealthy; a recovery loop clears this. */
 let redisSkipped = false;
 let redisGeneration = 0;
+/** True while the recovery loop is probing; a failed probe is not a new outage. */
+let redisProbing = false;
 
 export function getRedisGeneration(): number {
   return redisGeneration;
@@ -19,7 +21,7 @@ export function getRedis(): IORedis {
     return redis;
   }
 
-  redis = new IORedis(env.REDIS_URL, {
+  const client = new IORedis(env.REDIS_URL, {
     lazyConnect: true,
     maxRetriesPerRequest: 1,
     enableOfflineQueue: false,
@@ -27,12 +29,19 @@ export function getRedis(): IORedis {
     reconnectOnError: () => false
   });
 
-  // ioredis emits "error" on failed connect; without a listener Node prints "Unhandled error event".
-  redis.on("error", () => {
-    /* handled in pingRedis catch / disconnect; swallow to avoid process warning */
+  // ioredis emits "error" on failed connect and on lost connections. Retries are off, so a
+  // runtime error must switch to the fallback here: the recovery loop only probes while
+  // redisSkipped is set, and without this a disconnect after startup is never recovered.
+  client.on("error", (error) => {
+    if (redis === client) {
+      // A failed recovery probe must not bump the generation: that would reset rate-limit
+      // counters every probe interval for as long as Redis stays down.
+      markRedisUnavailable(error, !redisProbing);
+    }
   });
+  redis = client;
 
-  return redis;
+  return client;
 }
 
 function redisErrorHint(error: unknown): string {
@@ -89,7 +98,13 @@ export function startRedisRecovery(options: {
     void (async () => {
       try {
         redisSkipped = false;
-        const ok = await pingRedis({ bumpGenerationOnFailure: false });
+        redisProbing = true;
+        let ok: boolean;
+        try {
+          ok = await pingRedis({ bumpGenerationOnFailure: false });
+        } finally {
+          redisProbing = false;
+        }
         if (!ok) return;
         redisGeneration += 1;
         logger.info("Redis recovered; re-enabling Redis-backed services");

@@ -109,12 +109,17 @@ async function flushToDisk(): Promise<void> {
     } catch {
       /* tmp file may not exist */
     }
+    // Callers must learn the change is not durable: a use that is only in memory is lost on
+    // restart, which would let a single-use invite mint another account.
+    throw err;
   }
 }
 
 function queueFlush(): Promise<void> {
-  writeQueue = writeQueue.then(flushToDisk, flushToDisk);
-  return writeQueue;
+  // Each flush runs after the previous one settles, whether it succeeded or not.
+  const next = writeQueue.then(flushToDisk, flushToDisk);
+  writeQueue = next.catch(() => undefined);
+  return next;
 }
 
 function newCode(): string {
@@ -154,7 +159,12 @@ export async function createInviteCode(req: CreateInviteRequest): Promise<Invite
     label: req.label ?? ""
   };
   codes.set(code, row);
-  await queueFlush();
+  try {
+    await queueFlush();
+  } catch (err) {
+    codes.delete(code);
+    throw err;
+  }
   return row;
 }
 
@@ -182,8 +192,30 @@ export async function consumeInviteCode(rawCode: string): Promise<ConsumeResult>
     return { ok: false, reason: "exhausted" };
   }
   row.uses += 1;
-  await queueFlush();
+  try {
+    await queueFlush();
+  } catch (err) {
+    row.uses -= 1;
+    throw err;
+  }
   return { ok: true, role: row.role };
+}
+
+/**
+ * Give back one use taken by consumeInviteCode when the signup it was for did not create an
+ * account, so a mistyped or conflicting email does not burn a single-use invite. Best effort:
+ * if the write fails the persisted count stays higher, which errs on the side of not
+ * over-issuing, so the failure is logged rather than thrown.
+ */
+export async function releaseInviteCode(rawCode: string): Promise<void> {
+  const row = codes.get(rawCode.trim().toLowerCase());
+  if (!row || row.uses <= 0) return;
+  row.uses -= 1;
+  try {
+    await queueFlush();
+  } catch (err) {
+    logger.warn({ err }, "Could not persist released invite use.");
+  }
 }
 
 export function listInviteCodes(): InviteCode[] {
@@ -195,9 +227,14 @@ export async function revokeInviteCode(rawCode: string): Promise<boolean> {
     await loadInviteCodes();
   }
   const code = rawCode.trim().toLowerCase();
-  const removed = codes.delete(code);
-  if (removed) {
+  const row = codes.get(code);
+  if (!row) return false;
+  codes.delete(code);
+  try {
     await queueFlush();
+  } catch (err) {
+    codes.set(code, row);
+    throw err;
   }
-  return removed;
+  return true;
 }
