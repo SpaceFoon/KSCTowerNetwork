@@ -30,15 +30,49 @@ import {
   encodeLiveUdpPacket
 } from "./protocol";
 import { getActiveAircraftSnapshot } from "./snapshotCache";
+import { telemetrySchema, telemetryStatusSchema } from "../validation/telemetrySchemas";
 
-const VALID_STATUS_STATES = new Set<TelemetryStatusEvent["state"]>([
-  "beacon_off",
-  "paused",
-  "scene_left",
-  "warp",
-  "vessel_dead",
-  "vessel_switch"
-]);
+/**
+ * UDP does not preserve order, so a delayed or duplicated packet must not replace newer
+ * state. Packets from one sender stream are ordered by the timestamp the sender stamps on
+ * them. A sender clock far from ours cannot be ordered against, so those packets are accepted.
+ */
+const SENDER_CLOCK_TRUST_MS = 30_000;
+const lastSenderTimestampByStream = new Map<string, number>();
+
+function isStaleSenderPacket(streamKey: string, senderTimestampMs: number): boolean {
+  const now = Date.now();
+  if (Math.abs(now - senderTimestampMs) > SENDER_CLOCK_TRUST_MS) return false;
+  const last = lastSenderTimestampByStream.get(streamKey);
+  if (last !== undefined && Math.abs(now - last) <= SENDER_CLOCK_TRUST_MS && senderTimestampMs <= last) {
+    return true;
+  }
+  lastSenderTimestampByStream.set(streamKey, senderTimestampMs);
+  return false;
+}
+
+/**
+ * A ghost snapshot is much larger than the query that asks for it, so the same source address
+ * may not ask for one more than a few times a second.
+ */
+const GHOST_QUERY_WINDOW_MS = 1000;
+const GHOST_QUERY_LIMIT_PER_SOURCE = 4;
+const ghostQueryBySource = new Map<string, { windowStartMs: number; count: number }>();
+
+function allowGhostQuery(address: string): boolean {
+  const now = Date.now();
+  const bucket = ghostQueryBySource.get(address);
+  if (!bucket || now - bucket.windowStartMs >= GHOST_QUERY_WINDOW_MS) {
+    ghostQueryBySource.set(address, { windowStartMs: now, count: 1 });
+    return true;
+  }
+  if (bucket.count >= GHOST_QUERY_LIMIT_PER_SOURCE) return false;
+  bucket.count += 1;
+  return true;
+}
+
+/** Exposed for unit tests only. */
+export const __udpTestHooks = { isStaleSenderPacket, allowGhostQuery };
 
 type TelemetryEffectJob = {
   sessionId: string;
@@ -227,6 +261,10 @@ export function startUdpLiveWorker(): () => void {
 
     try {
       if (packet.type === "ghost.query") {
+        if (!allowGhostQuery(rinfo.address)) {
+          incLiveMetric("udp_packets_dropped");
+          return;
+        }
         const data = await getActiveAircraftSnapshot(auth.userId);
         const out = encodeLiveUdpPacket({
           version: LIVE_UDP_PROTOCOL_VERSION,
@@ -238,6 +276,12 @@ export function startUdpLiveWorker(): () => void {
           token: "",
           payload: encodeLiveUdpJson(data)
         });
+        // Bigger than one datagram: the client gets it over HTTP instead, and a spoofed
+        // source never receives an oversized reflection.
+        if (out.length > env.LIVE_UDP_MAX_PACKET_BYTES) {
+          replyError("Snapshot too large for UDP; query over HTTP");
+          return;
+        }
         socket.send(out, rinfo.port, rinfo.address);
         incLiveMetric("udp_replies_out");
         return;
@@ -266,7 +310,19 @@ export function startUdpLiveWorker(): () => void {
           return;
         }
 
-        const telemetry = decodeLiveUdpJson<unknown>(packet.payload);
+        // Same schema as the HTTP route: an unvalidated sample would otherwise be persisted and
+        // read back by the map, scoring and UI code, which all assume the declared shape.
+        const telemetryParsed = telemetrySchema.safeParse(decodeLiveUdpJson<unknown>(packet.payload));
+        if (!telemetryParsed.success) {
+          incLiveMetric("udp_packets_dropped");
+          replyError("Invalid telemetry sample");
+          return;
+        }
+        if (isStaleSenderPacket(`telemetry.sample|${packet.sessionId}|${auth.userId}`, packet.timestampMs)) {
+          incLiveMetric("udp_packets_dropped");
+          return;
+        }
+        const telemetry = telemetryParsed.data;
         const prevSample = existing.telemetry;
         const session = await setTelemetry(packet.sessionId, telemetry as Parameters<typeof setTelemetry>[1]);
         if (!session) {
@@ -328,15 +384,24 @@ export function startUdpLiveWorker(): () => void {
           replyError("Only pilot can publish telemetry status for this session");
           return;
         }
-        const parsed = decodeLiveUdpJson<{ state?: string; message?: string }>(packet.payload);
-        if (!parsed.state || !VALID_STATUS_STATES.has(parsed.state as TelemetryStatusEvent["state"])) {
-          replyError("Invalid telemetry status state");
+        if (!allowTelemetryRate(auth.userId)) {
+          incLiveMetric("udp_packets_dropped");
+          return;
+        }
+        const statusParsed = telemetryStatusSchema.safeParse(decodeLiveUdpJson<unknown>(packet.payload));
+        if (!statusParsed.success) {
+          incLiveMetric("udp_packets_dropped");
+          replyError("Invalid telemetry status");
+          return;
+        }
+        if (isStaleSenderPacket(`telemetry.status|${packet.sessionId}|${auth.userId}`, packet.timestampMs)) {
+          incLiveMetric("udp_packets_dropped");
           return;
         }
         const event: TelemetryStatusEvent = {
-          state: parsed.state as TelemetryStatusEvent["state"],
+          state: statusParsed.data.state,
           at: new Date().toISOString(),
-          message: parsed.message
+          message: statusParsed.data.message
         };
         const session = await setTelemetryStatus(packet.sessionId, event);
         if (!session) {

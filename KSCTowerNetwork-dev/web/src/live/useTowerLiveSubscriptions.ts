@@ -1,8 +1,24 @@
 import { useEffect, useState } from "react";
 import { getApiBase, getStoredToken } from "../api/client";
+import { fetchSiteInfo } from "../api/site";
 import { queryClient, queryKeys } from "../query/client";
 
 type ConnectionListener = (connected: boolean) => void;
+
+const DEFAULT_LIVE_WS_PATH = "/v1/live/ws";
+/** Endpoint path the server reports in /site/info; cached once a fetch succeeds. */
+let liveWsPath: string | null = null;
+
+function loadLiveWsPath(): Promise<string> {
+  if (liveWsPath) return Promise.resolve(liveWsPath);
+  // A failed lookup is not cached, so the next open asks again.
+  return fetchSiteInfo()
+    .then((info) => {
+      liveWsPath = info.live?.wsPath || DEFAULT_LIVE_WS_PATH;
+      return liveWsPath;
+    })
+    .catch(() => DEFAULT_LIVE_WS_PATH);
+}
 
 /**
  * One socket, one session: the backend only pushes `session.*` / `hullcam.meta`
@@ -14,6 +30,8 @@ type ConnectionListener = (connected: boolean) => void;
  */
 type SharedLiveSocket = {
   socket: WebSocket | null;
+  /** Token for a socket whose endpoint path is still being looked up; null when none is pending. */
+  pendingOpen: object | null;
   refs: number;
   /** Retain counts per session id ("" = global topics only). */
   sessionRefs: Map<string, number>;
@@ -24,6 +42,7 @@ type SharedLiveSocket = {
 
 const shared: SharedLiveSocket = {
   socket: null,
+  pendingOpen: null,
   refs: 0,
   sessionRefs: new Map(),
   sessionId: "",
@@ -42,7 +61,7 @@ function notifyConnected(next: boolean): void {
   }
 }
 
-function resolveWsUrl(sessionId: string): string {
+function resolveWsUrl(sessionId: string, path: string): string {
   const base = getApiBase();
   const token = getStoredToken().trim();
   let origin: string;
@@ -52,7 +71,7 @@ function resolveWsUrl(sessionId: string): string {
   } else {
     origin = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`;
   }
-  const url = new URL("/v1/live/ws", origin);
+  const url = new URL(path, origin);
   if (token) url.searchParams.set("token", token);
   if (sessionId.trim()) url.searchParams.set("sessionId", sessionId.trim());
   return url.toString();
@@ -90,6 +109,7 @@ function handleSnapshotMessage(message: unknown): void {
 }
 
 function closeSocket(): void {
+  shared.pendingOpen = null;
   const sock = shared.socket;
   if (!sock) return;
   shared.socket = null;
@@ -103,9 +123,22 @@ function closeSocket(): void {
 
 function openSocket(sessionId: string): void {
   closeSocket();
-  const socket = new WebSocket(resolveWsUrl(sessionId));
+  const sid = sessionId.trim();
+  shared.sessionId = sid;
+  // The endpoint path comes from the server; connect once it is known. The token lets a
+  // close or a newer open cancel this attempt before it creates a socket.
+  const attempt = {};
+  shared.pendingOpen = attempt;
+  void loadLiveWsPath().then((path) => {
+    if (shared.pendingOpen !== attempt) return;
+    shared.pendingOpen = null;
+    connectSocket(sid, path);
+  });
+}
+
+function connectSocket(sessionId: string, path: string): void {
+  const socket = new WebSocket(resolveWsUrl(sessionId, path));
   shared.socket = socket;
-  shared.sessionId = sessionId.trim();
   socket.addEventListener("open", () => {
     notifyConnected(true);
   });
@@ -133,7 +166,7 @@ function retainSocket(sessionId: string): void {
   shared.refs += 1;
   const sid = sessionId.trim();
   shared.sessionRefs.set(sid, (shared.sessionRefs.get(sid) ?? 0) + 1);
-  if (!shared.socket) {
+  if (!shared.socket && !shared.pendingOpen) {
     openSocket(sid);
     return;
   }

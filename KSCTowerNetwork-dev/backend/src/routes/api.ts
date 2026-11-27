@@ -1,6 +1,7 @@
 import express, { Router, type Request, type Response } from "express";
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
+import { telemetrySchema, telemetryStatusSchema } from "../validation/telemetrySchemas";
 import { safeStr } from "../lib/safeText";
 import { logger } from "../lib/logger";
 import { readLogEntries, type ServerLogLevel } from "../lib/serverLogBuffer";
@@ -12,6 +13,7 @@ import {
   requireAdmin,
   requireAuth,
   requireCapability,
+  requireNotBanned,
   requireRole,
   userRoleFlags
 } from "../middleware/auth";
@@ -60,6 +62,7 @@ import {
   consumeInviteCode,
   createInviteCode,
   listInviteCodes,
+  releaseInviteCode,
   revokeInviteCode
 } from "../services/inviteCodes";
 import {
@@ -72,7 +75,7 @@ import {
   appendLobbyMessage,
   addReport,
   appendSessionMessage,
-  assignTower,
+  claimVacantTower,
   boothLiveKitRoomName,
   boothThreadId,
   awardEvent,
@@ -268,321 +271,6 @@ const renameRoomSchema = z.object({
   // Pass null (or empty string) to clear the name and revert the lobby card to
   // `tower-{sessionId}`. Anything else is sanitized + 80-char-capped server-side.
   name: z.string().max(200).nullable()
-});
-
-// Helper: every numeric telemetry field must be a real, finite number.
-// Without `.finite()` Zod accepts Infinity/-Infinity/NaN, which then poison
-// downstream scoring, cadence math, and JSON.stringify (NaN -> null).
-const finiteNum = () => z.number().finite();
-const finiteInt = () => z.number().int().finite();
-
-// Reused sub-schemas for nested telemetry blocks. Each is `.optional()` at the
-// call site so the plugin can omit blocks that don't apply to the current
-// vessel (e.g. `far` is omitted when FAR isn't installed; `target` is `null`
-// when no vessel target is set).
-const resourceSchema = z.object({
-  current: finiteNum().nonnegative(),
-  max: finiteNum().nonnegative()
-});
-
-const countSchema = (extraKeys: Record<string, z.ZodTypeAny> = {}) =>
-  z
-    .object({
-      ...extraKeys
-    })
-    .catchall(finiteInt().nonnegative().max(10_000));
-
-const telemetrySchema = z.object({
-  craftName: z.string().max(120).optional(),
-  pilotName: z.string().max(120).optional(),
-  /** Session ATC callsign; server prefers the session row when present. */
-  callsign: z.string().max(64).optional(),
-  /** KSP vessel classification (e.g. Ship, Plane, Probe). */
-  craftType: z.string().max(64).optional(),
-  /** Map marker shape: plane, landed wheel craft (rover), or rocket/default. */
-  craftMapIcon: z.enum(["plane", "rover", "rocket"]).optional(),
-  /**
-   * Player-chosen "stock craft" silhouette key the in-game ghost-fleet renders as the
-   * outward livery for this pilot. Free-form short string (the plugin maintains the
-   * canonical roster); empty = let the receiver auto-detect from `craftMapIcon`.
-   */
-  ghostCraftKey: z.string().max(32).optional(),
-  /**
-   * Pilot opted out of the ghost-fleet presence layer (the radio panel's GHO switch).
-   * When true, `/v1/tower/active-aircraft` strips this session from the response so the
-   * pilot doesn't render in other clients' tower views. The controller's strip and
-   * scoring still see telemetry — only the cosmetic "see other players" feed is muted.
-   */
-  ghostOptOut: z.boolean().optional(),
-  /** Stable per-vessel id from KSP. Survives in-flight renames; correlation key for strips. */
-  persistentId: z.string().max(40).optional(),
-  universalTime: finiteNum().optional(),
-  /** Mission Elapsed Time (seconds since launch on this vessel). */
-  metSeconds: finiteNum().nonnegative().optional(),
-  bodyName: z.string().max(64).optional(),
-  situation: z.string().max(64).optional(),
-  /** KSP biome under the vessel (e.g. "Shores", "Highlands"). Empty when the body has no biome map. */
-  biome: z.string().max(120).optional(),
-  lat: finiteNum().min(-90).max(90).optional(),
-  lon: finiteNum().min(-360).max(360).optional(),
-  radarAlt: finiteNum().optional(),
-  aslAlt: finiteNum().optional(),
-  surfaceSpeed: finiteNum().optional(),
-  verticalSpeed: finiteNum().optional(),
-  /** Density-corrected indicated airspeed (m/s). Tower clearances use this, not surfaceSpeed. */
-  indicatedAirSpeed: finiteNum().nonnegative().optional(),
-  /** Mach number from stock atmospheric model. */
-  mach: finiteNum().nonnegative().optional(),
-  heading: finiteNum().min(-360).max(720).optional(),
-  /** Ground track (deg CW from north); nose heading is `heading`. */
-  surfaceTrack: finiteNum().min(-360).max(720).optional(),
-  pitch: finiteNum().min(-180).max(180).optional(),
-  roll: finiteNum().min(-360).max(360).optional(),
-  aoa: finiteNum().min(-180).max(180).optional(),
-  throttle: finiteNum().min(0).max(1).optional(),
-  /** Pilot-set trim, each axis -1..1. */
-  trim: z
-    .object({
-      pitch: finiteNum().min(-1).max(1),
-      roll: finiteNum().min(-1).max(1),
-      yaw: finiteNum().min(-1).max(1)
-    })
-    .optional(),
-  // --- Action groups: legacy flat booleans + the missing pieces ---
-  gearDown: z.boolean().optional(),
-  brakes: z.boolean().optional(),
-  lights: z.boolean().optional(),
-  rcs: z.boolean().optional(),
-  sas: z.boolean().optional(),
-  abort: z.boolean().optional(),
-  stage: z.boolean().optional(),
-  /** Custom action groups AG1..AG10, in order. Always exactly 10 entries when present. */
-  customGroups: z.array(z.boolean()).length(10).optional(),
-  /** Stock SAS mode (e.g. StabilityAssist, Prograde, Retrograde, Target, Maneuver). */
-  sasMode: z.string().max(32).optional(),
-  apoapsis: finiteNum().optional(),
-  periapsis: finiteNum().optional(),
-  gLoad: finiteNum().optional(),
-  /** Peak gLoad observed since this flight started (publisher-side high-water mark). */
-  gLoadMax: finiteNum().optional(),
-  wetMass: finiteNum().nonnegative().optional(),
-  dryMass: finiteNum().nonnegative().optional(),
-  crewCurrent: finiteInt().nonnegative().max(1024).optional(),
-  crewCapacity: finiteInt().nonnegative().max(1024).optional(),
-  crewNames: z.array(z.string().max(120)).max(64).optional(),
-  /** Total parts on the vessel right now. Consumer detects deltas (lost parts → damage event). */
-  partsCount: finiteInt().nonnegative().max(10_000).optional(),
-  /**
-   * True when any part is above 85% of its operational maxTemp. Drives
-   * "OVERHEAT" caution. Kept for back-compat with old plugin builds; new
-   * builds also populate `temperature` below, and consumers should prefer
-   * deriving overheat from `max(temperature.*MaxRatio) > 0.85`.
-   */
-  overheating: z.boolean().optional(),
-  /**
-   * Structured temperature block (see COCKPIT_INSTRUMENTS_PLAN.md §2). Three
-   * max-ratio buckets across the whole airframe (0..1+ — clamping to 1.0 is a
-   * UI concern, not a wire concern; reentry can briefly read >1), the ambient
-   * external/atmospheric temperatures in Celsius, and an optional hot-part
-   * callout for the controller's "HOT: <name>" caption when something is
-   * above the 0.70 warning threshold. Absent from old plugin builds.
-   */
-  temperature: z
-    .object({
-      engineMaxRatio: finiteNum().nonnegative(),
-      skinMaxRatio: finiteNum().nonnegative(),
-      internalMaxRatio: finiteNum().nonnegative(),
-      externalC: finiteNum(),
-      atmosphericC: finiteNum(),
-      hotPart: z
-        .object({
-          name: z.string().max(120),
-          ratio: finiteNum().nonnegative(),
-          kind: z.enum(["skin", "internal", "engine"])
-        })
-        .nullable()
-    })
-    .optional(),
-  /** True when a docking node on this vessel is in any Docked* / PreAttached state. */
-  docked: z.boolean().optional(),
-  /** True when the active vessel is a kerbal on EVA (its own vessel in stock KSP). */
-  isEva: z.boolean().optional(),
-  /** EVA propellant remaining as a 0..1 ratio. Only meaningful when isEva. */
-  evaPropellant: finiteNum().min(0).max(1).optional(),
-  /** Engines block: stock ModuleEngines aggregates across the whole vessel. */
-  engines: z
-    .object({
-      count: finiteInt().nonnegative().max(1024),
-      lit: finiteInt().nonnegative().max(1024),
-      flameouts: finiteInt().nonnegative().max(1024),
-      totalThrustKn: finiteNum().nonnegative(),
-      twr: finiteNum().nonnegative()
-    })
-    .optional(),
-  /**
-   * Resources the vessel currently carries. Keys are camelCase for stock
-   * resources (liquidFuel, oxidizer, monoPropellant, electricCharge, intakeAir,
-   * solidFuel, xenonGas, ablator, ore, evaPropellant). Modded resources fall
-   * through under their stock-style name. We don't lock the keyset — letting
-   * unknown mods publish "Karbonite" etc. is more useful than 400-erroring on
-   * them.
-   */
-  resources: z.record(z.string().max(64), resourceSchema).optional(),
-  /** Parachute counts across the vessel. */
-  parachutes: countSchema().optional(),
-  /** Cargo + service bays. `open` includes any bay that isn't ClosedAndLocked. */
-  bays: countSchema().optional(),
-  solarPanels: countSchema().optional(),
-  antennas: countSchema().optional(),
-  radiators: countSchema().optional(),
-  /** Stock airbrakes only (ModuleAeroSurface excluding ModuleControlSurface). */
-  airbrakes: countSchema().optional(),
-  /** FAR / Ferram Aerospace Research surface state. Omitted entirely when FAR isn't installed. */
-  far: z
-    .object({
-      available: z.boolean(),
-      flap: finiteInt().min(0).max(3),
-      spoiler: z.boolean()
-    })
-    .optional(),
-  /**
-   * Currently selected vessel target (if any). `null` means no target set OR
-   * target is a body / waypoint (we deliberately ignore those for ATC use).
-   */
-  target: z
-    .object({
-      name: z.string().max(120),
-      distanceM: finiteNum().nonnegative(),
-      bearingDeg: finiteNum().min(-360).max(720),
-      closureRateMs: finiteNum()
-    })
-    .nullable()
-    .optional(),
-  /**
-   * Which of the pilot's optional feeds are currently live. Each field has a
-   * single source of truth in the plugin — the publisher just snapshots them
-   * each tick so the tower can render a "feeds" pill without polling separate
-   * endpoints. `beacon` is always `true` when present because the beacon-off
-   * case suppresses the telemetry POST entirely (see telemetryStatusSchema's
-   * `beacon_off`). `hullcam.enabled` is the pilot's master toggle while
-   * `hullcam.available` reflects whether JRTI's local listener is responding.
-   */
-  subsystems: z
-    .object({
-      beacon: z.boolean(),
-      kosStream: z.boolean(),
-      hullcam: z.object({
-        enabled: z.boolean(),
-        available: z.boolean(),
-        cameraCount: finiteInt().nonnegative().max(64)
-      }),
-      voiceBridge: z.boolean()
-    })
-    .optional(),
-  radiation: finiteNum().optional(),
-  radiationAvailable: z.boolean().optional(),
-  /**
-   * Kerbalism Phase 4 (KERBALISM_TELEMETRY_PLAN.md) brought forward onto the
-   * Tower Desk: life-support resource burn-down, per-crew radiation dose, and
-   * storm window. Top-level capability flag stays even when the namespaced
-   * block is absent so consumers can render "Kerbalism not installed" without
-   * a probe.
-   */
-  kerbalismAvailable: z.boolean().optional(),
-  kerbalism: z
-    .object({
-      lifeSupport: z
-        .record(
-          z.string().max(64),
-          z.object({
-            amount: finiteNum().nonnegative(),
-            max: finiteNum().nonnegative(),
-            ratePerSec: finiteNum(),
-            // null when net production is non-negative (resource isn't depleting).
-            secondsRemaining: finiteNum().nonnegative().nullable(),
-            daysRemaining: finiteNum().nonnegative().nullable()
-          })
-        )
-        .optional(),
-      crew: z
-        .array(
-          z.object({
-            name: z.string().max(120),
-            doseRad: finiteNum()
-          })
-        )
-        .max(64)
-        .optional(),
-      storm: z
-        .object({
-          incoming: z.boolean(),
-          durationSec: finiteNum().nonnegative().optional()
-        })
-        .optional()
-    })
-    .optional(),
-  /**
-   * Per-kerbal stock stats. Trait/level/courage/stupidity/veteran/badass.
-   * Always emitted by new plugin builds; older builds omit and the UI falls
-   * back to `crewNames`.
-   */
-  crewStats: z
-    .array(
-      z.object({
-        name: z.string().max(120),
-        trait: z.string().max(64),
-        type: z.string().max(32),
-        experienceLevel: finiteInt().min(0).max(10),
-        experience: finiteNum().nonnegative(),
-        courage: finiteNum().min(0).max(1),
-        stupidity: finiteNum().min(0).max(1),
-        isVeteran: z.boolean(),
-        isBadass: z.boolean()
-      })
-    )
-    .max(64)
-    .optional(),
-  commNetAvailable: z.boolean().optional(),
-  commLink: z.boolean().optional(),
-  commLinkHome: z.boolean().optional(),
-  commSignal: finiteNum().min(0).max(1).optional(),
-  targetRunway: z.string().max(64).optional(),
-  /** Wall-clock sample time (UTC epoch ms). Additive presentation aid. */
-  sampleUnixMs: finiteNum().nonnegative().optional(),
-  smoothedPositionValid: z.boolean().optional(),
-  smoothedLat: finiteNum().min(-90).max(90).optional(),
-  smoothedLon: finiteNum().min(-360).max(360).optional(),
-  smoothedAslAlt: finiteNum().optional(),
-  /** Surface-relative velocity in the local ENU frame (m/s). */
-  srfVelNorth: finiteNum().optional(),
-  srfVelEast: finiteNum().optional(),
-  srfVelUp: finiteNum().optional(),
-  /** Kerbin-only: great-circle distance to nearest KSC-sector aerodrome ref (m). */
-  distKSC: finiteNum().nonnegative().optional(),
-  bearingKSC: finiteNum().min(-360).max(720).optional(),
-  /** Degrees off the active runway inbound heading (0..180). */
-  alignErr: finiteNum().min(0).max(180).optional(),
-  activeRunway: z.string().max(8).optional(),
-  kscAerodrome: z.string().max(8).optional(),
-  onApproach: z.boolean().optional(),
-  landing: z.boolean().optional(),
-  flightPhase: z.string().max(16).optional(),
-  touchdownEtaSec: finiteNum().nonnegative().optional(),
-  fuelLow: z.boolean().optional(),
-  radioFreqMhz: finiteNum().min(108).max(137).optional(),
-  radioPtt: z.boolean().optional()
-});
-
-/**
- * Plugin-pushed "going dark" reason. The plugin posts this whenever it's choosing
- * not to send a telemetry sample so the controller's UI can stop pretending the
- * frozen last-sample is fresh data. `live` is implicit (set on every successful
- * `/telemetry` POST) and `stale` is derived server-side, so neither is accepted
- * here — pushing them would be a category error.
- */
-const telemetryStatusSchema = z.object({
-  state: z.enum(["beacon_off", "paused", "scene_left", "warp", "vessel_dead", "vessel_switch"]),
-  message: z.string().max(200).optional()
 });
 
 /**
@@ -920,6 +608,11 @@ apiRouter.get("/site/info", (_req, res) => {
       inviteRequired: env.REGISTRATION_MODE === "invite_only",
       inviteAccepted: env.REGISTRATION_MODE === "invite_only" || env.REGISTRATION_MODE === "open_or_invite",
       passwordMinLength: 8
+    },
+    // Where the browser should open its live WebSocket. Follows LIVE_WS_PATH so a deployment
+    // that moves the endpoint keeps live updates instead of silently falling back to polling.
+    live: {
+      wsPath: env.LIVE_WS_PATH.startsWith("/") ? env.LIVE_WS_PATH : `/${env.LIVE_WS_PATH}`
     }
   });
 });
@@ -1196,6 +889,7 @@ apiRouter.post("/auth/register", authLimiter, async (req, res) => {
   // been rejected at code-creation time. The widening is purely so the
   // assignment `resolvedRole = consume.role` typechecks.
   let resolvedRole: Role = env.REGISTRATION_DEFAULT_ROLE;
+  let inviteCodeUsed = false;
   if (inviteProvided) {
     if (mode === "open") {
       res.status(400).json({ error: "Invite codes are not enabled on this server.", reason: "invite_not_accepted" });
@@ -1207,7 +901,18 @@ apiRouter.post("/auth/register", authLimiter, async (req, res) => {
       res.status(409).json({ error: "An account with that email already exists.", reason: "email_taken" });
       return;
     }
-    const consume = await consumeInviteCode(parsed.data.inviteCode!);
+    let consume: Awaited<ReturnType<typeof consumeInviteCode>>;
+    try {
+      consume = await consumeInviteCode(parsed.data.inviteCode!);
+    } catch (error) {
+      // The use could not be recorded durably, so no account may be minted on this invite.
+      logger.error({ err: error }, "Invite redemption could not be persisted; refusing signup");
+      res.status(503).json({
+        error: "Invite redemption could not be recorded. Try again shortly.",
+        reason: "invite_store_unavailable"
+      });
+      return;
+    }
     if (!consume.ok) {
       res.status(400).json({
         error:
@@ -1220,6 +925,7 @@ apiRouter.post("/auth/register", authLimiter, async (req, res) => {
       });
       return;
     }
+    inviteCodeUsed = true;
     if (consume.role) {
       resolvedRole = consume.role;
     }
@@ -1231,8 +937,16 @@ apiRouter.post("/auth/register", authLimiter, async (req, res) => {
     displayName: resolveWebSessionDisplayName(parsed.data.email, pilotLabelFromAuthBody(parsed.data)!),
     role: resolvedRole
   };
-  const result = await registerUser(requested);
+  // An invite use is only kept when it minted an account; every other outcome gives it back.
+  const refundInvite = async (): Promise<void> => {
+    if (inviteCodeUsed) await releaseInviteCode(parsed.data.inviteCode!);
+  };
+  const result = await registerUser(requested).catch(async (error: unknown) => {
+    await refundInvite();
+    throw error;
+  });
   if (!result.ok) {
+    await refundInvite();
     res.status(409).json({ error: "An account with that email already exists.", reason: result.reason });
     return;
   }
@@ -1810,7 +1524,7 @@ apiRouter.post(
 // Rename the lobby's "Tower room". Pilot of the session, the assigned controller, or
 // any mod+ may rename. Pass body.name as a string to set, or `null` to clear (lobby UI
 // then renders `tower-{sessionId}` as a fallback). The LiveKit room name is unaffected.
-apiRouter.patch("/session/:sessionId", requireAuth, async (req, res) => {
+apiRouter.patch("/session/:sessionId", requireAuth, requireNotBanned(), async (req, res) => {
   const sessionId = String(req.params.sessionId);
   const parsed = renameRoomSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -1954,7 +1668,7 @@ apiRouter.post("/session/:sessionId/leave", requireAuth, async (req, res) => {
 // / telemetry survive for audit, but `/v1/lobby/rooms` filters it out and
 // `/v1/me/active-room` stops returning it for everyone (pilot, controller,
 // spectators), so all clients get punted back to the lobby on the next poll.
-apiRouter.delete("/session/:sessionId", requireAuth, async (req, res) => {
+apiRouter.delete("/session/:sessionId", requireAuth, requireNotBanned(), async (req, res) => {
   const sessionId = String(req.params.sessionId);
   const callerUserId = req.auth!.userId;
 
@@ -2861,7 +2575,7 @@ apiRouter.get("/lobby/rooms", requireAuth, async (req, res) => {
   res.json({ ok: true, rooms });
 });
 
-apiRouter.post("/session/:sessionId/next-tower", requireAuth, async (req, res) => {
+apiRouter.post("/session/:sessionId/next-tower", requireAuth, requireNotBanned(), async (req, res) => {
   const sessionId = String(req.params.sessionId);
   const existing = await getSession(sessionId);
   if (!existing) {
@@ -2916,7 +2630,7 @@ const releaseTowerSchema = z.object({
   assignNext: z.boolean().optional()
 });
 
-apiRouter.post("/session/:sessionId/release-tower", requireAuth, async (req, res) => {
+apiRouter.post("/session/:sessionId/release-tower", requireAuth, requireNotBanned(), async (req, res) => {
   const sessionId = String(req.params.sessionId);
   const parsed = releaseTowerSchema.safeParse(req.body ?? {});
   if (!parsed.success) {
@@ -3069,7 +2783,17 @@ apiRouter.post(
       return;
     }
 
-    let session = await assignTower(sessionId, callerUserId);
+    // Re-checked inside claimVacantTower: the seat may have been taken since the check above.
+    const claim = await claimVacantTower(sessionId, callerUserId);
+    if (!claim.ok) {
+      res.status(409).json({
+        error: "Tower seat is already taken",
+        reason: "seat_taken",
+        assignedTowerUserId: claim.assignedTowerUserId
+      });
+      return;
+    }
+    let session = claim.session;
     if (isSpectatorOfThisRoom) {
       session = await removeSessionSpectator(sessionId, callerUserId);
     }
@@ -3089,7 +2813,7 @@ apiRouter.post(
   }
 );
 
-apiRouter.post("/session/:sessionId/block", requireAuth, async (req, res) => {
+apiRouter.post("/session/:sessionId/block", requireAuth, requireNotBanned(), async (req, res) => {
   const parsed = blockSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid block payload", details: parsed.error.flatten() });
@@ -3124,7 +2848,7 @@ apiRouter.post("/session/:sessionId/block", requireAuth, async (req, res) => {
   res.json({ ok: true, session });
 });
 
-apiRouter.post("/telemetry/:sessionId", requireAuth, telemetryLimiter, async (req, res) => {
+apiRouter.post("/telemetry/:sessionId", requireAuth, requireNotBanned(), telemetryLimiter, async (req, res) => {
   incLiveMetric("live_http_requests");
   const parsed = telemetrySchema.safeParse(req.body);
   if (!parsed.success) {
@@ -3252,7 +2976,7 @@ apiRouter.post("/telemetry/:sessionId", requireAuth, telemetryLimiter, async (re
  * case (rapid beacon toggling) the two endpoints share a hot path. Cleared
  * automatically on the next successful `/telemetry` POST — see `setTelemetry`.
  */
-apiRouter.post("/telemetry-status/:sessionId", requireAuth, telemetryLimiter, async (req, res) => {
+apiRouter.post("/telemetry-status/:sessionId", requireAuth, requireNotBanned(), telemetryLimiter, async (req, res) => {
   incLiveMetric("live_http_requests");
   const parsed = telemetryStatusSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -3305,11 +3029,14 @@ apiRouter.post("/telemetry-status/:sessionId", requireAuth, telemetryLimiter, as
 // global 1 MB JSON limit — observed payloads are ~1.2 MB. Mount a per-route parser at 4 MB so
 // the global cap stays tight for the chat/auth surface but the inventory POST still goes through.
 const WORLD_INVENTORY_JSON_PARSER = express.json({ limit: "4mb" });
+// Auth, the ban gate and the rate limit run before the body parser so an unauthenticated
+// caller cannot make the server buffer and parse a large payload.
 apiRouter.post(
   "/world-inventory/:sessionId",
-  WORLD_INVENTORY_JSON_PARSER,
   requireAuth,
+  requireNotBanned(),
   heavyPublishLimiter,
+  WORLD_INVENTORY_JSON_PARSER,
   async (req, res) => {
   const parsed = worldInventorySchema.safeParse(req.body);
   if (!parsed.success) {
@@ -3391,9 +3118,10 @@ const WORLD_MAPS_JSON_PARSER = express.json({ limit: "72mb" });
 
 apiRouter.post(
   "/world-maps/:sessionId",
-  WORLD_MAPS_JSON_PARSER,
   requireAuth,
+  requireNotBanned(),
   heavyPublishLimiter,
+  WORLD_MAPS_JSON_PARSER,
   async (req, res) => {
     const parsed = worldMapsSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -3605,6 +3333,7 @@ const cameraIdSchema = z
 apiRouter.post(
   "/hullcam/:sessionId/:cameraId",
   requireAuth,
+  requireNotBanned(),
   hullcamLimiter,
   HULLCAM_RAW_PARSER,
   async (req, res) => {
@@ -4432,6 +4161,17 @@ apiRouter.post("/admin/ban", requireAuth, requireRole("mod"), async (req, res) =
   if (isPerm && !roleAtLeast(callerRole, "supermod")) {
     res.status(403).json({ error: "Permanent bans require supermod", have: callerRole });
     return;
+  }
+  // A moderator cannot sanction a peer or a superior, even temporarily; only the owner can.
+  if (callerRole !== "owner") {
+    const targetAccess = await getUserAccess(parsed.data.userId);
+    if (roleAtLeast(targetAccess.role, callerRole)) {
+      res.status(403).json({
+        error: "Cannot ban a user whose role is equal to or above yours",
+        reason: "ban_target_outranks_caller"
+      });
+      return;
+    }
   }
 
   try {
@@ -5277,6 +5017,18 @@ apiRouter.post(
         return;
       }
     }
+    // Scores attach to this room's scorecard, so the target must be someone in it. Without
+    // this a controller could credit or debit any account and file the event under this room.
+    const scoreTargetInRoom =
+      parsed.data.targetUserId === session.pilotUserId ||
+      (session.assignedTowerUserId != null && parsed.data.targetUserId === session.assignedTowerUserId);
+    if (!scoreTargetInRoom) {
+      res.status(400).json({
+        error: "Score target must be the pilot or assigned controller of this session",
+        reason: "score_target_not_in_session"
+      });
+      return;
+    }
 
     const ev = await awardEvent({
       sessionId,
@@ -5612,20 +5364,9 @@ apiRouter.get(
  * Heartbeat: a `:ping` comment line every 25s keeps proxies (nginx/Cloudflare) from
  * dropping the long-lived connection.
  */
-apiRouter.get("/session/:sessionId/checklist/stream", async (req, res) => {
-  // Reuse the standard auth middleware on this manually-mounted route by invoking it
-  // directly. requireAuth + capability check use the same chain as every other route.
-  await new Promise<void>((resolve, reject) => {
-    requireAuth(req, res, (err) => (err ? reject(err) : resolve()));
-  }).catch(() => {
-    /* requireAuth already wrote a response */
-  });
-  if (res.headersSent) return;
-  await new Promise<void>((resolve, reject) => {
-    requireCapability("chat:session")(req, res, (err) => (err ? reject(err) : resolve()));
-  }).catch(() => {});
-  if (res.headersSent) return;
-
+// Auth and capability run as ordinary middleware: each either passes to the handler or
+// finishes the response, so the handler only runs for an authorized caller.
+apiRouter.get("/session/:sessionId/checklist/stream", requireAuth, requireCapability("chat:session"), async (req, res) => {
   const sessionId = String(req.params.sessionId);
   const session = await loadSessionIfAuthorized(req, res, sessionId);
   if (!session) return;
@@ -5647,14 +5388,14 @@ apiRouter.get("/session/:sessionId/checklist/stream", async (req, res) => {
   const heartbeat = setInterval(() => {
     res.write(`:ping ${Date.now()}\n\n`);
   }, 25_000);
-  req.on("close", () => {
+  // The response is the long-lived stream. The request's "close" fires when the request
+  // body finishes, which for an EventSource GET is immediately, so it must not drive cleanup.
+  let cleanedUp = false;
+  res.on("close", () => {
+    if (cleanedUp) return;
+    cleanedUp = true;
     clearInterval(heartbeat);
     unsubscribe();
-    try {
-      res.end();
-    } catch {
-      /* socket already closed */
-    }
   });
 });
 

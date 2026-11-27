@@ -35,6 +35,11 @@ export type SiteInfo = {
     inviteAccepted: boolean;
     passwordMinLength: number;
   };
+  /** Optional so an older server that omits it still works; the client falls back to the default path. */
+  live?: {
+    /** Path of the live WebSocket endpoint, e.g. "/v1/live/ws" (LIVE_WS_PATH). */
+    wsPath: string;
+  };
 };
 
 export async function fetchSiteInfo(): Promise<SiteInfo> {

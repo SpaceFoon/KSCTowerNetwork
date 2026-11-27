@@ -139,6 +139,7 @@ Key files:
 | `src/config/env.ts` | Zod schema + production guards (refuses to boot with `DEV_*` flags or default JWT secret in prod). |
 | `src/middleware/auth.ts` | Token verification, role/capability gates, IP-ban gate. |
 | `src/routes/api.ts` | All HTTP endpoints (~57 KB; one big router). |
+| `src/validation/telemetrySchemas.ts` | Zod schemas for telemetry samples and status, shared by the HTTP telemetry routes and the UDP worker. |
 | `src/services/repository.ts` | DB+Redis+in-memory repository (sessions, users, queues, bans, mutes, scoring, messages). The hub. |
 | `src/services/livekit.ts` | Token issuance, room lifecycle, kick, revoke publish. |
 | `src/services/pluginAuth.ts` | Code-exchange flow that hands KSP a `plugin_session` JWT. |

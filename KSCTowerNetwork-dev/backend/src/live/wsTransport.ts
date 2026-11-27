@@ -4,7 +4,7 @@ import { WebSocketServer, type WebSocket } from "ws";
 import { env } from "../config/env";
 import { logger } from "../lib/logger";
 import { authenticateAppBearerToken } from "../middleware/auth";
-import { getSession, getUserAccess, isOwnerImmuneId, roleAtLeast, type Role, type SessionRecord } from "../services/repository";
+import { getSession, getUserAccess, isIpBanned, isOwnerImmuneId, roleAtLeast, type Role, type SessionRecord } from "../services/repository";
 import { incLiveMetric, setLiveWsSubscribers } from "./metrics";
 import { subscribeLiveSnapshotBus } from "./liveSnapshotBus";
 import {
@@ -26,6 +26,7 @@ type LiveClient = {
   ip: string;
   accessCheckedAt: number;
   access: Awaited<ReturnType<typeof getUserAccess>> | null;
+  ipBanned: boolean;
 };
 
 function parseSocketParams(req: IncomingMessage): { token: string; sessionId: string } {
@@ -52,9 +53,11 @@ function sendJson(socket: WebSocket, payload: unknown): void {
 async function accessForLiveClient(client: LiveClient): Promise<Awaited<ReturnType<typeof getUserAccess>> | null> {
   if (!client.access || Date.now() - client.accessCheckedAt >= 1000) {
     client.access = await getUserAccess(client.userId);
+    client.ipBanned = await isIpBanned(client.ip);
     client.accessCheckedAt = Date.now();
   }
-  if (client.access.isBanned && !isOwnerImmuneId(client.userId)) {
+  // An IP ban applies to every identity from that address, as it does for HTTP requests.
+  if ((client.access.isBanned && !isOwnerImmuneId(client.userId)) || client.ipBanned) {
     try {
       client.socket.close(4003, "banned");
     } catch {
@@ -182,6 +185,12 @@ export function startWsLiveTransport(server: HttpServer): () => void {
         socket.close(4001, "unauthorized");
         return;
       }
+      // HTTP requests are refused by loadIpBan; the socket path must refuse the same addresses,
+      // or a banned address keeps the live feed with a token issued to another identity.
+      if (await isIpBanned(ip)) {
+        socket.close(4003, "banned");
+        return;
+      }
 
       const client: LiveClient = {
         socket,
@@ -189,7 +198,8 @@ export function startWsLiveTransport(server: HttpServer): () => void {
         sessionId,
         ip,
         accessCheckedAt: 0,
-        access: null
+        access: null,
+        ipBanned: false
       };
       clients.add(client);
       setLiveWsSubscribers(clients.size);
