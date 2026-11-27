@@ -39,7 +39,7 @@ concurrency: portfolio-media
 
 jobs:
   capture:
-    runs-on: [self-hosted, Linux, pc]
+    runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' || fromJSON('["self-hosted","Linux","pc"]') }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
