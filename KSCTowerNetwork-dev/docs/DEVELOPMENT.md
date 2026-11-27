@@ -287,10 +287,12 @@ The portfolio's Flightwall image (`tower-flightwall.jpg`, 1280x720) is rendered
 by CI and published without human review, so it shows only the preview's
 built-in sample traffic: fictional Kerbal pilots and craft, no backend, KSP,
 LiveKit, real server or real callsigns.
-`.github/workflows/portfolio-media.yml` runs on self-hosted Linux runners for
+`.github/workflows/portfolio-media.yml` runs on the self-hosted `pc` runner for
 pushes to `main` and pull requests that touch the web app or the capture
-scripts, and on demand. It uploads the `portfolio-media` artifact, which the
-portfolio's media puller imports.
+scripts, and on demand. It copies `tower-flightwall.jpg` to
+`$HOME/portfolio-media/KSCTowerNetwork/latest/` on that PC instead of uploading
+a GitHub artifact, and the portfolio's media puller reads it from there. A
+failed run keeps its render log in `$HOME/portfolio-media/KSCTowerNetwork/logs/`.
 
 To produce the same file locally (Linux, Docker and Node 24):
 

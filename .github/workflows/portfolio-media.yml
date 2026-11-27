@@ -1,8 +1,9 @@
 # Portfolio screenshot (see KSCTowerNetwork-dev/scripts/portfolio-media/capture.sh and
 # KSCTowerNetwork-dev/docs/DEVELOPMENT.md "Portfolio screenshot").
-# The portfolio imports the "portfolio-media" artifact and publishes it without review,
-# so it renders only the Flightwall preview's built-in sample traffic: no backend, KSP,
-# LiveKit, real server or real callsigns.
+# The image is copied to the disk of the PC running this job, under
+# $HOME/portfolio-media/<repo>/latest/, and the portfolio's media puller reads it from
+# there. It is published without review, so it renders only the Flightwall preview's
+# built-in sample traffic: no backend, KSP, LiveKit, real server or real callsigns.
 name: Portfolio media
 
 on:
@@ -38,7 +39,7 @@ concurrency: portfolio-media
 
 jobs:
   capture:
-    runs-on: [self-hosted, Linux]
+    runs-on: [self-hosted, Linux, pc]
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
@@ -54,10 +55,46 @@ jobs:
       - run: npm ci
         working-directory: KSCTowerNetwork-dev/scripts/portfolio-media
       - name: Render the Flightwall
-        run: bash KSCTowerNetwork-dev/scripts/portfolio-media/capture.sh "$RUNNER_TEMP/portfolio-media"
-      - uses: actions/upload-artifact@v7
-        with:
-          name: portfolio-media
-          path: ${{ runner.temp }}/portfolio-media/tower-flightwall.jpg
-          if-no-files-found: error
-          retention-days: 14
+        # Keep the render output in a log file too, so a failed run can be inspected.
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/portfolio-media-logs"
+          bash KSCTowerNetwork-dev/scripts/portfolio-media/capture.sh "$RUNNER_TEMP/portfolio-media" 2>&1 \
+            | tee "$RUNNER_TEMP/portfolio-media-logs/capture.log"
+      - name: Publish to this PC's disk
+        # Only code that has landed on main is published: the portfolio uses this folder
+        # without review, and a pull request's render must not replace it.
+        if: github.ref == 'refs/heads/main'
+        env:
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          set -euo pipefail
+          src="$RUNNER_TEMP/portfolio-media/tower-flightwall.jpg"
+          dest_root="$HOME/portfolio-media/$REPO_NAME"
+          mkdir -p "$dest_root"
+          # Build the new folder beside latest/ so the final rename stays on one filesystem.
+          tmp="$(mktemp -d "$dest_root/.latest-XXXXXX")"
+          trap 'rm -rf "$tmp"' EXIT
+          cp "$src" "$tmp/"
+          old=""
+          if [ -e "$dest_root/latest" ]; then
+            old="$(mktemp -u "$dest_root/.previous-XXXXXX")"
+            mv "$dest_root/latest" "$old"
+          fi
+          mv "$tmp" "$dest_root/latest"
+          if [ -n "$old" ]; then rm -rf "$old"; fi
+      - name: Keep logs from a failed run
+        if: failure()
+        env:
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          set -euo pipefail
+          dest="$HOME/portfolio-media/$REPO_NAME/logs"
+          name="capture-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.log"
+          mkdir -p "$dest"
+          log="$RUNNER_TEMP/portfolio-media-logs/capture.log"
+          if [ -f "$log" ]; then
+            cp "$log" "$dest/$name"
+          else
+            echo "No render log: the run failed before rendering started." > "$dest/$name"
+          fi
